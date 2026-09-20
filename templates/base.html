@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    {% load static %}
+    <title>
+      {% block title %}
+        Learning Banyan
+      {% endblock %}
+    </title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
+    <style>
+      :root {
+        --sn-navy: #003870;
+        --sn-ink: #053C74;
+        --sn-muted: #5A7A96;
+        --sn-line: #C8D8E8;
+        --sn-soft: #E9EEF2;
+        --sn-white: #ffffff;
+        --sn-accent: #1078B0;
+        --sn-accent-hover: #1880B8;
+        --sn-accent-soft: #D4E4F0;
+        --sn-violet: #004078;
+        --sn-card-shadow: 0 1px 2px rgba(0, 56, 112, 0.04), 0 8px 24px rgba(0, 56, 112, 0.08);
+        --sn-radius: 16px;
+        --sn-max: 1140px;
+        --font-sans: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --font-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      body {
+        font-family: var(--font-sans);
+        background: var(--sn-white);
+        color: var(--sn-ink);
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      a { color: inherit; }
+
+      /* ========== HEADER — fixed 3-zone layout (logo | links | actions) ========== */
+      header.site-header {
+        background: #ffffff;
+        border-bottom: 1px solid var(--sn-line);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        width: 100%;
+      }
+
+      .site-nav {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 0 1.25rem;
+        min-height: 104px;
+        height: 104px;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .nav-right {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-shrink: 0;
+        margin-left: auto;
+      }
+
+      .nav-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        text-decoration: none;
+        color: var(--sn-navy);
+        flex-shrink: 0;
+        min-width: 0;
+        z-index: 2;
+      }
+
+      .nav-brand img {
+        height: 88px;
+        width: 88px;
+        display: block;
+        object-fit: contain;
+        background: transparent;
+        flex-shrink: 0;
+      }
+
+      .nav-brand-text {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.1;
+      }
+
+      .nav-brand-text strong {
+        font-size: 1.22rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        color: var(--sn-navy);
+        white-space: nowrap;
+      }
+
+      .nav-brand-text span { display: none; }
+
+      /* Center links — take remaining space, never cover actions */
+      .nav-center {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 0.1rem 0.3rem;
+        flex: 1 1 auto;
+        min-width: 0;
+        flex-wrap: nowrap;
+        overflow: hidden;
+      }
+
+      .nav-link {
+        display: inline-flex;
+        align-items: center;
+        color: #475569;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.875rem;
+        padding: 0.4rem 0.55rem;
+        border-radius: 0;
+        white-space: nowrap;
+        transition: color 0.15s ease;
+        border: none;
+        background: transparent !important;
+        position: relative;
+        line-height: 1.2;
+      }
+
+      .nav-link i { display: none; }
+
+      .nav-link:hover {
+        color: var(--sn-navy);
+        background: transparent !important;
+      }
+
+      .nav-link.is-active {
+        color: var(--sn-navy);
+        font-weight: 700;
+        background: transparent !important;
+      }
+
+      /* Underline only — no pill that collides with buttons */
+      .nav-link.is-active::after {
+        content: "";
+        position: absolute;
+        left: 0.45rem;
+        right: 0.45rem;
+        bottom: -2px;
+        height: 2px;
+        border-radius: 2px;
+        background: var(--sn-accent);
+      }
+
+      /* Right actions — fixed zone, never under links */
+      .nav-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        flex-shrink: 0;
+        margin-left: 0;
+        padding-left: 0.85rem;
+        border-left: 1px solid var(--sn-line);
+      }
+
+      .nav-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.82rem;
+        padding: 0.5rem 0.95rem;
+        border-radius: 999px;
+        white-space: nowrap;
+        transition: 0.15s ease;
+        border: 1.5px solid transparent;
+        line-height: 1.2;
+        flex-shrink: 0;
+      }
+
+      .nav-btn-ghost {
+        color: #475569;
+        background: transparent;
+      }
+      .nav-btn-ghost:hover {
+        color: var(--sn-navy);
+        background: var(--sn-soft);
+      }
+
+      .nav-btn-outline {
+        color: var(--sn-navy);
+        background: #fff;
+        border-color: var(--sn-line);
+      }
+      .nav-btn-outline:hover {
+        border-color: #94a3b8;
+        background: var(--sn-soft);
+      }
+
+      .nav-btn-solid {
+        color: #fff;
+        background: var(--sn-accent);
+        border-color: var(--sn-accent);
+      }
+      .nav-btn-solid:hover {
+        background: var(--sn-accent-hover);
+        border-color: var(--sn-accent-hover);
+      }
+
+      .nav-user {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: center;
+        line-height: 1.2;
+        padding: 0 0.15rem 0 0;
+        min-width: 0;
+        max-width: 180px;
+      }
+      .nav-user-label {
+        font-size: 0.64rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #94a3b8;
+      }
+      .nav-user-name {
+        font-size: 0.82rem;
+        font-weight: 750;
+        color: var(--sn-navy);
+        max-width: 180px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .nav-user-handle {
+        font-weight: 600;
+        color: var(--sn-muted);
+        font-size: 0.72rem;
+      }
+
+      .nav-toggle {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        border: 1px solid var(--sn-line);
+        background: #fff;
+        color: var(--sn-navy);
+        cursor: pointer;
+        flex-shrink: 0;
+        margin-left: 0;
+        z-index: 3;
+      }
+
+      /* Legacy header fallback */
+      header:not(.site-header) {
+        background: var(--sn-navy);
+        color: white;
+      }
+
+      .video-solution-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 8px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: #fef2f2;
+        color: #b91c1c !important;
+        font-weight: 600;
+        font-size: 0.88rem;
+        text-decoration: none !important;
+        border: 1px solid #fecaca;
+      }
+
+      .container {
+        max-width: var(--sn-max);
+        margin: 0 auto;
+        padding: 0 1.5rem;
+      }
+
+      main {
+        min-height: calc(100vh - 220px);
+        padding: 0 0 3rem;
+        background: var(--sn-soft);
+      }
+
+      /* Full-bleed blocks can opt out of container padding via block */
+      main > .container {
+        padding-top: 2rem;
+      }
+
+      /* ========== FOOTER ========== */
+      footer {
+        background: var(--sn-navy);
+        color: #cbd5e1;
+        padding: 3.5rem 0 1.5rem;
+        margin-top: 0;
+      }
+
+      footer .container {
+        display: grid;
+        grid-template-columns: 1.4fr repeat(3, 1fr);
+        gap: 2rem;
+      }
+
+      footer h4 {
+        margin-bottom: 1rem;
+        color: #fff;
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      footer p,
+      footer a {
+        color: #94a3b8;
+        text-decoration: none;
+        margin-bottom: 0.55rem;
+        display: block;
+        font-size: 0.92rem;
+        line-height: 1.55;
+      }
+
+      footer a:hover { color: #7EB8D8; }
+
+      .footer-bottom {
+        max-width: var(--sn-max);
+        margin: 2rem auto 0;
+        padding: 1.25rem 1.5rem 0;
+        border-top: 1px solid rgba(148, 163, 184, 0.2);
+        text-align: center;
+        font-size: 0.85rem;
+        color: #64748b;
+      }
+
+      /* ========== SHARED UI ========== */
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.25rem;
+        margin: 1.5rem 0;
+      }
+
+      .card {
+        background: var(--sn-white);
+        border-radius: var(--sn-radius);
+        padding: 1.5rem;
+        border: 1px solid var(--sn-line);
+        box-shadow: var(--sn-card-shadow);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      }
+
+      .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 32px rgba(0, 56, 112, 0.1);
+        border-color: #cbd5e1;
+      }
+
+      .card h3 {
+        color: var(--sn-navy);
+        margin-bottom: 0.5rem;
+        font-size: 1.15rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      .card p {
+        color: var(--sn-muted);
+        line-height: 1.65;
+        margin-bottom: 1rem;
+        font-size: 0.95rem;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        padding: 0.7rem 1.25rem;
+        background: var(--sn-accent);
+        color: white;
+        text-decoration: none;
+        border-radius: 999px;
+        border: none;
+        cursor: pointer;
+        font-size: 0.92rem;
+        font-weight: 700;
+        font-family: inherit;
+        transition: background 0.15s ease, transform 0.15s ease;
+      }
+
+      .btn:hover {
+        background: var(--sn-accent-hover);
+      }
+
+      .btn-secondary {
+        background: var(--sn-white);
+        color: var(--sn-navy);
+        border: 1.5px solid var(--sn-line);
+      }
+
+      .btn-secondary:hover {
+        background: var(--sn-soft);
+        border-color: #cbd5e1;
+      }
+
+      .hero {
+        background: linear-gradient(160deg, #003870 0%, #053C74 55%, #1078B0 100%);
+        color: white;
+        padding: 3.5rem 2rem;
+        text-align: left;
+        border-radius: 0;
+        margin: 0 0 0;
+      }
+
+      .hero h1 {
+        font-family: var(--font-serif);
+        font-size: clamp(2rem, 4vw, 2.85rem);
+        margin-bottom: 1rem;
+        letter-spacing: -0.03em;
+        line-height: 1.15;
+        font-weight: 700;
+      }
+
+      .hero p {
+        font-size: 1.08rem;
+        margin-bottom: 1.75rem;
+        line-height: 1.7;
+        color: #cbd5e1;
+        max-width: 48rem;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 1rem;
+        margin: 1.5rem 0 2rem;
+      }
+
+      .stat-item {
+        text-align: center;
+        background: var(--sn-white);
+        border: 1px solid var(--sn-line);
+        border-radius: 14px;
+        padding: 1.25rem 1rem;
+        box-shadow: var(--sn-card-shadow);
+      }
+
+      .stat-item .number {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: var(--sn-navy);
+        letter-spacing: -0.03em;
+      }
+
+      .stat-item .label {
+        color: var(--sn-muted);
+        margin-top: 0.35rem;
+        font-size: 0.88rem;
+        font-weight: 600;
+      }
+
+      .filter-section {
+        background: white;
+        padding: 1.25rem 1.5rem;
+        border-radius: var(--sn-radius);
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--sn-line);
+        box-shadow: var(--sn-card-shadow);
+      }
+
+      .form-group { margin-bottom: 1.25rem; }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 0.45rem;
+        font-weight: 600;
+        color: var(--sn-ink);
+        font-size: 0.92rem;
+      }
+
+      .form-group input,
+      .form-group textarea,
+      .form-group select {
+        width: 100%;
+        padding: 0.75rem 0.9rem;
+        border: 1.5px solid var(--sn-line);
+        border-radius: 12px;
+        font-family: inherit;
+        font-size: 1rem;
+        background: #fff;
+        color: var(--sn-ink);
+      }
+
+      .form-group input:focus,
+      .form-group textarea:focus,
+      .form-group select:focus {
+        outline: none;
+        border-color: var(--sn-accent);
+        box-shadow: 0 0 0 3px rgba(16, 120, 176, 0.12);
+      }
+
+      .form-group textarea {
+        resize: vertical;
+        min-height: 120px;
+      }
+
+      .error {
+        background: #fef2f2;
+        color: #b91c1c;
+        border: 1px solid #fecaca;
+        padding: 0.9rem 1rem;
+        border-radius: 12px;
+        margin: 1rem 0;
+      }
+
+      .success {
+        background: #E8EDF3;
+        color: #047857;
+        border: 1px solid #C8D8E8;
+        padding: 0.9rem 1rem;
+        border-radius: 12px;
+        margin: 1rem 0;
+      }
+
+      .warning {
+        background: #fffbeb;
+        color: #92400e;
+        border: 1px solid #fde68a;
+        padding: 0.9rem 1rem;
+        border-radius: 12px;
+        margin: 1rem 0;
+      }
+
+      /* Section helpers for pages */
+      .sn-section-title {
+        font-family: var(--font-serif);
+        font-size: clamp(1.5rem, 2.5vw, 2rem);
+        font-weight: 700;
+        color: var(--sn-navy);
+        letter-spacing: -0.02em;
+        margin-bottom: 0.5rem;
+      }
+
+      .sn-section-lead {
+        color: var(--sn-muted);
+        font-size: 1.02rem;
+        max-width: 40rem;
+        margin-bottom: 1.5rem;
+      }
+
+      /* Keep logo + name together; tighten links before the hamburger kicks in */
+      @media (max-width: 1280px) {
+        .nav-link { font-size: 0.82rem; padding: 0.35rem 0.45rem; }
+        .nav-btn { font-size: 0.78rem; padding: 0.45rem 0.8rem; }
+      }
+
+      /*
+        Many nav items (esp. logged-in + admin) won't fit — use hamburger
+        before links crash into the action buttons.
+      */
+      @media (max-width: 1180px) {
+        .site-nav {
+          flex-wrap: wrap;
+          height: auto;
+          min-height: 100px;
+          padding: 0.55rem 1rem;
+        }
+
+        .nav-toggle {
+          display: inline-flex;
+        }
+
+        .nav-center,
+        .nav-actions {
+          display: none;
+        }
+
+        .nav-right {
+          margin-left: auto;
+        }
+
+        .site-nav.is-open .nav-center {
+          display: flex;
+          order: 3;
+          width: 100%;
+          flex-direction: column;
+          align-items: stretch;
+          justify-content: flex-start;
+          gap: 0.15rem;
+          margin-top: 0.5rem;
+          padding-top: 0.65rem;
+          border-top: 1px solid var(--sn-line);
+          overflow: visible;
+          flex: none;
+        }
+
+        .site-nav.is-open .nav-actions {
+          display: flex;
+          order: 4;
+          width: 100%;
+          flex-direction: column;
+          align-items: stretch;
+          justify-content: flex-start;
+          gap: 0.45rem;
+          margin: 0.25rem 0 0;
+          padding: 0.65rem 0 0.1rem;
+          border-top: 1px solid var(--sn-line);
+          border-left: none;
+          padding-left: 0;
+        }
+
+        .site-nav.is-open .nav-right {
+          width: 100%;
+          flex-direction: column;
+          align-items: stretch;
+          order: 4;
+          margin-left: 0;
+        }
+
+        /* Keep toggle on the top row when open */
+        .site-nav.is-open .nav-toggle {
+          order: 0;
+        }
+
+        .site-nav.is-open .nav-link {
+          width: 100%;
+          justify-content: flex-start;
+          padding: 0.8rem 0.85rem;
+          border-radius: 10px;
+          font-size: 0.95rem;
+        }
+
+        .site-nav.is-open .nav-link:hover,
+        .site-nav.is-open .nav-link.is-active {
+          background: var(--sn-soft) !important;
+        }
+
+        .site-nav.is-open .nav-link.is-active::after {
+          display: none;
+        }
+
+        .site-nav.is-open .nav-btn {
+          width: 100%;
+          justify-content: center;
+          padding: 0.7rem 0.9rem;
+        }
+
+        .site-nav.is-open .nav-user {
+          align-items: flex-start;
+          max-width: none;
+          width: 100%;
+          padding: 0.35rem 0.15rem 0.15rem;
+        }
+        .site-nav.is-open .nav-user-name {
+          max-width: none;
+        }
+      }
+
+      @media (max-width: 1080px) {
+        footer .container { grid-template-columns: 1fr 1fr; }
+      }
+
+      @media (max-width: 768px) {
+        .grid { grid-template-columns: 1fr; }
+        footer .container { grid-template-columns: 1fr; }
+      }
+    </style>
+    {% include 'partials/katex.html' %}
+    {% include 'partials/equation_inline_css.html' %}
+    <style>
+      .eb-q-stem,
+      .eb-opt-text,
+      .eb-preview-body,
+      .pq-question-text,
+      .pq-option-text,
+      .question-text,
+      .pr-review-text,
+      .pc-comment-text,
+      .pc-post-content {
+        line-height: 1.75;
+        font-size: 1rem;
+      }
+    </style>
+    {% block extra_css %}{% endblock %}
+  </head>
+  <body>
+    <header class="site-header">
+      <nav class="site-nav" id="siteNav" aria-label="Main navigation">
+        <a class="nav-brand" href="{% url 'courses:home' %}">
+          <img src="{% static 'images/learning_banyan_logo.png' %}" alt="Learning Banyan" />
+          <div class="nav-brand-text">
+            <strong>Learning Banyan</strong>
+          </div>
+        </a>
+
+        <div class="nav-center" id="navCenter">
+          <a href="{% url 'courses:home' %}" class="nav-link {% if request.path == '/' %}is-active{% endif %}">Home</a>
+          <a href="{% url 'courses:courses_list' %}" class="nav-link {% if '/courses/' in request.path %}is-active{% endif %}">Courses</a>
+          <a href="{% url 'courses:past_papers' %}" class="nav-link {% if '/past-papers/' in request.path %}is-active{% endif %}">Past Papers</a>
+          {% if can_use_exam_builder %}
+            <a href="{% url 'courses:student_exams' %}" class="nav-link {% if '/my-exams/' in request.path %}is-active{% endif %}">My Exams</a>
+            <a href="{% url 'courses:student_question_lists' %}" class="nav-link {% if '/my-lists/' in request.path %}is-active{% endif %}">My Lists</a>
+          {% endif %}
+          <a href="{% url 'courses:question_forum' %}" class="nav-link {% if '/question-forum/' in request.path or '/question-form/' in request.path or '/public-chat/' in request.path %}is-active{% endif %}">Question Forum</a>
+          <a href="{% url 'courses:resources_list' %}" class="nav-link {% if '/resources/' in request.path %}is-active{% endif %}">Resources</a>
+          <a href="{% url 'courses:blog_list' %}" class="nav-link {% if '/blogs/' in request.path %}is-active{% endif %}">Blogs</a>
+          <a href="{% url 'courses:contact' %}" class="nav-link {% if '/contact/' in request.path %}is-active{% endif %}">Contact</a>
+        </div>
+
+        <div class="nav-right">
+          <div class="nav-actions" id="navActions">
+            {% if user.is_authenticated %}
+              <div class="nav-user" title="Logged in as {{ user.get_full_name|default:user.username }} (@{{ user.username }})">
+                <span class="nav-user-label">Logged in as</span>
+                <span class="nav-user-name">
+                  {{ user.get_full_name|default:user.username }}
+                  {% if user.get_full_name %}<span class="nav-user-handle">· {{ user.username }}</span>{% endif %}
+                </span>
+              </div>
+              {% if is_admin_user %}
+                <a href="{% url 'admin_panel:dashboard' %}" class="nav-btn nav-btn-solid">Admin</a>
+              {% endif %}
+              <a href="{% url 'courses:student_logout' %}" class="nav-btn nav-btn-outline">Log Out</a>
+            {% else %}
+              <a href="{% url 'courses:student_login' %}" class="nav-btn nav-btn-outline">Log In</a>
+              <a href="{% url 'courses:student_signup' %}" class="nav-btn nav-btn-solid">Sign Up</a>
+            {% endif %}
+          </div>
+
+          <button
+            type="button"
+            class="nav-toggle"
+            id="navToggle"
+            aria-label="Toggle menu"
+            aria-expanded="false"
+            aria-controls="navCenter"
+          >
+            <i class="fas fa-bars" id="navToggleIcon"></i>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      {% block full_width %}{% endblock %}
+      <div class="container">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+
+    <footer>
+      <div class="container">
+        <div>
+          <h4>Learning Banyan</h4>
+          <p>
+            Practice smarter with curated questions, past papers, courses, and community support —
+            everything you need for exam revision in one place.
+          </p>
+        </div>
+        <div>
+          <h4>Learn</h4>
+          <a href="{% url 'courses:courses_list' %}">Courses</a>
+          <a href="{% url 'courses:past_papers' %}">Past Papers</a>
+          <a href="{% url 'courses:resources_list' %}">Resources</a>
+          <a href="{% url 'courses:student_exams' %}">My Exams</a>
+        </div>
+        <div>
+          <h4>Community</h4>
+          <a href="{% url 'courses:question_forum' %}">Question Forum</a>
+          <a href="{% url 'courses:blog_list' %}">Blogs</a>
+          <a href="{% url 'courses:contact' %}">Contact</a>
+        </div>
+        <div>
+          <h4>Account</h4>
+          {% if user.is_authenticated %}
+            <p style="margin: 0 0 0.4rem; color: #cbd5e1; font-size: 0.88rem;">
+              Logged in as <strong style="color:#fff;">{{ user.get_full_name|default:user.username }}</strong>
+            </p>
+            <a href="{% url 'courses:student_logout' %}">Log Out</a>
+          {% else %}
+            <a href="{% url 'courses:student_login' %}">Log In</a>
+            <a href="{% url 'courses:student_signup' %}">Sign Up</a>
+          {% endif %}
+          <p style="margin-top: 0.75rem;">support@learningbanyan.com</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; {% now "Y" %} Learning Banyan. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <script>
+      (function () {
+        var nav = document.getElementById("siteNav");
+        var toggle = document.getElementById("navToggle");
+        var icon = document.getElementById("navToggleIcon");
+        if (!nav || !toggle) return;
+
+        toggle.addEventListener("click", function () {
+          var open = nav.classList.toggle("is-open");
+          toggle.setAttribute("aria-expanded", open ? "true" : "false");
+          if (icon) icon.className = open ? "fas fa-xmark" : "fas fa-bars";
+        });
+
+        nav.querySelectorAll("a").forEach(function (link) {
+          link.addEventListener("click", function () {
+            if (nav.classList.contains("is-open")) {
+              nav.classList.remove("is-open");
+              toggle.setAttribute("aria-expanded", "false");
+              if (icon) icon.className = "fas fa-bars";
+            }
+          });
+        });
+      })();
+    </script>
+
+    {% block extra_js %}{% endblock %}
+  </body>
+</html>

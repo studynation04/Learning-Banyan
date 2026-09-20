@@ -1,0 +1,34 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+# Deploy: Dashboard → New → Blueprint → connect this repo
+#
+# Docker runtime is required so LibreOffice can convert legacy .doc uploads
+# on Linux (Word COM only works on local Windows).
+services:
+  - type: web
+    name: learningbanyan
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /healthz/
+    # DOC→DOCX + equation extract can take a while on free instances
+    # (Render still enforces platform limits; gunicorn timeout is set in entrypoint)
+    envVars:
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: WEB_CONCURRENCY
+        value: "2"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: learningbanyan-db
+          property: connectionString
+      # ALLOWED_HOSTS / CSRF are auto-handled via RENDER + RENDER_EXTERNAL_HOSTNAME
+
+databases:
+  - name: learningbanyan-db
+    plan: free
+    databaseName: learningbanyan
+    user: learningbanyan

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Registered Users - Admin Panel</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #f5f7fa;
+        color: #333;
+      }
+      .dashboard-wrapper {
+        display: grid;
+        grid-template-columns: 250px 1fr;
+        min-height: 100vh;
+      }
+      .main-content {
+        margin-left: 250px;
+        padding: 40px;
+        width: max-content;
+        min-width: 900px;
+      }
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        background: white;
+        padding: 20px 25px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      .header h1 { font-size: 26px; color: #333; }
+      .count-pill {
+        background: #D4E4F0;
+        color: #1078B0;
+        font-weight: 700;
+        font-size: 15px;
+        padding: 10px 16px;
+        border-radius: 999px;
+        white-space: nowrap;
+      }
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+      .stat-card {
+        background: white;
+        padding: 22px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border-left: 4px solid #1078B0;
+      }
+      .stat-label {
+        font-size: 13px;
+        color: #999;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .stat-value {
+        font-size: 32px;
+        font-weight: bold;
+        color: #1078B0;
+      }
+      .content-section {
+        background: white;
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+      .content-section h2 {
+        font-size: 20px;
+        margin-bottom: 16px;
+        color: #333;
+      }
+      .search-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+      }
+      .search-row input[type="search"] {
+        flex: 1;
+        min-width: 240px;
+        padding: 11px 14px;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        font-size: 14px;
+      }
+      .search-row input[type="search"]:focus {
+        outline: none;
+        border-color: #1078B0;
+        box-shadow: 0 0 0 3px rgba(16, 120, 176, 0.12);
+      }
+      .btn {
+        padding: 11px 18px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .btn-primary {
+        background: linear-gradient(165deg, #003870 0%, #053C74 50%, #1078B0 100%);
+        color: white;
+      }
+      .btn-secondary {
+        background: #f5f7fa;
+        color: #555;
+        border: 1px solid #e0e0e0;
+      }
+      .upload-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .upload-table th,
+      .upload-table td {
+        padding: 14px 12px;
+        text-align: left;
+        border-bottom: 1px solid #e0e0e0;
+        font-size: 14px;
+        vertical-align: middle;
+      }
+      .upload-table th {
+        background: #f5f7fa;
+        font-weight: 600;
+        color: #1078B0;
+        text-transform: uppercase;
+        font-size: 12px;
+        letter-spacing: 0.5px;
+      }
+      .upload-table tr:hover { background: #f9f9f9; }
+      .status-badge {
+        padding: 5px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+      }
+      .status-success { background: #e8f5e9; color: #2e7d32; }
+      .status-inactive { background: #ffebee; color: #c62828; }
+      .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #888;
+      }
+      @media (max-width: 900px) {
+        .main-content {
+          margin-left: 0;
+          padding: 20px;
+          min-width: auto;
+        }
+        .dashboard-wrapper { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    {% include 'admin_panel/_partials/sidebar_slider.html' %}
+    <div class="dashboard-wrapper">
+      {% include 'admin_panel/_partials/admin_sidebar.html' with active='manage_users' %}
+      <main class="main-content">
+        <div class="header">
+          <div>
+            <h1>Registered Users</h1>
+            <p style="color: #666; font-size: 14px; margin-top: 4px;">
+              Students who created an account on the website
+            </p>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <div style="text-align:right; line-height:1.25;">
+              <div style="font-size:11px; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; font-weight:700;">Currently logged in</div>
+              <div style="font-size:14px; font-weight:700; color:#003870;">
+                {{ user.get_full_name|default:user.username }}
+                <span style="font-weight:600; color:#64748b;">· @{{ user.username }}</span>
+              </div>
+            </div>
+            <div class="count-pill">{{ total_registered_users }} registered</div>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total registered users</div>
+            <div class="stat-value">{{ total_registered_users }}</div>
+          </div>
+          {% if query %}
+          <div class="stat-card">
+            <div class="stat-label">Matching search</div>
+            <div class="stat-value">{{ filtered_count }}</div>
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="content-section">
+          <h2>All registered users</h2>
+          <form method="get" class="search-row">
+            {% if per_page %}<input type="hidden" name="per_page" value="{{ per_page }}" />{% endif %}
+            <input
+              type="search"
+              name="q"
+              value="{{ query }}"
+              placeholder="Search name, username, email, or mobile"
+              aria-label="Search registered users"
+            />
+            <button type="submit" class="btn btn-primary">Search</button>
+            {% if query %}
+              <a href="{% url 'admin_panel:manage_users' %}" class="btn btn-secondary">Clear</a>
+            {% endif %}
+          </form>
+
+          {% if users %}
+            <table class="upload-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Name</th>
+                  <th>Username</th>
+                  <th>Email</th>
+                  <th>Mobile number</th>
+                  <th>Registered on</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for profile in users %}
+                  <tr>
+                    <td>{{ page_obj.start_index|add:forloop.counter0 }}</td>
+                    <td>
+                      <strong>
+                        {% if profile.user.get_full_name %}
+                          {{ profile.user.get_full_name }}
+                        {% else %}
+                          —
+                        {% endif %}
+                      </strong>
+                    </td>
+                    <td>
+                      {{ profile.user.username }}
+                      {% if profile.user_id == user.id %}
+                        <span class="status-badge status-success" style="margin-left:6px;">You</span>
+                      {% endif %}
+                    </td>
+                    <td>{{ profile.user.email|default:"—" }}</td>
+                    <td>
+                      {% if profile.mobile_number %}
+                        {{ profile.mobile_number }}
+                      {% else %}
+                        <span style="color:#aaa;">Not provided</span>
+                      {% endif %}
+                    </td>
+                    <td>{{ profile.created_at|date:"M d, Y g:i A" }}</td>
+                    <td>
+                      {% if profile.user.is_active %}
+                        <span class="status-badge status-success">Active</span>
+                      {% else %}
+                        <span class="status-badge status-inactive">Inactive</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {% if page_obj %}
+              {% include 'partials/question_pagination.html' %}
+            {% endif %}
+          {% else %}
+            <div class="empty-state">
+              {% if query %}
+                <h3 style="margin-bottom: 8px; color: #555;">No users match “{{ query }}”</h3>
+                <p>Try a different name, email, username, or mobile number.</p>
+              {% else %}
+                <h3 style="margin-bottom: 8px; color: #555;">No registered users yet</h3>
+                <p>Students who sign up on the website will appear here.</p>
+              {% endif %}
+            </div>
+          {% endif %}
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

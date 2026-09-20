@@ -1,0 +1,311 @@
+# Learning Banyan - Django + React Full-Stack Application
+
+A comprehensive learning management system built with Django backend and React components embedded in Django templates. This platform provides courses, study materials, and question banks for students.
+
+## Features
+
+- **Course Management**: Browse and explore courses organized by categories
+- **Study Materials**: Access e-books, notes, worksheets, and summaries
+- **Question Banks**: Practice with various types of questions (single choice, multiple choice, true/false, numerical, matching)
+- **Responsive Design**: Modern, mobile-friendly interface
+- **Admin Dashboard**: Easy content management through Django admin
+- **REST API**: Full REST API for integration with external applications
+
+## Technology Stack
+
+### Backend
+
+- **Django** 6.0.6 - Python web framework
+- **Django REST Framework** 3.14.0 - REST API development
+- **PostgreSQL** - Database (can use SQLite for development)
+- **django-cors-headers** - CORS support for API requests
+
+### Frontend
+
+- **React** 19 - UI library (embedded in Django templates)
+- **Vanilla JavaScript** - For interactive components
+- **HTML5 & CSS3** - Responsive styling
+
+## Project Structure
+
+```
+.
+├── config/                 # Django project settings
+│   ├── settings.py        # Project settings
+│   ├── urls.py           # Main URL routing
+│   └── wsgi.py           # WSGI configuration
+├── courses/              # Courses app
+│   ├── models.py         # Database models
+│   ├── views.py          # View logic
+│   ├── urls.py           # Course URL routing
+│   ├── admin.py          # Admin configuration
+│   └── templates/        # Django templates
+├── api/                  # API app
+│   ├── serializers.py    # DRF serializers
+│   ├── views.py          # API viewsets
+│   └── urls.py           # API URL routing
+├── templates/            # Base templates
+├── manage.py             # Django management command
+└── requirements.txt      # Python dependencies
+```
+
+## Models
+
+### CourseCategory
+
+- Name, description, icon
+- Used to organize courses by subject
+
+### Course
+
+- Title, description, category, instructor, duration, level
+- Rating, students enrolled, thumbnail image
+- Related: StudyMaterials, QuestionBanks
+
+### StudyMaterial
+
+- Title, type (notes, ebook, worksheet, summary)
+- File attachment, file size, download count
+- Related: Course
+
+### QuestionBank
+
+- Title, description, difficulty level
+- Related: Questions, Course
+
+### Question
+
+- Question text, type (single choice, multiple choice, true/false, numerical, matching)
+- Options (A, B, C, D), correct answer, marks, explanation
+- Related: QuestionBank
+
+## Setup Instructions
+
+### Prerequisites
+
+- Python 3.9+
+- pip or virtual environment manager
+- PostgreSQL (optional, SQLite works for development)
+
+### Installation
+
+1. **Clone the repository and navigate to the project:**
+
+   ```bash
+   cd /path/to/project
+   ```
+
+2. **Create a virtual environment:**
+
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+3. **Install dependencies:**
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Apply migrations (default Django SQLite database at `db.sqlite3`):**
+
+   ```bash
+   python manage.py migrate
+   python create_admin_user.py
+   python manage.py load_sample_data
+   ```
+
+   A committed `db.sqlite3` is already included for local use. Default admin login:
+
+   - Username: `admin`
+   - Password: `admin123`
+
+5. **Create another superuser (optional):**
+
+   ```bash
+   python manage.py createsuperuser
+   ```
+
+6. **Collect static files (for production):**
+
+   ```bash
+   python manage.py collectstatic
+   ```
+
+7. **Run the development server:**
+   ```bash
+   python manage.py runserver
+   ```
+
+The application will be available at `http://localhost:8000/`
+
+## Usage
+
+### Admin Panel
+
+Access the Django admin panel at `/admin/` with your superuser credentials to:
+
+- Create and manage courses
+- Add categories and instructors
+- Upload study materials
+- Create question banks and questions
+
+### Frontend Pages
+
+- **Home** (`/`) - Main landing page with featured courses
+- **Courses** (`/courses/`) - Browse all courses with filtering
+- **Course Detail** (`/courses/<id>/`) - View course details, materials, and questions
+- **Resources** (`/resources/`) - Free learning materials
+- **Contact** (`/contact/`) - Contact form and information
+
+### API Endpoints
+
+- `GET /api/categories/` - List all course categories
+- `GET /api/courses/` - List all courses
+- `GET /api/courses/<id>/` - Get course details
+- `GET /api/courses/by_category/?category_id=<id>` - Courses by category
+- `GET /api/courses/search/?q=<query>` - Search courses
+- `GET /api/study-materials/?course_id=<id>` - Study materials for a course
+- `GET /api/question-banks/?course_id=<id>` - Question banks for a course
+- `GET /api/questions/?question_bank_id=<id>` - Questions for a bank
+
+## Configuration
+
+### Database Setup (PostgreSQL)
+
+Update `config/settings.py`:
+
+```python
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'learningbanyan',
+        'USER': 'your_username',
+        'PASSWORD': 'your_password',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+}
+```
+
+### Environment Variables
+
+Create a `.env` file in the project root:
+
+```
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1,.vercel.app
+```
+
+`SECRET_KEY` is optional. SQLite is the default database.
+
+Then load it in settings.py using `python-decouple`.
+
+## API Examples
+
+### Get all courses
+
+```bash
+curl http://localhost:8000/api/courses/
+```
+
+### Get courses by category
+
+```bash
+curl http://localhost:8000/api/courses/by_category/?category_id=1
+```
+
+### Search courses
+
+```bash
+curl http://localhost:8000/api/courses/search/?q=python
+```
+
+### Get course details with materials and questions
+
+```bash
+curl http://localhost:8000/api/courses/1/
+```
+
+## Frontend Components
+
+The application uses React components embedded in Django templates:
+
+- **Navigation** - Header with navigation links
+- **Hero Section** - Landing page hero with call-to-action
+- **Course Card** - Reusable course display component
+- **Filters** - Category and level filtering
+- **Tabs** - Course details with overview, materials, and questions tabs
+- **Forms** - Contact form with validation
+
+## Styling
+
+The application uses custom CSS with a modern design featuring:
+
+- Gradient purple theme (#667eea to #764ba2)
+- Responsive grid layouts
+- Card-based components
+- Smooth transitions and hover effects
+- Mobile-first responsive design
+
+## Deployment
+
+### Vercel
+
+Connect the GitHub repo at [vercel.com](https://vercel.com). Vercel detects Django from `manage.py`. No `SECRET_KEY` is required (a fallback is generated). Optional env vars:
+
+- `DEBUG` — `False` in production
+- `ALLOWED_HOSTS` — `.vercel.app` (already the default)
+- `DATABASE_URL` — Postgres if you want persistent data (otherwise SQLite)
+
+Redeploy **latest `main`**, not an older failed deployment.
+
+### Render
+
+Full guide: **[RENDER_DEPLOY.md](RENDER_DEPLOY.md)**
+
+Quick path:
+
+1. Push this repo to GitHub
+2. On [Render](https://dashboard.render.com) → **New** → **Blueprint** → select the repo (`render.yaml`)
+3. Or create a **Web Service** + **PostgreSQL** manually:
+   - Build: `chmod +x build.sh && ./build.sh`
+   - Start: `gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120`
+   - Env: `DEBUG=False`, `SECRET_KEY=...`, `DATABASE_URL` from Postgres
+4. Create a superuser via Render Shell: `python manage.py createsuperuser`
+
+### Docker Deployment
+
+```bash
+docker compose up --build
+# or
+docker build -t learningbanyan .
+docker run -p 8000:8000 -e SECRET_KEY=... -e DATABASE_URL=... learningbanyan
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
+
+## License
+
+This project is open source and available under the MIT License.
+
+## Support
+
+For support, email support@learningbanyan.com or create an issue on GitHub.
+
+## Future Enhancements
+
+- User authentication and course enrollment
+- Certificate generation
+- Discussion forums
+- Progress tracking
+- Video content integration
+- Live classes and webinars
+- Advanced analytics
+- Mobile app

@@ -1,0 +1,15 @@
+# Keep the Vercel function bundle under the size limit.
+media/blog_media
+media/question_equations
+media/csv_uploads
+media/past_papers
+docs
+questions
+node_modules
+venv
+.venv
+.git
+*.mp4
+*.pptx
+*.pyc
+__pycache__

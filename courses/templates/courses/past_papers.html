@@ -1,0 +1,1284 @@
+{% extends 'base.html' %}
+{% load course_extras %}
+
+{% block title %}
+  Past Papers - Learning Banyan
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .pp-page {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 0 2rem;
+  }
+
+  .pp-header {
+    background: #fff;
+    border: 1px solid #e8ecf4;
+    border-radius: 14px;
+    padding: 1.35rem 1.5rem 1.15rem;
+    box-shadow: 0 2px 10px rgba(0, 56, 112, 0.04);
+    margin-bottom: 1rem;
+  }
+
+  .pp-header h1 {
+    font-size: 1.45rem;
+    font-weight: 800;
+    color: #1e293b;
+    letter-spacing: 0.02em;
+    margin: 0 0 0.35rem;
+  }
+
+  .pp-header p {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    max-width: 720px;
+  }
+
+  /* All saved categories (between header and filters) */
+  .pp-cats {
+    background: #fff;
+    border: 1px solid #e8ecf4;
+    border-radius: 14px;
+    padding: 1rem 1.15rem 1.1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 10px rgba(0, 56, 112, 0.04);
+  }
+
+  .pp-cats-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.85rem;
+  }
+
+  .pp-cats-head h2 {
+    margin: 0;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: #64748b;
+  }
+
+  .pp-cats-head-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+  }
+
+  .pp-cats-head span {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    font-weight: 500;
+  }
+
+  .pp-clear-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    text-decoration: none;
+    font-size: 0.78rem;
+    font-weight: 650;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.35rem 0.7rem;
+    transition: background 0.12s, border-color 0.12s, color 0.12s;
+  }
+
+  .pp-clear-btn:hover {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #b91c1c;
+  }
+
+  .pp-cats-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+  }
+
+  .pp-cat-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    text-decoration: none;
+    color: #1e293b;
+    background: linear-gradient(180deg, #fafbff 0%, #f5f7ff 100%);
+    border: 1.5px solid #e4e9f8;
+    border-radius: 12px;
+    padding: 0.55rem 0.9rem 0.55rem 0.65rem;
+    font-size: 0.9rem;
+    font-weight: 650;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s, background 0.15s;
+    max-width: 100%;
+  }
+
+  .pp-cat-chip:hover {
+    border-color: #a5b4fc;
+    background: #eef2ff;
+    box-shadow: 0 6px 16px rgba(79, 70, 229, 0.12);
+    transform: translateY(-1px);
+    color: #3730a3;
+  }
+
+  .pp-cat-chip.is-active {
+    border-color: transparent;
+    background: linear-gradient(135deg, #004078 0%, #1078B0 100%);
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(79, 70, 229, 0.28);
+  }
+
+  .pp-cat-chip.pp-cat-all {
+    border-style: dashed;
+  }
+
+  .pp-cat-chip.pp-cat-all.is-active {
+    border-style: solid;
+  }
+
+  .pp-cat-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: linear-gradient(145deg, #eef2ff, #e0e7ff);
+    color: #004078;
+    font-size: 0.85rem;
+  }
+
+  .pp-cat-chip.is-active .pp-cat-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+  }
+
+  .pp-cat-meta {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.25;
+  }
+
+  .pp-cat-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+  }
+
+  .pp-cat-count {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #94a3b8;
+    margin-top: 1px;
+  }
+
+  .pp-cat-chip.is-active .pp-cat-count {
+    color: rgba(255, 255, 255, 0.82);
+  }
+
+  .pp-cats-empty {
+    font-size: 0.9rem;
+    color: #94a3b8;
+    padding: 0.35rem 0;
+  }
+
+  .pp-filters {
+    background: #f5f7ff;
+    border: 1px solid #e4e9f8;
+    border-radius: 12px;
+    padding: 1rem 1.15rem 1.1rem;
+    margin-bottom: 1rem;
+  }
+
+  .pp-filters-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.85rem;
+  }
+
+  .pp-filters-head h2 {
+    margin: 0;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: #64748b;
+  }
+
+  .pp-filters-hint {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    font-weight: 500;
+  }
+
+  /* One-row dropdown filters + search */
+  .pp-filters-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) auto auto;
+    gap: 0.75rem;
+    align-items: end;
+  }
+
+  .pp-field {
+    min-width: 0;
+    position: relative;
+  }
+
+  .pp-field > .pp-field-label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 0.4rem;
+  }
+
+  /* Dropdown trigger (looks like a select) */
+  .pp-dd-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    border: 1px solid #d0d7e8;
+    border-radius: 8px;
+    padding: 0.65rem 0.8rem;
+    font-size: 0.92rem;
+    background: #fff;
+    color: #1e293b;
+    font-family: inherit;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.12s, box-shadow 0.12s;
+    min-height: 44px;
+  }
+
+  .pp-dd-toggle:hover {
+    border-color: #a5b4fc;
+  }
+
+  .pp-field.is-open .pp-dd-toggle {
+    border-color: #1078B0;
+    box-shadow: 0 0 0 3px rgba(16, 120, 176, 0.15);
+  }
+
+  .pp-dd-toggle-text {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #1e293b;
+  }
+
+  .pp-dd-toggle-text.is-placeholder {
+    color: #94a3b8;
+    font-weight: 500;
+  }
+
+  .pp-dd-toggle-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
+    color: #64748b;
+  }
+
+  .pp-dd-count {
+    display: none;
+    min-width: 1.35rem;
+    height: 1.35rem;
+    padding: 0 0.35rem;
+    border-radius: 999px;
+    background: #1078B0;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pp-dd-count.is-on {
+    display: inline-flex;
+  }
+
+  .pp-dd-caret {
+    font-size: 0.75rem;
+    transition: transform 0.15s;
+  }
+
+  .pp-field.is-open .pp-dd-caret {
+    transform: rotate(180deg);
+  }
+
+  /* Dropdown panel with checkboxes */
+  .pp-dd-menu {
+    display: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 4px);
+    z-index: 40;
+    background: #fff;
+    border: 1px solid #d0d7e8;
+    border-radius: 10px;
+    box-shadow: 0 12px 28px rgba(0, 56, 112, 0.12);
+    max-height: 240px;
+    overflow: hidden;
+    flex-direction: column;
+  }
+
+  .pp-field.is-open .pp-dd-menu {
+    display: flex;
+  }
+
+  .pp-dd-search {
+    border: none;
+    border-bottom: 1px solid #eef1f7;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.86rem;
+    font-family: inherit;
+    outline: none;
+    width: 100%;
+    background: #fafbff;
+  }
+
+  .pp-dd-search:focus {
+    background: #fff;
+  }
+
+  .pp-dd-list {
+    overflow-y: auto;
+    max-height: 190px;
+    padding: 0.35rem;
+  }
+
+  .pp-check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.45rem 0.5rem;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 0.88rem;
+    color: #1e293b;
+    line-height: 1.3;
+    user-select: none;
+  }
+
+  .pp-check-item:hover,
+  .pp-check-item.is-match {
+    background: #f1f5f9;
+  }
+
+  .pp-check-item.is-hidden {
+    display: none;
+  }
+
+  .pp-check-item input[type="checkbox"] {
+    margin-top: 0.12rem;
+    width: 15px;
+    height: 15px;
+    accent-color: #1078B0;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+
+  .pp-check-item span {
+    min-width: 0;
+    word-break: break-word;
+  }
+
+  .pp-check-empty {
+    padding: 0.75rem 0.55rem;
+    font-size: 0.82rem;
+    color: #94a3b8;
+  }
+
+  .pp-filters-actions {
+    display: contents;
+  }
+
+  .pp-submit {
+    border: none;
+    border-radius: 8px;
+    background: #004078;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.92rem;
+    padding: 0.7rem 1.15rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    white-space: nowrap;
+    font-family: inherit;
+    min-height: 44px;
+  }
+
+  .pp-submit:hover {
+    background: #4338ca;
+  }
+
+  .pp-reset {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 650;
+    color: #64748b;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.65rem 0.95rem;
+    min-height: 44px;
+    white-space: nowrap;
+  }
+
+  .pp-reset:hover {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #b91c1c;
+  }
+
+  .pp-active-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.85rem;
+  }
+
+  .pp-active-chip {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.75rem;
+    font-weight: 650;
+    color: #1078B0;
+    background: #f0fdfa;
+    border: 1px solid #D4E4F0;
+    border-radius: 999px;
+    padding: 0.25rem 0.65rem;
+  }
+
+  @media (max-width: 1100px) {
+    .pp-filters-row {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .pp-filters-actions {
+      display: flex;
+      grid-column: 1 / -1;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .pp-filters-row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .pp-workspace {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 0;
+    min-height: 620px;
+    background: #fff;
+    border: 1px solid #e8ecf4;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 56, 112, 0.04);
+  }
+
+  .pp-list-pane {
+    border-right: 1px solid #e8ecf4;
+    background: #fafbff;
+    display: flex;
+    flex-direction: column;
+    min-height: 620px;
+    max-height: 78vh;
+  }
+
+  .pp-list-head {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid #e8ecf4;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: #fff;
+  }
+
+  .pp-list {
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .pp-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    border: none;
+    border-bottom: 1px solid #eef1f7;
+    background: transparent;
+    padding: 0.85rem 1rem;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.12s ease;
+  }
+
+  .pp-item:hover {
+    background: #f0f3ff;
+  }
+
+  .pp-item.is-active {
+    background: #eef2ff;
+    border-left: 3px solid #004078;
+    padding-left: calc(1rem - 3px);
+  }
+
+  .pp-item-title {
+    font-size: 0.9rem;
+    font-weight: 650;
+    color: #1e293b;
+    line-height: 1.35;
+    margin-bottom: 0.25rem;
+  }
+
+  .pp-item-meta {
+    font-size: 0.78rem;
+    color: #64748b;
+  }
+
+  .pp-empty-list {
+    padding: 2rem 1.25rem;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.92rem;
+    line-height: 1.5;
+  }
+
+  .pp-viewer {
+    display: flex;
+    flex-direction: column;
+    min-height: 620px;
+    max-height: 78vh;
+    background: #fff;
+  }
+
+  .pp-viewer-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.85rem 1.15rem;
+    border-bottom: 1px solid #e8ecf4;
+    flex-wrap: wrap;
+  }
+
+  .pp-viewer-title {
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: #1e293b;
+  }
+
+  .pp-viewer-sub {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-top: 0.15rem;
+  }
+
+  .pp-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #004078;
+    border: 1px solid #c7d2fe;
+    background: #eef2ff;
+    border-radius: 8px;
+    padding: 0.45rem 0.8rem;
+  }
+
+  .pp-download:hover {
+    background: #e0e7ff;
+  }
+
+  .pp-download.is-answer {
+    color: #1078B0;
+    border-color: #D4E4F0;
+    background: #f0fdfa;
+  }
+
+  .pp-download.is-answer:hover {
+    background: #D4E4F0;
+  }
+
+  .pp-view-toggle {
+    display: inline-flex;
+    align-items: center;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 3px;
+    gap: 2px;
+  }
+
+  .pp-view-toggle a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 650;
+    color: #64748b;
+    padding: 0.4rem 0.75rem;
+    border-radius: 8px;
+    transition: background 0.12s, color 0.12s;
+  }
+
+  .pp-view-toggle a:hover {
+    color: #4338ca;
+    background: rgba(255, 255, 255, 0.7);
+  }
+
+  .pp-view-toggle a.is-active {
+    background: #fff;
+    color: #004078;
+    box-shadow: 0 1px 4px rgba(0, 56, 112, 0.08);
+  }
+
+  .pp-view-toggle a.is-active.is-answer {
+    color: #1078B0;
+  }
+
+  .pp-view-toggle a.is-disabled {
+    opacity: 0.45;
+    pointer-events: none;
+    cursor: not-allowed;
+  }
+
+  .pp-item-badges {
+    display: flex;
+    gap: 0.35rem;
+    margin-top: 0.35rem;
+    flex-wrap: wrap;
+  }
+
+  .pp-mini-badge {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 999px;
+    letter-spacing: 0.02em;
+  }
+
+  .pp-mini-badge.q {
+    background: #eef2ff;
+    color: #4338ca;
+  }
+
+  .pp-mini-badge.a {
+    background: #D4E4F0;
+    color: #1078B0;
+  }
+
+  .pp-viewer-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+  }
+
+  .pp-frame-wrap {
+    flex: 1;
+    min-height: 0;
+    background: #f1f5f9;
+  }
+
+  .pp-frame-wrap iframe {
+    width: 100%;
+    height: 100%;
+    min-height: 560px;
+    border: 0;
+    display: block;
+    background: #fff;
+  }
+
+  .pp-placeholder {
+    height: 100%;
+    min-height: 560px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    text-align: center;
+    padding: 2rem;
+    gap: 0.5rem;
+  }
+
+  .pp-placeholder i {
+    font-size: 2.2rem;
+    color: #cbd5e1;
+    margin-bottom: 0.4rem;
+  }
+
+  .pp-placeholder strong {
+    color: #64748b;
+    font-size: 1rem;
+  }
+
+  .pp-placeholder span {
+    font-size: 0.9rem;
+    max-width: 360px;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 900px) {
+    .pp-filters {
+      grid-template-columns: 1fr 1fr;
+    }
+    .pp-workspace {
+      grid-template-columns: 1fr;
+    }
+    .pp-list-pane {
+      max-height: 280px;
+      min-height: 220px;
+      border-right: none;
+      border-bottom: 1px solid #e8ecf4;
+    }
+    .pp-viewer,
+    .pp-frame-wrap iframe,
+    .pp-placeholder {
+      min-height: 480px;
+      max-height: none;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .pp-filters {
+      grid-template-columns: 1fr;
+    }
+    .pp-cat-name {
+      max-width: 140px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pp-page">
+  <div class="pp-header">
+    <h1>PAST PAPERS</h1>
+    <p>
+      Use the dropdown filters for category, subject, year of exam, and paper code (tick multiple options in each),
+      then open a previous-year question paper from the list. The full exam PDF appears on the right.
+    </p>
+    {% if db_error %}
+      <p style="margin-top:0.75rem;color:#b91c1c;font-weight:600;">
+        Past papers are temporarily unavailable (database needs migration). Please try again after deploy finishes.
+      </p>
+    {% endif %}
+  </div>
+
+  <section class="pp-cats" aria-label="Categories">
+    <div class="pp-cats-head">
+      <h2>Categories</h2>
+      <div class="pp-cats-head-actions">
+        <span>
+          {% if categories %}
+            {{ categories|length }} saved categor{{ categories|length|pluralize:"y,ies" }}
+          {% else %}
+            No categories yet
+          {% endif %}
+        </span>
+        {% if has_filters or filter_categories %}
+          <a class="pp-clear-btn" href="{% url 'courses:past_papers' %}" title="Clear all filters and selection">
+            <i class="fas fa-times"></i> Clear selection
+          </a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="pp-cats-grid">
+      <a
+        class="pp-cat-chip pp-cat-all {% if not filter_categories %}is-active{% endif %}"
+        href="{% url 'courses:past_papers' %}"
+        title="Show all past papers"
+      >
+        <span class="pp-cat-icon" aria-hidden="true">
+          <i class="fas fa-layer-group"></i>
+        </span>
+        <span class="pp-cat-meta">
+          <span class="pp-cat-name">All</span>
+          <span class="pp-cat-count">
+            {{ total_papers }} paper{{ total_papers|pluralize }}
+          </span>
+        </span>
+      </a>
+      {% for cat in categories %}
+        <a
+          class="pp-cat-chip {% if cat.id|stringformat:'s' in filter_categories %}is-active{% endif %}"
+          href="?category={{ cat.id }}"
+          title="{{ cat.name }}{% if cat.description %} — {{ cat.description }}{% endif %}"
+        >
+          <span class="pp-cat-icon" aria-hidden="true">
+            <i class="fas fa-{% if cat.icon %}{{ cat.icon }}{% else %}folder{% endif %}"></i>
+          </span>
+          <span class="pp-cat-meta">
+            <span class="pp-cat-name">{{ cat.name }}</span>
+            <span class="pp-cat-count">
+              {{ cat.paper_count }} paper{{ cat.paper_count|pluralize }}
+            </span>
+          </span>
+        </a>
+      {% empty %}
+        <div class="pp-cats-empty">
+          No categories in the database yet. Admins can add them under Course Categories.
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <form class="pp-filters" id="ppFilterForm" method="get" action="{% url 'courses:past_papers' %}">
+    <div class="pp-filters-head">
+      <h2>Filters</h2>
+      <span class="pp-filters-hint">Open a dropdown and tick one or more options, then click Search</span>
+    </div>
+
+    <div class="pp-filters-row">
+      {# ---- Category dropdown ---- #}
+      <div class="pp-field" data-pp-dd data-placeholder="All categories">
+        <span class="pp-field-label">Category</span>
+        <button type="button" class="pp-dd-toggle" aria-haspopup="listbox" aria-expanded="false">
+          <span class="pp-dd-toggle-text is-placeholder">All categories</span>
+          <span class="pp-dd-toggle-meta">
+            <span class="pp-dd-count" data-pp-count>0</span>
+            <i class="fas fa-chevron-down pp-dd-caret" aria-hidden="true"></i>
+          </span>
+        </button>
+        <div class="pp-dd-menu" role="listbox" aria-label="Category" aria-multiselectable="true">
+          <input type="search" class="pp-dd-search" placeholder="Search category…" autocomplete="off" />
+          <div class="pp-dd-list">
+            {% for cat in categories %}
+              <label class="pp-check-item">
+                <input
+                  type="checkbox"
+                  name="category"
+                  value="{{ cat.id }}"
+                  data-label="{{ cat.name }}"
+                  {% if cat.id|stringformat:'s' in filter_categories %}checked{% endif %}
+                />
+                <span>{{ cat.name }} <small style="color:#94a3b8;">({{ cat.paper_count }})</small></span>
+              </label>
+            {% empty %}
+              <div class="pp-check-empty">No categories available</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      {# ---- Subject dropdown ---- #}
+      <div class="pp-field" data-pp-dd data-placeholder="All subjects">
+        <span class="pp-field-label">Subject</span>
+        <button type="button" class="pp-dd-toggle" aria-haspopup="listbox" aria-expanded="false">
+          <span class="pp-dd-toggle-text is-placeholder">All subjects</span>
+          <span class="pp-dd-toggle-meta">
+            <span class="pp-dd-count" data-pp-count>0</span>
+            <i class="fas fa-chevron-down pp-dd-caret" aria-hidden="true"></i>
+          </span>
+        </button>
+        <div class="pp-dd-menu" role="listbox" aria-label="Subject" aria-multiselectable="true">
+          <input type="search" class="pp-dd-search" placeholder="Search subject…" autocomplete="off" />
+          <div class="pp-dd-list">
+            {% for s in subjects %}
+              <label class="pp-check-item">
+                <input
+                  type="checkbox"
+                  name="subject"
+                  value="{{ s }}"
+                  data-label="{{ s }}"
+                  {% if s in filter_subjects %}checked{% endif %}
+                />
+                <span>{{ s }}</span>
+              </label>
+            {% empty %}
+              <div class="pp-check-empty">No subjects available</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      {# ---- Year dropdown ---- #}
+      <div class="pp-field" data-pp-dd data-placeholder="All years">
+        <span class="pp-field-label">Year of exam</span>
+        <button type="button" class="pp-dd-toggle" aria-haspopup="listbox" aria-expanded="false">
+          <span class="pp-dd-toggle-text is-placeholder">All years</span>
+          <span class="pp-dd-toggle-meta">
+            <span class="pp-dd-count" data-pp-count>0</span>
+            <i class="fas fa-chevron-down pp-dd-caret" aria-hidden="true"></i>
+          </span>
+        </button>
+        <div class="pp-dd-menu" role="listbox" aria-label="Year of exam" aria-multiselectable="true">
+          <input type="search" class="pp-dd-search" placeholder="Search year…" autocomplete="off" />
+          <div class="pp-dd-list">
+            {% for y in years %}
+              <label class="pp-check-item">
+                <input
+                  type="checkbox"
+                  name="year"
+                  value="{{ y }}"
+                  data-label="{{ y }}"
+                  {% if y|stringformat:'s' in filter_years %}checked{% endif %}
+                />
+                <span>{{ y }}</span>
+              </label>
+            {% empty %}
+              <div class="pp-check-empty">No years available</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      {# ---- Paper code dropdown ---- #}
+      <div class="pp-field" data-pp-dd data-placeholder="All paper codes">
+        <span class="pp-field-label">Paper code</span>
+        <button type="button" class="pp-dd-toggle" aria-haspopup="listbox" aria-expanded="false">
+          <span class="pp-dd-toggle-text is-placeholder">All paper codes</span>
+          <span class="pp-dd-toggle-meta">
+            <span class="pp-dd-count" data-pp-count>0</span>
+            <i class="fas fa-chevron-down pp-dd-caret" aria-hidden="true"></i>
+          </span>
+        </button>
+        <div class="pp-dd-menu" role="listbox" aria-label="Paper code" aria-multiselectable="true">
+          <input type="search" class="pp-dd-search" placeholder="Search paper code…" autocomplete="off" />
+          <div class="pp-dd-list">
+            {% for code in paper_codes %}
+              <label class="pp-check-item">
+                <input
+                  type="checkbox"
+                  name="paper_code"
+                  value="{{ code }}"
+                  data-label="{{ code }}"
+                  {% if code in filter_paper_codes %}checked{% endif %}
+                />
+                <span>{{ code }}</span>
+              </label>
+            {% empty %}
+              <div class="pp-check-empty">No paper codes available</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="pp-filters-actions">
+        <button type="submit" class="pp-submit">
+          <i class="fas fa-search"></i> Search
+        </button>
+        <a class="pp-reset" href="{% url 'courses:past_papers' %}">
+          <i class="fas fa-undo"></i> Clear
+        </a>
+      </div>
+    </div>
+
+    {% if filter_categories or filter_subjects or filter_years or filter_paper_codes %}
+      <div class="pp-active-filters" aria-label="Active filters">
+        {% for cat in categories %}
+          {% if cat.id|stringformat:'s' in filter_categories %}
+            <span class="pp-active-chip">Category · {{ cat.name }}</span>
+          {% endif %}
+        {% endfor %}
+        {% for s in filter_subjects %}
+          <span class="pp-active-chip">Subject · {{ s }}</span>
+        {% endfor %}
+        {% for y in filter_years %}
+          <span class="pp-active-chip">Year · {{ y }}</span>
+        {% endfor %}
+        {% for pc in filter_paper_codes %}
+          <span class="pp-active-chip">Code · {{ pc }}</span>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </form>
+
+  <div class="pp-workspace">
+    <aside class="pp-list-pane">
+      <div class="pp-list-head">
+        Previous year papers
+        {% if papers %} · {{ papers|length }}{% endif %}
+      </div>
+      <div class="pp-list">
+        {% for paper in papers %}
+          <a
+            class="pp-item {% if selected_paper and selected_paper.id == paper.id %}is-active{% endif %}"
+            href="?{% if filter_query %}{{ filter_query }}&{% endif %}paper={{ paper.id }}&view=question"
+          >
+            <div class="pp-item-title">
+              {% if paper.paper_code %}{{ paper.paper_code }} · {% endif %}{{ paper.title }}
+            </div>
+            <div class="pp-item-meta">
+              {{ paper.subject }} · {{ paper.year }}{% if paper.season %} · {{ paper.get_season_display }}{% endif %}
+            </div>
+            <div class="pp-item-badges">
+              <span class="pp-mini-badge q">Question</span>
+              {% if paper.answer_pdf %}
+                <span class="pp-mini-badge a">Answer sheet</span>
+              {% endif %}
+            </div>
+          </a>
+        {% empty %}
+          <div class="pp-empty-list">
+            {% if has_filters %}
+              No past papers match these filters.<br />Try another category, subject, or year.
+            {% else %}
+              No past paper PDFs uploaded yet.<br />
+              Admins can add them under <strong>Admin Panel → Past Papers</strong>.
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </aside>
+
+    <section class="pp-viewer">
+      {% if selected_paper and selected_paper.pdf %}
+        <div class="pp-viewer-head">
+          <div>
+            <div class="pp-viewer-title">
+              {{ selected_paper.title }}
+              {% if view_mode == 'answer' and selected_paper.answer_pdf %}
+                <span style="color:#1078B0;font-weight:700;font-size:0.85rem;"> · Answer sheet</span>
+              {% else %}
+                <span style="color:#6366f1;font-weight:700;font-size:0.85rem;"> · Question paper</span>
+              {% endif %}
+            </div>
+            <div class="pp-viewer-sub">
+              {{ selected_paper.category.name }} · {{ selected_paper.subject }} · {{ selected_paper.year }}
+              {% if selected_paper.season %} · {{ selected_paper.get_season_display }}{% endif %}
+            </div>
+          </div>
+          <div class="pp-viewer-actions">
+            <div class="pp-view-toggle" role="group" aria-label="Paper type">
+              <a
+                class="{% if view_mode != 'answer' %}is-active{% endif %}"
+                href="?{% if filter_query %}{{ filter_query }}&{% endif %}paper={{ selected_paper.id }}&view=question"
+              >
+                <i class="fas fa-file-alt"></i> Question
+              </a>
+              {% if selected_paper.answer_pdf %}
+                <a
+                  class="is-answer {% if view_mode == 'answer' %}is-active{% endif %}"
+                  href="?{% if filter_query %}{{ filter_query }}&{% endif %}paper={{ selected_paper.id }}&view=answer"
+                >
+                  <i class="fas fa-check-circle"></i> Answer sheet
+                </a>
+              {% else %}
+                <a class="is-disabled" href="#" title="No answer sheet uploaded for this paper" aria-disabled="true">
+                  <i class="fas fa-check-circle"></i> Answer sheet
+                </a>
+              {% endif %}
+            </div>
+            {% if view_mode == 'answer' and selected_paper.answer_pdf %}
+              {% with aurl=selected_paper.answer_pdf|media_url %}
+                {% if aurl %}
+                  <a class="pp-download is-answer" href="{{ aurl }}" target="_blank" rel="noopener">
+                    <i class="fas fa-download"></i> Download answer
+                  </a>
+                {% endif %}
+              {% endwith %}
+            {% else %}
+              {% with purl=selected_paper.pdf|media_url %}
+                {% if purl %}
+                  <a class="pp-download" href="{{ purl }}" target="_blank" rel="noopener">
+                    <i class="fas fa-download"></i> Download PDF
+                  </a>
+                {% endif %}
+              {% endwith %}
+            {% endif %}
+          </div>
+        </div>
+        <div class="pp-frame-wrap">
+          {% if view_mode == 'answer' and selected_paper.answer_pdf %}
+            {% with aurl=selected_paper.answer_pdf|media_url %}
+              {% if aurl %}
+                <iframe
+                  title="{{ selected_paper.title }} — Answer sheet"
+                  src="{{ aurl }}#view=FitH"
+                ></iframe>
+              {% else %}
+                <div class="pp-placeholder"><strong>Answer file missing</strong></div>
+              {% endif %}
+            {% endwith %}
+          {% else %}
+            {% with purl=selected_paper.pdf|media_url %}
+              {% if purl %}
+                <iframe
+                  title="{{ selected_paper.title }} — Question paper"
+                  src="{{ purl }}#view=FitH"
+                ></iframe>
+              {% else %}
+                <div class="pp-placeholder"><strong>Question PDF missing</strong></div>
+              {% endif %}
+            {% endwith %}
+          {% endif %}
+        </div>
+      {% else %}
+        <div class="pp-placeholder">
+          <i class="fas fa-file-pdf"></i>
+          <strong>Select a past paper</strong>
+          <span>
+            {% if papers %}
+              Choose a paper from the list on the left to view the question paper PDF.
+              If an answer sheet is linked, use the <strong>Answer sheet</strong> switch.
+            {% else %}
+              Use the filters above, then pick a paper to open its PDF.
+            {% endif %}
+          </span>
+        </div>
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var form = document.getElementById('ppFilterForm');
+  if (!form) return;
+
+  var fields = Array.prototype.slice.call(form.querySelectorAll('[data-pp-dd]'));
+
+  function closeAll(except) {
+    fields.forEach(function (field) {
+      if (except && field === except) return;
+      field.classList.remove('is-open');
+      var btn = field.querySelector('.pp-dd-toggle');
+      if (btn) btn.setAttribute('aria-expanded', 'false');
+    });
+  }
+
+  function updateFieldLabel(field) {
+    var placeholder = field.getAttribute('data-placeholder') || 'Select';
+    var textEl = field.querySelector('.pp-dd-toggle-text');
+    var countEl = field.querySelector('[data-pp-count]');
+    var checked = Array.prototype.slice.call(
+      field.querySelectorAll('input[type="checkbox"]:checked')
+    );
+    var n = checked.length;
+
+    if (countEl) {
+      countEl.textContent = String(n);
+      countEl.classList.toggle('is-on', n > 0);
+    }
+    if (!textEl) return;
+
+    if (n === 0) {
+      textEl.textContent = placeholder;
+      textEl.classList.add('is-placeholder');
+      return;
+    }
+
+    var labels = checked.map(function (cb) {
+      return cb.getAttribute('data-label') || cb.value;
+    });
+
+    if (n === 1) {
+      textEl.textContent = labels[0];
+    } else if (n === 2) {
+      textEl.textContent = labels.join(', ');
+    } else {
+      textEl.textContent = labels[0] + ' +' + (n - 1) + ' more';
+    }
+    textEl.classList.remove('is-placeholder');
+  }
+
+  fields.forEach(function (field) {
+    var toggle = field.querySelector('.pp-dd-toggle');
+    var menu = field.querySelector('.pp-dd-menu');
+    var search = field.querySelector('.pp-dd-search');
+    var items = Array.prototype.slice.call(field.querySelectorAll('.pp-check-item'));
+
+    if (toggle) {
+      toggle.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var willOpen = !field.classList.contains('is-open');
+        closeAll(field);
+        field.classList.toggle('is-open', willOpen);
+        toggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        if (willOpen && search) {
+          setTimeout(function () { search.focus(); }, 0);
+        }
+      });
+    }
+
+    if (menu) {
+      menu.addEventListener('click', function (e) {
+        e.stopPropagation();
+      });
+    }
+
+    items.forEach(function (item) {
+      var cb = item.querySelector('input[type="checkbox"]');
+      if (!cb) return;
+      cb.addEventListener('change', function () {
+        updateFieldLabel(field);
+      });
+    });
+
+    if (search) {
+      search.addEventListener('input', function () {
+        var q = (search.value || '').toLowerCase().trim();
+        items.forEach(function (item) {
+          var cb = item.querySelector('input[type="checkbox"]');
+          var label = (
+            (cb && cb.getAttribute('data-label')) ||
+            item.textContent ||
+            ''
+          ).toLowerCase();
+          var show = !q || label.indexOf(q) !== -1;
+          item.classList.toggle('is-hidden', !show);
+        });
+      });
+      search.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+          closeAll();
+        }
+      });
+    }
+
+    updateFieldLabel(field);
+  });
+
+  document.addEventListener('click', function () {
+    closeAll();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeAll();
+  });
+})();
+</script>
+{% endblock %}

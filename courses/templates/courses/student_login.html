@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Log In - Learning Banyan
+{% endblock %}
+
+{% block content %}
+  <div style="max-width: 480px; margin: 2rem auto;">
+    <div class="hero" style="padding: 2.5rem 2rem; margin-bottom: 2rem;">
+      <h1 style="font-size: 1.8rem;">👋 Welcome back</h1>
+      <p style="margin-bottom: 0;">One login for students and admins. We’ll send you to the right portal.</p>
+    </div>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="{% if message.tags == 'success' %}success{% else %}error{% endif %}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% if request.GET.next %}
+          <input type="hidden" name="next" value="{{ request.GET.next }}" />
+        {% endif %}
+
+        <div class="form-group">
+          {{ form.username.label_tag }}
+          {{ form.username }}
+        </div>
+
+        <div class="form-group">
+          {{ form.password.label_tag }}
+          {{ form.password }}
+        </div>
+
+        <button type="submit" class="btn" style="width: 100%; padding: 0.85rem;">Log in</button>
+      </form>
+
+      <p style="text-align: center; margin-top: 1.25rem; color: #6b7280; font-size: 0.9rem;">
+        Students go to My Exams · Admins go to the Admin Panel
+      </p>
+
+      <p style="text-align: center; margin-top: 1rem; color: #666;">
+        New student? <a href="{% url 'courses:student_signup' %}" style="color: #1078B0; font-weight: 600;">Create a free account</a>
+      </p>
+    </div>
+  </div>
+{% endblock %}

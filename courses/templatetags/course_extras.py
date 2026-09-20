@@ -1,0 +1,85 @@
+from django import template
+from django.utils.safestring import mark_safe
+
+from courses.math_content import render_chat_math, sanitize_math_content
+from courses.html_sanitize import safe_html, safe_html_stem, safe_html_option
+
+register = template.Library()
+
+
+@register.filter(name="media_url")
+def media_url(file_field):
+    """
+    Safe FileField/ImageField .url for templates.
+    Returns '' instead of raising ValueError when no file is stored
+    (common cause of 500s on Render when optional media is blank).
+    """
+    if not file_field:
+        return ""
+    try:
+        name = getattr(file_field, "name", None)
+        if not name:
+            return ""
+        return file_field.url or ""
+    except (ValueError, OSError, AttributeError):
+        return ""
+
+
+@register.filter(name="chat_math")
+def chat_math(value):
+    """Clean and HTML-escape chat/post text so MathJax can render formulas."""
+    return render_chat_math(value)
+
+
+@register.filter(name="sanitize_math")
+def sanitize_math(value):
+    """Return cleaned plain text (for edit forms / previews)."""
+    return sanitize_math_content(value)
+
+
+@register.filter(name="safe_html")
+def safe_html_filter(value):
+    """Render user/admin HTML with XSS allowlist (equation images, basic formatting)."""
+    return safe_html(value)
+
+
+@register.filter(name="safe_html_stem")
+def safe_html_stem_filter(value):
+    """Question stem: equations sized to sit with body text."""
+    return safe_html_stem(value)
+
+
+@register.filter(name="safe_html_option")
+def safe_html_option_filter(value):
+    """MCQ option: pure-math options use a larger readable size."""
+    return safe_html_option(value)
+
+
+@register.filter
+def split_once(value, sep=":"):
+    """
+    Split 'value' on the first occurrence of 'sep' and return a tuple-like
+    list: [before, after]. If 'sep' is not present, returns [value, ''].
+    Usage: {{ line|split_once:":" }} -> use with |first / |last, or
+    better, use the dedicated module_title / module_desc filters below.
+    """
+    if sep in value:
+        before, after = value.split(sep, 1)
+        return [before.strip(), after.strip()]
+    return [value.strip(), ""]
+
+
+@register.filter
+def module_title(value, sep=":"):
+    """Return the part before the first ':' (e.g. 'Module 1')."""
+    if sep in value:
+        return value.split(sep, 1)[0].strip()
+    return value.strip()
+
+
+@register.filter
+def module_desc(value, sep=":"):
+    """Return the part after the first ':' (e.g. 'Introduction and Fundamentals')."""
+    if sep in value:
+        return value.split(sep, 1)[1].strip()
+    return ""
