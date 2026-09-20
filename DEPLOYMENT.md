@@ -1,15 +1,29 @@
 # Learning Banyan - Deployment Guide
 
-Primary target is **Vercel**. Local SQLite works without extra config.
+Primary production target for this VPS is **Hostinger** (IPv4, port 8080 so an
+existing website on port 80 is not replaced). See **[HOSTINGER.md](HOSTINGER.md)**.
+
+Local SQLite works without extra config. Vercel / Render / Docker still work.
 
 ## Table of Contents
 
-1. [Local Development](#local-development)
-2. [Docker Deployment](#docker-deployment)
-3. [Vercel Deployment](#vercel-deployment)
-4. [Heroku Deployment](#heroku-deployment)
-5. [AWS Deployment](#aws-deployment)
-6. [Production Checklist](#production-checklist)
+1. [Hostinger VPS](#hostinger-vps)
+2. [Local Development](#local-development)
+3. [Docker Deployment](#docker-deployment)
+4. [Vercel Deployment](#vercel-deployment)
+5. [Heroku Deployment](#heroku-deployment)
+6. [AWS Deployment](#aws-deployment)
+7. [Production Checklist](#production-checklist)
+
+## Hostinger VPS
+
+Full steps: **[HOSTINGER.md](HOSTINGER.md)**.
+
+- Needs a VPS (not shared hosting).
+- Existing site stays on `http://VPS_IP/`.
+- Learning Banyan runs on `http://VPS_IP:8080/`.
+- On the VPS: `sudo bash deploy/hostinger/install.sh`
+- Open TCP **8080** in the Hostinger VPS firewall.
 
 ## Local Development
 

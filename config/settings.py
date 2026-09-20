@@ -1,12 +1,14 @@
 """
 Django settings for config project.
 
-Local development, Vercel, Render, and Docker via environment variables.
+Local development, Vercel, Render, Docker, and Hostinger VPS via environment variables.
 """
 
 import hashlib
+import ipaddress
 import os
 from pathlib import Path
+from urllib.parse import urlparse
 
 from dotenv import load_dotenv
 
@@ -67,6 +69,52 @@ def _hostname(value):
     return host.split("/")[0].split(":")[0].strip()
 
 
+def _is_ip_address(value):
+    if not value:
+        return False
+    try:
+        ipaddress.ip_address(value)
+        return True
+    except ValueError:
+        return False
+
+
+def _add_unique(seq, item):
+    if item and item not in seq:
+        seq.append(item)
+
+
+def _origin(scheme, host, port=""):
+    """Build a CSRF origin, keeping a non-default port (needed for IP:8080)."""
+    if not scheme or not host:
+        return ""
+    port = str(port or "").strip()
+    if port and not (
+        (scheme == "http" and port in ("80",))
+        or (scheme == "https" and port in ("443",))
+    ):
+        return f"{scheme}://{host}:{port}"
+    return f"{scheme}://{host}"
+
+
+def _parse_public_url():
+    """Hostinger VPS is often IP-only: SITE_URL=http://x.x.x.x:8080."""
+    site_url = _env("SITE_URL", "")
+    host = _hostname(_env("PUBLIC_HOST", "") or _env("VPS_IP", ""))
+    port = _env("PUBLIC_PORT", "")
+    scheme = _env("PUBLIC_SCHEME", "").lower()
+    if site_url:
+        parsed = urlparse(site_url if "://" in site_url else f"http://{site_url}")
+        host = host or (parsed.hostname or "")
+        if parsed.port and not port:
+            port = str(parsed.port)
+        if parsed.scheme and not scheme:
+            scheme = parsed.scheme.lower()
+    if not scheme:
+        scheme = "http" if _is_ip_address(host) else ""
+    return host, port, scheme
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
@@ -115,14 +163,16 @@ if os.environ.get("RENDER") or os.environ.get("RENDER_EXTERNAL_HOSTNAME"):
 
 _site_domain = _hostname(os.environ.get("SITE_DOMAIN", ""))
 if _site_domain:
-    if _site_domain not in ALLOWED_HOSTS:
-        ALLOWED_HOSTS.append(_site_domain)
+    _add_unique(ALLOWED_HOSTS, _site_domain)
     if _site_domain.startswith("www."):
-        bare = _site_domain[4:]
-        if bare and bare not in ALLOWED_HOSTS:
-            ALLOWED_HOSTS.append(bare)
-    elif f"www.{_site_domain}" not in ALLOWED_HOSTS:
-        ALLOWED_HOSTS.append(f"www.{_site_domain}")
+        _add_unique(ALLOWED_HOSTS, _site_domain[4:])
+    else:
+        _add_unique(ALLOWED_HOSTS, f"www.{_site_domain}")
+
+# Hostinger VPS / IP-only deploy (no domain required)
+_public_host, _public_port, _public_scheme = _parse_public_url()
+if _public_host:
+    _add_unique(ALLOWED_HOSTS, _public_host)
 
 if os.environ.get("VERCEL"):
     vercel_url = _hostname(os.environ.get("VERCEL_URL", ""))
@@ -152,9 +202,15 @@ for host in ALLOWED_HOSTS:
     if host in ("*", "localhost", "127.0.0.1") or host.startswith("."):
         continue
     for scheme in ("https", "http"):
-        origin = f"{scheme}://{host}"
-        if origin not in CSRF_TRUSTED_ORIGINS:
-            CSRF_TRUSTED_ORIGINS.append(origin)
+        _add_unique(CSRF_TRUSTED_ORIGINS, _origin(scheme, host))
+
+if _public_host:
+    schemes = [_public_scheme] if _public_scheme else ["http", "https"]
+    for scheme in schemes:
+        _add_unique(
+            CSRF_TRUSTED_ORIGINS,
+            _origin(scheme, _public_host, _public_port),
+        )
 
 
 # Application definition
@@ -240,6 +296,22 @@ def _build_databases():
                 "PASSWORD": os.environ.get("DATABASE_PASSWORD", "postgres"),
                 "HOST": os.environ.get("DATABASE_HOST", "localhost"),
                 "PORT": os.environ.get("DATABASE_PORT", "5432"),
+            }
+        }
+
+    if engine and "mysql" in engine.lower():
+        return {
+            "default": {
+                "ENGINE": "django.db.backends.mysql",
+                "NAME": os.environ.get("DATABASE_NAME", "learningbanyan"),
+                "USER": os.environ.get("DATABASE_USER", "root"),
+                "PASSWORD": os.environ.get("DATABASE_PASSWORD", ""),
+                "HOST": os.environ.get("DATABASE_HOST", "127.0.0.1"),
+                "PORT": os.environ.get("DATABASE_PORT", "3306"),
+                "OPTIONS": {
+                    "charset": "utf8mb4",
+                    "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+                },
             }
         }
 
@@ -341,7 +413,11 @@ USE_X_FORWARDED_HOST = _env_bool("USE_X_FORWARDED_HOST", True)
 USE_X_FORWARDED_PORT = True
 
 if not DEBUG:
-    SECURE_SSL_REDIRECT = _env_bool("SECURE_SSL_REDIRECT", True)
+    # IP-only Hostinger VPS has no Let's Encrypt cert. Do not force HTTPS.
+    _ssl_default = True
+    if _public_scheme == "http" or _is_ip_address(_public_host):
+        _ssl_default = False
+    SECURE_SSL_REDIRECT = _env_bool("SECURE_SSL_REDIRECT", _ssl_default)
     SECURE_REDIRECT_EXEMPT = [r"^healthz/?$"]
     _secure_cookie_default = True if SECURE_SSL_REDIRECT else False
     SESSION_COOKIE_SECURE = _env_bool("SESSION_COOKIE_SECURE", _secure_cookie_default)

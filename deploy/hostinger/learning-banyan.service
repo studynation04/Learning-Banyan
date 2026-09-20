@@ -1,0 +1,19 @@
+[Unit]
+Description=Learning Banyan Django (Hostinger VPS, port 8080)
+After=network.target
+# Do not After=nginx/apache — this service does not replace the existing site.
+
+[Service]
+Type=simple
+User=REPLACE_USER
+Group=REPLACE_GROUP
+WorkingDirectory=REPLACE_APP_DIR
+EnvironmentFile=REPLACE_APP_DIR/.env
+ExecStart=REPLACE_APP_DIR/.venv/bin/gunicorn --config REPLACE_APP_DIR/deploy/hostinger/gunicorn.conf.py config.wsgi:application
+Restart=always
+RestartSec=5
+KillMode=mixed
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target
