@@ -178,6 +178,112 @@
       .form-group.full {
         grid-column: 1 / -1;
       }
+
+      .content-types {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 4px 0 16px;
+      }
+
+      .content-type-btn {
+        border: 1px solid #d5deea;
+        background: #f7f9fc;
+        color: #334155;
+        border-radius: 8px;
+        padding: 8px 12px;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 13px;
+        font-family: inherit;
+      }
+
+      .content-type-btn.is-active {
+        background: #e8f3fb;
+        border-color: #1078B0;
+        color: #053C74;
+      }
+
+      .cc-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        border: 1px solid #e6ebf2;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        background: #fff;
+      }
+
+      .cc-row-main {
+        font-size: 14px;
+        color: #1e293b;
+      }
+
+      .cc-kind {
+        display: inline-block;
+        min-width: 118px;
+        margin-right: 8px;
+        color: #1078B0;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+
+      .cc-children {
+        margin-left: 22px;
+      }
+
+      .content-note {
+        color: #64748b;
+        font-size: 13px;
+        margin: -6px 0 14px;
+      }
+
+      .course-content-block {
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid #e6ebf2;
+      }
+
+      .course-content-block h3 {
+        margin: 12px 0 8px;
+        font-size: 18px;
+        color: #1e293b;
+      }
+
+      .video-source {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 0 0 14px;
+      }
+
+      .video-source label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid #d5deea;
+        background: #f7f9fc;
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-weight: 700;
+        font-size: 13px;
+        color: #334155;
+        cursor: pointer;
+      }
+
+      .video-source input:checked + span,
+      .video-source label:has(input:checked) {
+        color: #053C74;
+      }
+
+      .video-source label:has(input:checked) {
+        background: #e8f3fb;
+        border-color: #1078B0;
+      }
       
       .form-group label {
         display: block;
@@ -332,6 +438,17 @@
         color: #c62828;
         border-left: 4px solid #f44336;
       }
+
+      .alert-warning {
+        background: #fff8e1;
+        color: #8a5a00;
+        border-left: 4px solid #f9a825;
+      }
+
+      .form-error-list {
+        margin: 8px 0 0;
+        padding-left: 18px;
+      }
       
       .empty-state {
         text-align: center;
@@ -363,6 +480,224 @@
           grid-template-columns: 1fr;
         }
       }
+
+      /* Course workspace refresh */
+      :root { color-scheme: light; }
+      body { background: #edf2f7; color: #26384b; }
+      .dashboard-wrapper { grid-template-columns: 232px minmax(0, 1fr); }
+      .sidebar { position: sticky; top: 0; width: 232px; height: 100vh; padding: 22px 0; }
+      .main-content { min-width: 0; width: auto; margin-left: 0; max-width: 1700px; padding: 28px clamp(18px, 3vw, 46px) 34px; }
+      .header, .form-section, .content-section {
+        background: #fff; border: 1px solid #e0e8f0; border-radius: 14px;
+        box-shadow: 0 5px 20px rgba(27, 55, 83, .06);
+      }
+      .header { min-height: 86px; padding: 20px 24px; margin-bottom: 22px; }
+      .header h1 { color: #123d68; font-size: clamp(22px, 2vw, 28px); letter-spacing: -.025em; }
+      .header p { color: #748497 !important; font-size: 13px !important; }
+      .btn { border-radius: 8px; transition: transform .16s ease, box-shadow .16s ease, background .16s ease; }
+      .btn-primary { background: linear-gradient(135deg, #087bb5, #12639a); box-shadow: 0 3px 8px rgba(8,123,181,.18); }
+      .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(8,123,181,.24); }
+      .btn-secondary { background: #f4f7fa; border: 1px solid #dce5ed; color: #3d5268; }
+      .form-section, .content-section { padding: clamp(20px, 2.4vw, 32px); margin-bottom: 22px; }
+      .form-section > h2 { color: #173c60; font-size: 21px; margin-bottom: 22px; padding: 0 0 15px; border-bottom: 1px solid #e6edf3; }
+      .form-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 18px; }
+      .form-group { min-width: 0; margin: 0; }
+      .form-group label { color: #34495e; font-size: 13px; font-weight: 650; margin-bottom: 7px; }
+      .form-group input, .form-group textarea, .form-group select {
+        color: #293c50; border: 1px solid #dce4eb; border-radius: 8px; padding: 10px 12px;
+        min-height: 42px; background: #fff; font: inherit; font-size: 14px;
+      }
+      .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+        border-color: #2384b9; box-shadow: 0 0 0 3px rgba(35,132,185,.12);
+      }
+      .form-group textarea { min-height: 94px; line-height: 1.5; }
+      .form-group small { display: block; margin-top: 6px; color: #8291a0 !important; font-size: 12px; line-height: 1.45; }
+      .editor-section { padding: 22px 0; border-bottom: 1px solid #e9eef3; }
+      .editor-section:last-of-type { border-bottom: 0; }
+      .section-heading { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 17px; }
+      .section-number { display: grid; place-items: center; flex: 0 0 30px; height: 30px; border-radius: 9px; background: #e9f4fa; color: #087bb5; font-size: 12px; font-weight: 800; }
+      .section-heading h3 { margin: 1px 0 4px; color: #1c3d5d; font-size: 16px; }
+      .section-heading p { margin: 0; color: #8190a0; font-size: 12px; line-height: 1.45; }
+      .editor-section .form-grid { padding-left: 42px; }
+      .course-content-block { margin-top: 2px; padding-top: 24px; border-top: 1px solid #e5edf3; }
+      .course-content-block h3 { margin: 0 0 7px; color: #183d61; font-size: 19px; }
+      .content-note { color: #77889a; line-height: 1.5; }
+      .content-types { gap: 8px; margin: 16px 0; }
+      .content-type-btn { padding: 9px 13px; border-radius: 8px; border-color: #d9e3ec; background: #f7f9fb; color: #3e566e; }
+      .content-type-btn:hover { border-color: #8db9d4; }
+      .content-type-btn.is-active { background: #e8f4fa; border-color: #2182b7; color: #12517b; }
+      .content-entry { border: 1px solid #dfe8ef !important; border-radius: 12px !important; padding: 18px !important; margin: 12px 0 !important; background: #f8fafc !important; }
+      .content-entry .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .content-entry [data-entry-kind] { grid-column: 1 / -1; }
+      .content-entry [data-entry-kind] input[type=file] { background: #fff; }
+      .form-actions { padding-top: 8px; }
+      .content-section h2 { color: #173c60; font-size: 19px; margin-bottom: 18px; }
+      .table-scroll { overflow-x: auto; border: 1px solid #e4ebf1; border-radius: 10px; }
+      .upload-table { min-width: 720px; }
+      .upload-table th { background: #f5f8fb; color: #57728c; font-size: 11px; padding: 12px 14px; }
+      .upload-table td { padding: 13px 14px; border-color: #edf1f5; color: #3d5368; }
+      .upload-table tr:hover { background: #f8fbfd; }
+      .upload-table td strong { color: #19466e; }
+      .course-logo { width: 46px; height: 46px; border-radius: 9px; border-color: #e2e9ef; }
+      .upload-table .btn-danger { padding: 7px 10px; border-radius: 7px; }
+      .alert { border-radius: 9px; }
+      .empty-state { padding: 48px 20px; }
+      @media (max-width: 1050px) {
+        .dashboard-wrapper { grid-template-columns: 210px minmax(0, 1fr); }
+        .sidebar { width: 210px; }
+        .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+      @media (max-width: 760px) {
+        .dashboard-wrapper { display: block; }
+        .sidebar { position: relative; width: 100%; height: auto; min-height: 0; }
+        .main-content { padding: 16px 12px 24px; }
+        .header { align-items: flex-start; gap: 14px; padding: 17px; }
+        .header-actions { flex-shrink: 0; }
+        .form-section, .content-section { padding: 18px 15px; }
+        .form-grid, .content-entry .form-grid { grid-template-columns: minmax(0, 1fr); }
+        .editor-section .form-grid { padding-left: 0; }
+        .section-heading { margin-bottom: 14px; }
+      }
+      /* Design previews: Studio (default), Classic, and Midnight. */
+      .design-picker { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:0 0 20px; }
+      .design-picker-label { grid-column:1/-1; color:#718196; font-size:11px; font-weight:800; letter-spacing:.12em; }
+      .design-choice { position:relative; display:flex; flex-direction:column; align-items:flex-start; gap:5px; min-height:68px; border:1px solid #d7e1ea; background:#fff; color:#24415d; border-radius:12px; padding:11px 14px; font-family:inherit; font-size:13px; font-weight:750; cursor:pointer; text-align:left; transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+      .design-choice:hover { transform:translateY(-2px); border-color:#6ba5c9; box-shadow:0 7px 15px rgba(25,61,91,.09); }
+      .design-choice small { color:#8392a1; font-size:11px; font-weight:500; }
+      .design-choice.is-selected { background:#e8f4fa; color:#12517b; border-color:#2182b7; box-shadow:inset 0 0 0 1px #2182b7; }
+      .design-choice.is-selected::after { content:"✓"; position:absolute; top:9px; right:11px; width:20px; height:20px; display:grid; place-items:center; border-radius:50%; background:#1684b8; color:#fff; font-size:12px; }
+      body[data-design="courses1"] .header { position:relative; overflow:hidden; color:white; border:0; background:linear-gradient(115deg,#073f70 0%,#087fae 58%,#24a6b4 100%); }
+      body[data-design="courses1"] .header::after { content:""; position:absolute; width:230px; height:230px; right:110px; top:-150px; border:1px solid rgba(255,255,255,.2); border-radius:50%; box-shadow:0 0 0 28px rgba(255,255,255,.05),0 0 0 58px rgba(255,255,255,.035); }
+      body[data-design="courses1"] .header h1, body[data-design="courses1"] .header p { color:#fff !important; position:relative; z-index:1; }
+      body[data-design="courses1"] .header p { opacity:.78; }
+      body[data-design="courses1"] .header .btn-primary { background:#fff; color:#0b608c; box-shadow:none; }
+      body[data-design="courses1"] .header .btn-primary:hover { background:#eaf8fb; }
+      body[data-design="courses1"] .editor-section { position:relative; overflow:hidden; }
+      body[data-design="courses1"] .section-number { box-shadow:0 4px 10px rgba(8,123,181,.16); }
+      body[data-design="courses1"] .form-group input:hover, body[data-design="courses1"] .form-group textarea:hover, body[data-design="courses1"] .form-group select:hover { border-color:#9bc4d9; }
+      body[data-design="courses1"] .form-section > h2 { display:flex; align-items:center; gap:10px; }
+      body[data-design="courses1"] .form-section > h2::before { content:""; width:5px; height:23px; border-radius:5px; background:linear-gradient(#20a7b3,#1473a6); }
+      body[data-design="classic"] { background:#e8edf2; color:#344251; }
+      body[data-design="classic"] .header, body[data-design="classic"] .form-section, body[data-design="classic"] .content-section { border-radius:4px; box-shadow:0 1px 4px rgba(24,44,63,.11); border-color:#d2dbe3; }
+      body[data-design="classic"] .header { border-top:5px solid #187ea8; }
+      body[data-design="classic"] .form-section > h2, body[data-design="classic"] .content-section h2 { color:#fff; background:#397f99; border:0; padding:11px 14px; font-size:16px; }
+      body[data-design="classic"] .editor-section { border-bottom:1px solid #d8e0e7; padding:17px 0; }
+      body[data-design="classic"] .section-number { border-radius:3px; background:#e2edf1; color:#26708d; }
+      body[data-design="classic"] .form-group input, body[data-design="classic"] .form-group textarea, body[data-design="classic"] .form-group select { border-radius:3px; min-height:37px; padding:8px 10px; }
+      body[data-design="classic"] .content-entry { border-radius:4px !important; background:#f2f5f7 !important; }
+      body[data-design="classic"] .content-type-btn { border-radius:3px; }
+      body[data-design="classic"] .btn { border-radius:3px; }
+      body[data-design="midnight"] { background:#111a24; color:#d8e3ed; }
+      body[data-design="midnight"] .main-content { color:#d8e3ed; }
+      body[data-design="midnight"] .header, body[data-design="midnight"] .form-section, body[data-design="midnight"] .content-section { background:#1b2734; border:1px solid #304253; box-shadow:0 12px 28px rgba(0,0,0,.2); }
+      body[data-design="midnight"] .header h1, body[data-design="midnight"] .form-section > h2, body[data-design="midnight"] .content-section h2, body[data-design="midnight"] .section-heading h3, body[data-design="midnight"] .course-content-block h3 { color:#e7f1fa; }
+      body[data-design="midnight"] .header p, body[data-design="midnight"] .section-heading p, body[data-design="midnight"] .content-note { color:#9aabba !important; }
+      body[data-design="midnight"] .editor-section { border-color:#304253; }
+      body[data-design="midnight"] .section-number { background:#203e52; color:#76c5ee; }
+      body[data-design="midnight"] .form-group label { color:#cad7e3; }
+      body[data-design="midnight"] .form-group input, body[data-design="midnight"] .form-group textarea, body[data-design="midnight"] .form-group select { background:#121d28; border-color:#3a4d5e; color:#e2ebf2; }
+      body[data-design="midnight"] .form-group input:focus, body[data-design="midnight"] .form-group textarea:focus, body[data-design="midnight"] .form-group select:focus { border-color:#4aa8d6; }
+      body[data-design="midnight"] .form-group small { color:#94a6b6 !important; }
+      body[data-design="midnight"] .content-entry { background:#15212d !important; border-color:#34495c !important; }
+      body[data-design="midnight"] .content-entry .form-group input, body[data-design="midnight"] .content-entry .form-group textarea, body[data-design="midnight"] .content-entry .form-group select { background:#101a24; color:#e2ebf2; }
+      body[data-design="midnight"] .content-type-btn, body[data-design="midnight"] .design-choice { background:#202f3d; border-color:#405365; color:#c2d0dc; }
+      body[data-design="midnight"] .content-type-btn.is-active, body[data-design="midnight"] .design-choice.is-selected { background:#16415a; border-color:#4aa8d6; color:#c4ecff; }
+      body[data-design="midnight"] .table-scroll { border-color:#344757; }
+      body[data-design="midnight"] .upload-table th { background:#223342; color:#9dc8df; border-color:#344757; }
+      body[data-design="midnight"] .upload-table td { background:#1b2734; color:#c6d2dc; border-color:#304253; }
+      body[data-design="midnight"] .upload-table td strong { color:#e4f2fc; }
+      body[data-design="midnight"] .upload-table tr:hover td { background:#223342; }
+      body[data-design="midnight"] .btn-secondary { background:#273747; border-color:#405364; color:#d2dde6; }
+      /* Courses 1: spacious, two-column card based entry form. */
+      body[data-design="courses1"] .editor-section { background:#f8fbfd; border:1px solid #e4edf3; border-radius:12px; padding:19px; margin:0 0 14px; }
+      body[data-design="courses1"] .editor-section .form-grid { grid-template-columns:repeat(2,minmax(0,1fr)); padding-left:42px; }
+      body[data-design="courses1"] .editor-section .form-group.full { grid-column:1/-1; }
+      body[data-design="courses1"] .section-number { border-radius:50%; }
+      /* Courses 2: compact, three-column admin form with strong section headers. */
+      body[data-design="courses2"] { background:#edf2f5; }
+      body[data-design="courses2"] .main-content { max-width:none; padding:22px clamp(14px,2vw,30px); }
+      body[data-design="courses2"] .header, body[data-design="courses2"] .form-section, body[data-design="courses2"] .content-section { border-radius:5px; box-shadow:0 2px 7px rgba(32,54,72,.08); }
+      body[data-design="courses2"] .header { position:relative; overflow:hidden; border:0; background:linear-gradient(115deg,#392c75,#6755a7 60%,#ba729b); }
+      body[data-design="courses2"] .header h1, body[data-design="courses2"] .header p { color:#fff !important; position:relative; z-index:1; }
+      body[data-design="courses2"] .header p { opacity:.78; }
+      body[data-design="courses2"] .header .btn-primary { background:#fff; color:#514287; box-shadow:none; }
+      body[data-design="courses2"] .design-choice.is-selected { background:#f2effb; border-color:#7664ae; color:#514287; box-shadow:inset 0 0 0 1px #7664ae; }
+      body[data-design="courses2"] .editor-section { border:1px solid #dce5eb; border-radius:5px; padding:0 14px 15px; margin:0 0 13px; background:#fff; }
+      body[data-design="courses2"] .section-heading { margin:0 -14px 15px; padding:10px 14px; align-items:center; background:linear-gradient(90deg,#514287,#7766ac); }
+      body[data-design="courses2"] .section-heading h3, body[data-design="courses2"] .section-heading p { color:#fff; }
+      body[data-design="courses2"] .section-heading p { opacity:.8; }
+      body[data-design="courses2"] .section-number { flex-basis:25px; height:25px; background:rgba(255,255,255,.18); color:#fff; border-radius:3px; }
+      body[data-design="courses2"] .editor-section .form-grid { grid-template-columns:repeat(3,minmax(0,1fr)); padding-left:0; gap:12px; }
+      body[data-design="courses2"] .form-group input, body[data-design="courses2"] .form-group textarea, body[data-design="courses2"] .form-group select { min-height:37px; padding:8px 10px; border-radius:4px; }
+      body[data-design="courses2"] .form-group.full { grid-column:1/-1; }
+      body[data-design="courses2"] .content-entry { border-radius:5px !important; }
+      body[data-design="courses2"] .btn, body[data-design="courses2"] .content-type-btn { border-radius:4px; }
+      /* Courses 3: dark workspace with labels beside controls. */
+      body[data-design="courses3"] { background:#111a24; color:#d8e3ed; }
+      body[data-design="courses3"] .main-content { max-width:none; color:#d8e3ed; }
+      body[data-design="courses3"] .header, body[data-design="courses3"] .form-section, body[data-design="courses3"] .content-section { background:#1b2734; border:1px solid #304253; box-shadow:0 12px 28px rgba(0,0,0,.2); }
+      body[data-design="courses3"] .header { position:relative; overflow:hidden; background:linear-gradient(110deg,#142438,#193952 62%,#15556a); }
+      body[data-design="courses3"] .header::after { content:""; position:absolute; width:270px; height:270px; right:120px; bottom:-235px; border:1px solid rgba(94,220,238,.35); border-radius:50%; box-shadow:0 0 0 28px rgba(94,220,238,.06),0 0 0 58px rgba(94,220,238,.04); }
+      body[data-design="courses3"] .header .btn-primary { background:#57d6dd; color:#102839; }
+      body[data-design="courses3"] .design-choice.is-selected { background:#18384b; border-color:#57d6dd; color:#b9f5f4; box-shadow:inset 0 0 0 1px #57d6dd; }
+      body[data-design="courses3"] .design-choice small { color:#9aabba; }
+      body[data-design="courses3"] .header h1, body[data-design="courses3"] .form-section > h2, body[data-design="courses3"] .content-section h2, body[data-design="courses3"] .section-heading h3, body[data-design="courses3"] .course-content-block h3 { color:#e7f1fa; }
+      body[data-design="courses3"] .header p, body[data-design="courses3"] .section-heading p, body[data-design="courses3"] .content-note { color:#9aabba !important; }
+      body[data-design="courses3"] .editor-section { background:#17232f; border:1px solid #304253; border-radius:10px; padding:17px; margin:0 0 12px; }
+      body[data-design="courses3"] .section-number { background:#203e52; color:#76c5ee; }
+      body[data-design="courses3"] .editor-section .form-grid { display:block; padding-left:0; }
+      body[data-design="courses3"] .editor-section .form-group { display:grid; grid-template-columns:minmax(150px, 22%) minmax(0,1fr); align-items:start; gap:5px 16px; padding:9px 0; border-bottom:1px solid #2b3a48; }
+      body[data-design="courses3"] .editor-section .form-group:last-child { border-bottom:0; }
+      body[data-design="courses3"] .editor-section .form-group label { grid-column:1; padding-top:10px; color:#cad7e3; }
+      body[data-design="courses3"] .editor-section .form-group input, body[data-design="courses3"] .editor-section .form-group textarea, body[data-design="courses3"] .editor-section .form-group select { grid-column:2; background:#121d28; border-color:#3a4d5e; color:#e2ebf2; }
+      body[data-design="courses3"] .editor-section .form-group small { grid-column:2; margin-top:0; color:#94a6b6 !important; }
+      body[data-design="courses3"] .editor-section .form-group.full { display:grid; }
+      body[data-design="courses3"] .form-group input:focus, body[data-design="courses3"] .form-group textarea:focus, body[data-design="courses3"] .form-group select:focus { border-color:#4aa8d6; }
+      body[data-design="courses3"] .content-entry { background:#15212d !important; border-color:#34495c !important; }
+      body[data-design="courses3"] .content-entry .form-group input, body[data-design="courses3"] .content-entry .form-group textarea, body[data-design="courses3"] .content-entry .form-group select { background:#101a24; color:#e2ebf2; }
+      body[data-design="courses3"] .content-type-btn, body[data-design="courses3"] .design-choice { background:#202f3d; border-color:#405365; color:#c2d0dc; }
+      body[data-design="courses3"] .content-type-btn.is-active, body[data-design="courses3"] .design-choice.is-selected { background:#16415a; border-color:#4aa8d6; color:#c4ecff; }
+      body[data-design="courses3"] .upload-table th { background:#223342; color:#9dc8df; }
+      body[data-design="courses3"] .upload-table td { background:#1b2734; color:#c6d2dc; border-color:#304253; }
+      body[data-design="courses3"] .upload-table td strong { color:#e4f2fc; }
+      body[data-design="courses3"] .upload-table tr:hover td { background:#223342; }
+      body[data-design="courses3"] .btn-secondary { background:#273747; border-color:#405364; color:#d2dde6; }
+      /* Create Course input treatment: make each control read as a deliberate field card. */
+      .course-form-create { position:relative; overflow:hidden; }
+      .course-form-create > h2 { display:flex; align-items:center; gap:10px; }
+      .course-form-create > h2::before { content:"＋"; display:grid; place-items:center; width:30px; height:30px; border-radius:9px; color:#fff; background:linear-gradient(145deg,#1597bd,#1764a0); font-size:19px; }
+      .course-form-create .editor-section { transition:border-color .18s ease, box-shadow .18s ease, transform .18s ease; }
+      .course-form-create .editor-section:hover { border-color:#c9dce9; box-shadow:0 7px 18px rgba(28,76,108,.055); }
+      .course-form-create .section-heading { align-items:center; }
+      .course-form-create .section-heading h3 { font-size:15px; letter-spacing:.005em; }
+      .course-form-create .form-group { position:relative; }
+      .course-form-create .form-group label { letter-spacing:.01em; }
+      .course-form-create .form-group input:not([type="file"]), .course-form-create .form-group textarea, .course-form-create .form-group select {
+        box-shadow:0 1px 2px rgba(28,49,67,.035); transition:border-color .18s ease,box-shadow .18s ease,background .18s ease;
+      }
+      .course-form-create .form-group input:not([type="file"]):hover, .course-form-create .form-group textarea:hover, .course-form-create .form-group select:hover { border-color:#adc5d6; }
+      .course-form-create .form-group input[type="file"] { min-height:46px; padding:7px 9px; border:1px dashed #aebfce; background:#f7fafc; cursor:pointer; }
+      .course-form-create .form-group input[type="file"]::file-selector-button { margin-right:10px; border:0; border-radius:6px; padding:7px 11px; background:#e6f2f8; color:#155778; font-family:inherit; font-size:12px; font-weight:600; cursor:pointer; }
+      .course-form-create .form-group input[type="file"]::file-selector-button:hover { background:#d8ebf5; }
+      .course-form-create .form-group select[multiple] { min-height:132px; padding:8px; }
+      .course-form-create .form-group select[multiple] option { padding:6px; border-radius:4px; }
+      .course-form-create .form-group small { max-width:70ch; }
+      .course-form-create .form-actions { display:flex; align-items:center; padding:17px; margin-top:18px; border:1px solid #e5edf3; border-radius:12px; background:#f8fafc; }
+      body[data-design="courses2"] .course-form-create .editor-section:hover { box-shadow:0 5px 14px rgba(49,48,91,.08); }
+      body[data-design="courses2"] .course-form-create .form-group input[type="file"] { background:#f8f7fc; border-color:#c9c0e1; }
+      body[data-design="courses2"] .course-form-create .form-group input[type="file"]::file-selector-button { background:#eeeaf8; color:#504183; }
+      body[data-design="courses3"] .course-form-create > h2::before { background:#17435a; color:#6ee4e1; }
+      body[data-design="courses3"] .course-form-create .editor-section:hover { border-color:#466174; box-shadow:0 7px 18px rgba(0,0,0,.14); }
+      body[data-design="courses3"] .course-form-create .form-group input[type="file"] { background:#121d28; color:#dce8f1; border-color:#506779; }
+      body[data-design="courses3"] .course-form-create .form-group input[type="file"]::file-selector-button { background:#1b4358; color:#bcecf4; }
+      body[data-design="courses3"] .course-form-create .form-actions { border-color:#304253; background:#17232f; }
+      @media (max-width:760px) {
+        body[data-design="courses1"] .editor-section .form-grid, body[data-design="courses2"] .editor-section .form-grid { grid-template-columns:1fr; }
+        body[data-design="courses1"] .editor-section .form-grid { padding-left:0; }
+        body[data-design="courses3"] .editor-section .form-group { grid-template-columns:1fr; }
+        body[data-design="courses3"] .editor-section .form-group label, body[data-design="courses3"] .editor-section .form-group input, body[data-design="courses3"] .editor-section .form-group textarea, body[data-design="courses3"] .editor-section .form-group select, body[data-design="courses3"] .editor-section .form-group small { grid-column:1; }
+        body[data-design="courses3"] .editor-section .form-group label { padding-top:0; }
+      }
     </style>
   </head>
   <body>
@@ -381,36 +716,47 @@
             <a href="{% url 'admin_panel:create_course' %}" class="btn btn-primary btn-sm">➕ New Course</a>
           </div>
         </div>
+        <nav class="design-picker" aria-label="Course page design preview">
+          <span class="design-picker-label">PAGE DESIGN</span>
+          <button type="button" class="design-choice" data-design-choice="courses1" title="Roomy two-column cards"><span>01 / Courses 1</span><small>Learning path · spacious cards</small></button>
+          <button type="button" class="design-choice" data-design-choice="courses2" title="Compact three-column form with section bars"><span>02 / Courses 2</span><small>Creator studio · compact grid</small></button>
+          <button type="button" class="design-choice" data-design-choice="courses3" title="Dark label-and-field layout"><span>03 / Courses 3</span><small>Night lab · focused workspace</small></button>
+        </nav>
 
         <!-- Messages -->
         {% if messages %}
           <div>
             {% for message in messages %}
-              <div class="alert alert-{% if message.tags == 'success' %}
-                  
-                  success
-
-                {% elif message.tags == 'error' %}
-                  
-                  error
-
-                {% else %}
-                  
-                  warning
-
-                {% endif %}">{{ message }}</div>
+              <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-error{% else %}alert-warning{% endif %}">{{ message }}</div>
             {% endfor %}
           </div>
         {% endif %}
 
         <!-- Create/Edit Form -->
         {% if form %}
-          <div class="form-section">
+          <div class="form-section {% if not course %}course-form-create{% endif %}">
             <h2>{{ action }} Course</h2>
-            <form method="post" enctype="multipart/form-data">
+            {% if form.errors %}
+              <div class="alert alert-error">
+                <strong>Course was not created. Fix these fields:</strong>
+                <ul class="form-error-list">
+                  {% for field in form %}
+                    {% for error in field.errors %}
+                      <li>{{ field.label }}: {{ error }}</li>
+                    {% endfor %}
+                  {% endfor %}
+                  {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+            {% endif %}
+            <form id="courseForm" method="post" enctype="multipart/form-data">
               {% csrf_token %}
 
-              <div class="form-grid">
+              <section class="editor-section">
+                <div class="section-heading"><span class="section-number">01</span><div><h3>Course information</h3><p>Set the course name and the subject area students will find it under.</p></div></div>
+                <div class="form-grid">
                 <div class="form-group">{{ form.title.label_tag }}
                   {{ form.title }}</div>
 
@@ -420,6 +766,40 @@
                   <small style="color:#888;">Subject / Category for this course</small>
                 </div>
 
+                <div class="form-group">
+                  {{ form.subcategory.label_tag }}
+                  {{ form.subcategory }}
+                  <small style="color:#888;">Optional, e.g. CUET</small>
+                </div>
+                </div>
+              </section>
+
+              <section class="editor-section">
+                <div class="section-heading"><span class="section-number">02</span><div><h3>Pricing and access</h3><p>Choose the course price, any discount, and the access end date.</p></div></div>
+                <div class="form-grid">
+                <div class="form-group">
+                  {{ form.price.label_tag }}
+                  {{ form.price }}
+                  <small style="color:#888;">0 means the course is free</small>
+                </div>
+
+                <div class="form-group">
+                  {{ form.discount.label_tag }}
+                  {{ form.discount }}
+                  <small style="color:#888;">Rupee amount taken off the price</small>
+                </div>
+
+                <div class="form-group">
+                  {{ form.expires_on.label_tag }}
+                  {{ form.expires_on }}
+                  <small style="color:#888;">Leave empty for lifetime access</small>
+                </div>
+                </div>
+              </section>
+
+              <section class="editor-section">
+                <div class="section-heading"><span class="section-number">03</span><div><h3>Course details</h3><p>Add the instructor, duration, and difficulty level.</p></div></div>
+                <div class="form-grid">
                 <div class="form-group">{{ form.instructor.label_tag }}
                   {{ form.instructor }}</div>
 
@@ -428,19 +808,34 @@
 
                 <div class="form-group">{{ form.level.label_tag }}
                   {{ form.level }}</div>
+                </div>
+              </section>
 
+              <section class="editor-section">
+                <div class="section-heading"><span class="section-number">04</span><div><h3>Enrollment and rating</h3><p>Set the student count and displayed course rating.</p></div></div>
+                <div class="form-grid">
                 <div class="form-group">{{ form.students_enrolled.label_tag }}
                   {{ form.students_enrolled }}</div>
 
                 <div class="form-group">{{ form.rating.label_tag }}
                   {{ form.rating }}</div>
+                </div>
+              </section>
 
+              <section class="editor-section">
+                <div class="section-heading"><span class="section-number">05</span><div><h3>Course thumbnail</h3><p>Upload the image used to represent this course.</p></div></div>
+                <div class="form-grid">
                 <div class="form-group">
                   {{ form.thumbnail.label_tag }}
                   {{ form.thumbnail }}
                   <small style="color:#888; display:block; margin-top:4px;">Course logo / thumbnail image</small>
                 </div>
+                </div>
+              </section>
 
+              <section class="editor-section">
+                <div class="section-heading"><span class="section-number">06</span><div><h3>Course overview</h3><p>Explain the course and outline what learners will gain from it.</p></div></div>
+                <div class="form-grid">
                 <div class="form-group full">{{ form.description.label_tag }}
                   {{ form.description }}</div>
 
@@ -461,13 +856,21 @@
                   {{ form.curriculum }}
                   <small style="color:#888; display:block; margin-top:4px;">One module per line, format "Module Title: Description", e.g. "Module 1: Introduction and Fundamentals".</small>
                 </div>
-              </div>
+                </div>
+              </section>
+
+              {% if not course %}
+                {% include "admin_panel/_partials/course_content_editor.html" %}
+              {% endif %}
 
               <div class="form-actions">
                 <button type="submit" class="btn btn-primary">✅ {{ action }} Course</button>
                 <a href="{% url 'admin_panel:manage_courses' %}" class="btn btn-secondary">Cancel</a>
               </div>
             </form>
+            {% if course %}
+              {% include "admin_panel/_partials/course_content_editor.html" %}
+            {% endif %}
           </div>
         {% endif %}
 
@@ -476,7 +879,7 @@
           <h2>📋 All Courses</h2>
 
           {% if courses %}
-            <table class="upload-table">
+            <div class="table-scroll"><table class="upload-table">
               <thead>
                 <tr>
                   <th style="width: 28%;">Course Name</th>
@@ -492,6 +895,9 @@
                   <tr>
                     <td>
                       <strong>{{ course.title }}</strong>
+                      {% if course.price %}
+                        <div style="font-size:12px; color:#1078B0; margin-top:3px;">₹ {{ course.sale_price }}{% if course.discount %} <span style="color:#94a3b8; text-decoration:line-through;">₹ {{ course.price }}</span>{% endif %}</div>
+                      {% endif %}
                       {% if course.rating %}
                         <span style="font-size:11px; color:#f57c00; margin-left:6px;">⭐ {{ course.rating }}</span>
                       {% endif %}
@@ -515,7 +921,7 @@
                   </tr>
                 {% endfor %}
               </tbody>
-            </table>
+            </table></div>
           {% else %}
             <div class="empty-state">
               <span class="icon">📚</span>
@@ -528,5 +934,172 @@
         <div style="margin-top: 15px; text-align: center; color: #888; font-size: 13px;">Changes to courses and subjects will be reflected on the public website immediately.</div>
       </main>
     </div>
+    <script>
+      (function () {
+        var designChoices = document.querySelectorAll("[data-design-choice]");
+        var savedDesign = new URLSearchParams(window.location.search).get("design") || localStorage.getItem("courseAdminDesign") || "courses1";
+        if (["courses1", "courses2", "courses3"].indexOf(savedDesign) === -1) savedDesign = "courses1";
+        document.body.setAttribute("data-design", savedDesign);
+        designChoices.forEach(function (choice) {
+          choice.classList.toggle("is-selected", choice.getAttribute("data-design-choice") === savedDesign);
+          choice.setAttribute("aria-pressed", choice.getAttribute("data-design-choice") === savedDesign ? "true" : "false");
+          choice.addEventListener("click", function () {
+            var design = choice.getAttribute("data-design-choice");
+            document.body.setAttribute("data-design", design);
+            localStorage.setItem("courseAdminDesign", design);
+            designChoices.forEach(function (item) {
+              item.classList.toggle("is-selected", item === choice);
+              item.setAttribute("aria-pressed", item === choice ? "true" : "false");
+            });
+          });
+        });
+        var entriesContainer = document.getElementById("contentEntries");
+        if (entriesContainer) {
+          var entryTemplate = document.getElementById("contentEntryTemplate");
+          var entryCounter = document.getElementById("contentEntryCount");
+          var entryIndex = 0;
+
+          function configureEntry(entry) {
+            var selector = entry.querySelector("[data-entry-type]");
+            var title = entry.querySelector("[data-entry-title]");
+            var typeLabels = {
+              folder: "Folder title", video: "Video title", quiz: "Quiz title",
+              subjective: "Subjective test title", practice: "Practice test title",
+              document: "Document title", image: "Image title"
+            };
+            function updateFields() {
+              var kind = selector.value;
+              title.placeholder = typeLabels[kind] || "Content title";
+              entry.querySelectorAll("[data-entry-kind]").forEach(function (group) {
+                var visible = group.getAttribute("data-entry-kind") === kind || (kind === "video" && group.getAttribute("data-entry-kind") === "video");
+                group.style.display = visible ? "" : "none";
+                group.querySelectorAll("input,textarea,select").forEach(function (field) { field.disabled = !visible; });
+              });
+            }
+            selector.addEventListener("change", updateFields);
+            var folderInput = entry.querySelector("[data-entry-folder-files]");
+            var folderPaths = entry.querySelector("[data-entry-folder-paths]");
+            if (folderInput && folderPaths) {
+              folderInput.addEventListener("change", function () {
+                folderPaths.value = JSON.stringify(Array.from(folderInput.files).map(function (file) { return file.webkitRelativePath || file.name; }));
+              });
+            }
+            entry.querySelector("[data-remove-entry]").addEventListener("click", function () {
+              entry.remove();
+            });
+            updateFields();
+          }
+
+          function addEntry() {
+            var entry = entryTemplate.content.firstElementChild.cloneNode(true);
+            var index = entryIndex++;
+            entry.querySelector("[data-entry-type]").name = "content_" + index + "_type";
+            entry.querySelector("[data-entry-title]").name = "content_" + index + "_title";
+            entry.querySelector("[data-entry-folder-files]").name = "content_" + index + "_folder_files";
+            entry.querySelector("[data-entry-folder-paths]").name = "content_" + index + "_folder_paths";
+            entry.querySelectorAll("[data-entry-files]").forEach(function (field) { field.name = "content_" + index + "_files"; });
+            entry.querySelector("[data-entry-video-urls]").name = "content_" + index + "_video_urls";
+            entry.querySelectorAll("[data-entry-exams]").forEach(function (field) { field.name = "content_" + index + "_exam_ids"; });
+            entriesContainer.appendChild(entry);
+            entryCounter.value = String(entryIndex);
+            configureEntry(entry);
+          }
+
+          document.getElementById("addContentEntry").addEventListener("click", addEntry);
+          document.getElementById("courseForm").addEventListener("submit", function () {
+            entriesContainer.querySelectorAll(".content-entry").forEach(function (entry) {
+              var input = entry.querySelector("[data-entry-folder-files]");
+              var paths = entry.querySelector("[data-entry-folder-paths]");
+              if (input && paths && entry.querySelector("[data-entry-type]").value === "folder") {
+                paths.value = JSON.stringify(Array.from(input.files).map(function (file) { return file.webkitRelativePath || file.name; }));
+              }
+            });
+          });
+          addEntry();
+          return;
+        }
+        var buttons = document.querySelectorAll(".content-type-btn[data-type]");
+        var input = document.getElementById("contentTypeInput");
+        var fields = {
+          folder: document.getElementById("contentFolderField"),
+          videoFiles: document.getElementById("contentVideoFilesField"),
+          videoLinks: document.getElementById("contentYoutubeField"),
+          quizExams: document.getElementById("contentQuizExamsField"),
+          subjectiveExams: document.getElementById("contentSubjectiveExamsField"),
+          practiceExams: document.getElementById("contentPracticeExamsField"),
+          files: document.getElementById("contentFilesField")
+        };
+        var folderFiles = document.getElementById("contentFolderFiles");
+        var videoFiles = document.getElementById("contentVideoFiles");
+        var otherFiles = document.getElementById("contentFiles");
+        var videoLinks = document.getElementById("contentVideoUrls");
+        var folderPaths = document.getElementById("contentFolderPaths");
+        var status = document.getElementById("contentTypeStatus");
+        var titleInput = document.getElementById("contentTitle");
+        if (!buttons.length || !input) return;
+
+        var kinds = {
+          folder: { label: "Folder", title: "e.g. Algebra", fields: ["folder"] },
+          video: { label: "Video", title: "e.g. Introduction to Algebra", fields: ["videoFiles", "videoLinks"] },
+          quiz: { label: "Online Test/Quiz", title: "e.g. Algebra Quiz", fields: ["quizExams"] },
+          subjective: { label: "Subjective Test", title: "e.g. Algebra Written Test", fields: ["subjectiveExams"] },
+          practice: { label: "Practice Test", title: "e.g. Algebra Practice", fields: ["practiceExams"] },
+          document: { label: "Document", title: "e.g. Course Notes", fields: ["files"], accept: ".pdf,.doc,.docx,.txt" },
+          image: { label: "Image", title: "e.g. Course Diagram", fields: ["files"], accept: "image/*" }
+        };
+
+        function show(type) {
+          var spec = kinds[type] || kinds.folder;
+          input.value = type;
+          buttons.forEach(function (btn) {
+            btn.classList.toggle("is-active", btn.getAttribute("data-type") === type);
+          });
+          Object.keys(fields).forEach(function (key) {
+            var visible = spec.fields.indexOf(key) !== -1;
+            fields[key].style.display = visible ? "" : "none";
+            fields[key].querySelectorAll("input,textarea,select").forEach(function (field) { field.disabled = !visible; });
+          });
+          if (otherFiles) otherFiles.accept = spec.accept || "";
+          if (folderPaths) folderPaths.value = "[]";
+          if (titleInput) titleInput.placeholder = spec.title;
+          if (status) {
+            var instructions = {
+              folder: " Select a folder from your computer.",
+              video: " Upload multiple video files, paste multiple YouTube links, or use both.",
+              quiz: " Select one or more Quiz exams.",
+              subjective: " Select one or more Subjective Test exams.",
+              practice: " Select one or more Practice Test exams.",
+              document: " Browse for one or more documents.",
+              image: " Browse for one or more images."
+            };
+            status.textContent = "Selected: " + spec.label + ". Enter a title." + instructions[type];
+          }
+        }
+
+        buttons.forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            show(btn.getAttribute("data-type"));
+          });
+        });
+        if (folderFiles && folderPaths) {
+          folderFiles.addEventListener("change", function () {
+            folderPaths.value = JSON.stringify(Array.from(folderFiles.files).map(function (file) {
+              return file.webkitRelativePath || file.name;
+            }));
+          });
+        }
+        var contentForm = document.getElementById("contentAddForm") || document.getElementById("courseForm");
+        if (contentForm) {
+          contentForm.addEventListener("submit", function () {
+            if (folderFiles && folderPaths && input.value === "folder") {
+              folderPaths.value = JSON.stringify(Array.from(folderFiles.files).map(function (file) {
+                return file.webkitRelativePath || file.name;
+              }));
+            }
+          });
+        }
+        show("folder");
+      })();
+    </script>
   </body>
 </html>

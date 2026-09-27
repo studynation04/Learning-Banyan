@@ -908,6 +908,10 @@ class CourseForm(forms.ModelForm):
             "what_youll_learn",
             "prerequisites",
             "curriculum",
+            "price",
+            "discount",
+            "subcategory",
+            "expires_on",
         ]
         widgets = {
             "title": forms.TextInput(attrs={"class": "form-control"}),
@@ -934,13 +938,53 @@ class CourseForm(forms.ModelForm):
                     "placeholder": "One module per line, e.g.\nModule 1: Introduction and Fundamentals\nModule 2: Core Concepts and Techniques",
                 }
             ),
+            "price": forms.NumberInput(
+                attrs={"class": "form-control", "step": "0.01", "min": "0", "placeholder": "1499"}
+            ),
+            "discount": forms.NumberInput(
+                attrs={"class": "form-control", "step": "0.01", "min": "0", "placeholder": "0"}
+            ),
+            "subcategory": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "e.g. CUET"}
+            ),
+            "expires_on": forms.DateInput(
+                attrs={"class": "form-control", "type": "date"},
+                format="%Y-%m-%d",
+            ),
         }
         labels = {
             "what_youll_learn": "What You'll Learn",
             "prerequisites": "Prerequisites",
             "curriculum": "Course Curriculum",
             "students_enrolled": "Students Enrolled",
+            "price": "Price (₹)",
+            "discount": "Discount (₹)",
+            "subcategory": "Sub category",
+            "expires_on": "Access expires on",
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["price"].required = False
+        self.fields["discount"].required = False
+        self.fields["subcategory"].required = False
+        self.fields["expires_on"].required = False
+
+    def clean_price(self):
+        value = self.cleaned_data.get("price")
+        if value in (None, ""):
+            value = 0
+        if value < 0:
+            raise forms.ValidationError("Price cannot be negative.")
+        return value
+
+    def clean_discount(self):
+        value = self.cleaned_data.get("discount")
+        if value in (None, ""):
+            value = 0
+        if value < 0:
+            raise forms.ValidationError("Discount cannot be negative.")
+        return value
 
 
 # ==================== COURSE CATEGORY ====================
@@ -1236,9 +1280,11 @@ class ExamForm(forms.ModelForm):
             "questions_per_page",
             "shuffle_questions",
             "allow_calculator",
+            "allow_hint",
         ]
         labels = {
             "allow_calculator": "Need calculator (show calculator during practice)",
+            "allow_hint": "Need Hint (show hints during practice)",
             "shuffle_questions": "Shuffle questions",
         }
         widgets = {
@@ -1257,6 +1303,9 @@ class ExamForm(forms.ModelForm):
                 attrs={"class": "form-check-input"}
             ),
             "allow_calculator": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
+            "allow_hint": forms.CheckboxInput(
                 attrs={"class": "form-check-input"}
             ),
         }

@@ -5,22 +5,190 @@
   {{ course.title }} - Learning Banyan
 {% endblock %}
 
+{% block extra_css %}
+<style>
+  .cd-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    min-width: 0;
+  }
+  .cd-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 2rem;
+    margin-bottom: 3rem;
+    min-width: 0;
+  }
+  .cd-hero > div { min-width: 0; }
+  .cd-copy, .cd-copy h1, .cd-copy p, .cd-copy li, .cd-copy strong, .cd-copy div {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+  .cd-thumb { width: 100%; max-width: 100%; border-radius: 8px; margin-bottom: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+  .cd-tabs { display:flex; gap:0; overflow-x:auto; border-bottom:2px solid #ddd; margin-bottom:2rem; }
+  .cd-tabs .tab-button { flex:0 0 auto; padding:1rem 1.25rem; border:0; border-bottom:3px solid transparent; margin-bottom:-2px; background:none; cursor:pointer; font-size:1rem; color:#64748b; white-space:nowrap; }
+  .cd-tabs .tab-button.active { color:#1078B0; border-bottom-color:#1078B0; }
+  @media (max-width: 800px) {
+    .cd-hero { grid-template-columns: 1fr; }
+  }
+  /* Polished course detail page */
+  .cd-page { --cd-ink:#17324d; --cd-muted:#6f8192; --cd-line:#e3ebf1; max-width:1220px; margin:0 auto 3rem; }
+  .cd-backlink { margin:0 0 1.1rem; }
+  .cd-backlink a { display:inline-flex; align-items:center; gap:.45rem; color:#397896; text-decoration:none; font-size:.88rem; font-weight:650; }
+  .cd-backlink a:hover { color:#0f5f86; }
+  .cd-hero { grid-template-columns:minmax(300px,.92fr) minmax(0,1.08fr); gap:clamp(1.2rem,3vw,2.5rem); margin-bottom:2.2rem; align-items:start; }
+  .cd-thumb { display:block; aspect-ratio:16/10; object-fit:cover; border-radius:16px; margin-bottom:1rem; box-shadow:0 15px 35px rgba(17,54,82,.18); }
+  .cd-meta-card { background:#fff; padding:1.2rem 1.3rem; border:1px solid var(--cd-line); border-radius:14px; box-shadow:0 8px 24px rgba(31,61,84,.055); }
+  .cd-meta-card h3 { color:var(--cd-ink) !important; margin:0 0 .9rem !important; font-size:1rem; }
+  .cd-meta-card > div:not(:first-child) { display:grid; grid-template-columns:minmax(105px,.7fr) minmax(0,1.3fr); align-items:center; gap:.5rem; margin:0 !important; padding:.65rem 0; border-bottom:1px solid #edf1f4; color:var(--cd-muted); font-size:.86rem; }
+  .cd-meta-card > div:last-child { border:0; padding-bottom:0; }
+  .cd-meta-card > div strong { color:#425c72; font-weight:650; }
+  .cd-hero > div > div[style*="aspect-ratio"] { aspect-ratio:16/10 !important; border-radius:16px !important; margin-bottom:1rem !important; box-shadow:0 15px 35px rgba(17,54,82,.18); }
+  .cd-detail-row { display:flex; justify-content:space-between; gap:1rem; padding:.63rem 0; border-bottom:1px solid #edf1f4; color:var(--cd-muted); font-size:.88rem; }
+  .cd-detail-row:last-child { border:0; padding-bottom:0; }
+  .cd-detail-row strong { color:#425c72; font-weight:650; }
+  .cd-detail-value { text-align:right; color:#203f5c; font-weight:650; }
+  .cd-price-row .cd-detail-value { color:#087ca8; font-size:1rem; }
+  .cd-thumb-placeholder { width:100%; aspect-ratio:16/10; background:linear-gradient(145deg,#073d70,#117eaa 60%,#65c5c3); border-radius:16px; display:flex; align-items:center; justify-content:center; color:white; font-size:4rem; margin-bottom:1rem; }
+  .cd-copy { padding:clamp(1.3rem,3vw,2.25rem); background:linear-gradient(145deg,#fff,#f8fbfd); border:1px solid var(--cd-line); border-radius:18px; box-shadow:0 10px 30px rgba(31,61,84,.06); }
+  .cd-copy h1 { color:var(--cd-ink) !important; margin:0 0 .85rem !important; font-size:clamp(1.75rem,3vw,2.5rem); line-height:1.12; letter-spacing:-.035em; }
+  .cd-eyebrow { display:inline-flex; padding:.4rem .7rem; margin-bottom:.9rem; border-radius:999px; background:#e7f4f8; color:#197393; font-size:.76rem; font-weight:750; }
+  .cd-description { font-size:1rem; line-height:1.75; color:#62788b; margin:0 0 1.4rem; }
+  .cd-highlights { display:flex; flex-wrap:wrap; gap:.55rem; margin:0 0 1.35rem; }
+  .cd-highlight { display:inline-flex; align-items:center; gap:.35rem; padding:.48rem .68rem; background:#f1f6f9; border:1px solid #e4edf2; border-radius:8px; color:#4b6579; font-size:.78rem; font-weight:650; }
+  .cd-actions { display:grid; gap:.7rem; }
+  .cd-actions .btn { width:100%; min-height:48px; border-radius:10px; font-weight:750; }
+  .cd-actions .cd-primary-action { background:linear-gradient(105deg,#147eaa,#14649a); color:#fff; border:0; box-shadow:0 7px 15px rgba(17,117,160,.2); }
+  .cd-actions .cd-secondary-action { background:#fff; color:#17638a; border:1px solid #d7e5ed; }
+  .cd-tabs { gap:.35rem; border:1px solid #e4ebf0; background:#f5f8fa; padding:.38rem; border-radius:12px; border-bottom-width:1px; margin-bottom:1rem; }
+  .cd-tabs .tab-button { padding:.78rem 1rem; border:0; border-radius:8px; margin:0; font-size:.9rem; font-weight:650; color:#64798b; transition:background .15s ease,color .15s ease,box-shadow .15s ease; }
+  .cd-tabs .tab-button:hover { color:#17688f; background:#eaf2f6; }
+  .cd-tabs .tab-button.active { color:#155f83; background:#fff; box-shadow:0 2px 7px rgba(27,59,84,.1); border:0; }
+  .cd-panel { background:#fff; padding:clamp(1.1rem,2.5vw,2rem); border:1px solid var(--cd-line); border-radius:16px; box-shadow:0 8px 24px rgba(31,61,84,.045); }
+  .cd-panel > h2 { color:var(--cd-ink) !important; font-size:1.2rem; margin:0 0 1.2rem !important; }
+  .cd-panel h3 { color:#294c69 !important; font-size:1rem; }
+  .cd-panel ul { color:#5f7487; padding-left:1.25rem; }
+  .cd-panel li { padding:.2rem 0; line-height:1.55; }
+  .cd-content-list .cc-node { border:1px solid #e5edf2 !important; border-radius:12px !important; padding:1rem !important; margin-bottom:.75rem !important; background:linear-gradient(135deg,#fff,#fbfdfe) !important; box-shadow:0 3px 10px rgba(22,54,79,.035); }
+  .cd-content-list .cc-node[data-type="folder"] { border-left:4px solid #1593a9 !important; }
+  .cd-content-list .cc-node[data-type="video"] { border-left:4px solid #327fc1 !important; }
+  .cd-content-list .cc-node[data-type="quiz"], .cd-content-list .cc-node[data-type="subjective"], .cd-content-list .cc-node[data-type="practice"] { border-left:4px solid #8b6ac0 !important; }
+  .cd-content-list .cc-node[data-type="document"], .cd-content-list .cc-node[data-type="image"] { border-left:4px solid #d39a42 !important; }
+  .cd-content-list .cc-node > div strong { display:block; margin-top:.18rem; color:#1d3e5a !important; font-size:1rem !important; }
+  .cd-content-list .cc-node iframe { border-radius:10px; }
+  .course-pdf-toolbar { display:flex; align-items:center; justify-content:center; gap:.65rem; min-height:40px; margin-bottom:.45rem; color:#61788b; font-size:.8rem; font-weight:650; }
+  .course-pdf-toolbar button { width:30px; height:30px; border:1px solid #dce7ed; border-radius:8px; background:#fff; color:#176b91; font-size:1rem; cursor:pointer; }
+  .course-pdf-toolbar button:disabled { opacity:.4; cursor:default; }
+  .course-pdf-stage { display:flex; justify-content:center; overflow:auto; min-height:420px; padding:12px; border:1px solid #dce6ed; border-radius:10px; background:#e9eef2; }
+  .course-pdf-stage canvas { display:block; max-width:100%; height:auto; background:#fff; box-shadow:0 4px 14px rgba(20,42,60,.16); }
+  .course-pdf-status { align-self:center; max-width:100%; margin:auto; color:#60778a; font-size:.9rem; text-align:center; }
+  .cd-content-list .cc-children { border-left-color:#d3e4ec !important; }
+  .cd-content-list .cc-toggle { border-radius:7px !important; color:#32617e !important; }
+  .cd-panel .grid > div { border:1px solid #e5edf2 !important; border-radius:11px !important; }
+  .cd-panel .bank-questions { border-color:#e5edf2 !important; }
+  .cd-panel .bank-questions > div { border:1px solid #edf1f4; border-radius:9px; }
+  .cd-legacy-hero { display:none !important; }
+  .cd-market-hero { position:relative; isolation:isolate; width:100vw; margin:0 calc(50% - 50vw) 2rem; padding:2.5rem max(calc((100vw - 1220px)/2),24px); color:#fff; background:radial-gradient(ellipse at 78% 5%,rgba(36,110,148,.22),transparent 38%),linear-gradient(115deg,#17191e,#20242a 68%,#171a20); }
+  .cd-market-hero::after { content:""; position:absolute; z-index:-1; right:9%; top:-150px; width:350px; height:350px; border:1px solid rgba(255,255,255,.055); border-radius:50%; box-shadow:0 0 0 45px rgba(255,255,255,.018),0 0 0 95px rgba(255,255,255,.012); }
+  .cd-market-inner { display:grid; grid-template-columns:minmax(0,1fr) 360px; gap:3rem; align-items:center; max-width:1220px; margin:0 auto; }
+  .cd-market-copy { max-width:760px; overflow-wrap:anywhere; word-break:break-word; }
+  .cd-market-category { margin-bottom:.8rem; color:#c5d6e1; font-size:.83rem; font-weight:600; }
+  .cd-market-title { max-width:760px; margin:0 0 .85rem; color:#fff; font-size:clamp(2rem,4vw,3rem); line-height:1.12; letter-spacing:-.035em; }
+  .cd-market-description { max-width:720px; margin:0 0 1rem; color:#d1d6dc; font-size:1.05rem; line-height:1.55; }
+  .cd-market-rating { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; margin:1rem 0; color:#f6c667; font-size:.92rem; }
+  .cd-market-rating a, .cd-market-instructor a { color:#b9d9f0; }
+  .cd-market-instructor { color:#d4d7dc; font-size:.88rem; }
+  .cd-market-facts { display:flex; flex-wrap:wrap; gap:.65rem 1.25rem; margin-top:1.1rem; color:#d4d7dc; font-size:.82rem; }
+  .cd-market-fact { display:inline-flex; align-items:center; gap:.4rem; }
+  .cd-market-card { overflow:hidden; background:#fff; color:#283748; border-radius:12px; box-shadow:0 16px 40px rgba(0,0,0,.28); }
+  .cd-market-preview { position:relative; display:block; width:100%; aspect-ratio:16/9; padding:0; overflow:hidden; background:#101a25; border:0; }
+  .cd-market-preview img { width:100%; height:100%; object-fit:cover; opacity:.9; }
+  .cd-market-preview::after { content:"▶"; position:absolute; left:50%; top:50%; display:grid; place-items:center; width:58px; height:58px; padding-left:4px; transform:translate(-50%,-50%); border-radius:50%; background:rgba(255,255,255,.94); color:#263847; box-shadow:0 6px 20px rgba(0,0,0,.24); font-size:1.2rem; }
+  .cd-market-card-body { padding:1.25rem; }
+  .cd-market-price { display:flex; flex-wrap:wrap; align-items:baseline; gap:.65rem; margin-bottom:1rem; color:#1f2933; font-size:1.8rem; font-weight:800; letter-spacing:-.03em; }
+  .cd-market-price del { color:#7a8792; font-size:.95rem; font-weight:500; letter-spacing:0; }
+  .cd-market-access { margin:-.6rem 0 1rem; color:#657481; font-size:.78rem; }
+  .cd-market-card .cd-actions { gap:.6rem; }
+  .cd-market-card .cd-actions .btn { min-height:46px; }
+  .cd-market-card .cd-primary-action { background:#a435f0; box-shadow:none; }
+  .cd-market-card .cd-primary-action:hover { background:#8f24d8; }
+  .cd-market-card .cd-secondary-action { border:1px solid #a435f0; color:#7d20b4; }
+  .cd-market-includes { margin:1.1rem 0 0; padding:0; list-style:none; color:#4d5c68; font-size:.8rem; }
+  .cd-market-includes li { padding:.32rem 0; }
+  .cd-market-includes strong { display:block; margin-bottom:.25rem; color:#263746; font-size:.84rem; }
+  .cd-course-sections { margin-top:0 !important; }
+  .cd-course-sections .cd-tabs { position:sticky; top:78px; z-index:5; }
+  .cd-course-sections .cd-panel { max-width:920px; }
+  @media (max-width:900px) { .cd-market-inner { grid-template-columns:minmax(0,1fr) 320px; gap:1.5rem; } .cd-market-hero { padding-top:2rem; padding-bottom:2rem; } }
+  @media (max-width:720px) { .cd-market-inner { grid-template-columns:1fr; gap:1.2rem; } .cd-market-card { max-width:480px; width:100%; margin:0 auto; } .cd-market-title { font-size:2rem; } .cd-market-hero { padding:1.6rem 18px; } }
+  @media (max-width:800px) { .cd-hero { grid-template-columns:1fr; } .cd-copy { grid-row:1; } }
+  @media (max-width:560px) { .cd-page { padding:0 .1rem; } .cd-copy { border-radius:13px; } .cd-detail-row { font-size:.82rem; } .cd-tabs .tab-button { padding:.7rem .8rem; font-size:.82rem; } .course-pdf-stage { min-height:300px; padding:6px; } }
+</style>
+{% endblock %}
+
 {% block content %}
-  <div style="margin-bottom: 2rem;">
+<div class="cd-page">
+  <div class="cd-backlink" style="margin-bottom: 2rem;">
     <a href="/courses/" style="color: #1078B0; text-decoration: none;">← Back to Courses</a>
   </div>
 
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 3rem;">
+  <section class="cd-market-hero">
+    <div class="cd-market-inner">
+      <div class="cd-market-copy">
+        <div class="cd-market-category">{{ course.category.name }}{% if course.subcategory %} &nbsp; › &nbsp; {{ course.subcategory }}{% endif %}</div>
+        <h1 class="cd-market-title">{{ course.title }}</h1>
+        {% if course.description %}<p class="cd-market-description">{{ course.description }}</p>{% endif %}
+        <div class="cd-market-rating"><strong>{{ course.rating|floatformat:1 }}</strong> <span aria-label="out of five stars">★★★★★</span> <span>Course rating</span> <span>·</span> <span>{{ course.students_enrolled }} learners</span></div>
+        {% if course.instructor %}<p class="cd-market-instructor">Created by <strong>{{ course.instructor }}</strong></p>{% endif %}
+        <div class="cd-market-facts">
+          <span class="cd-market-fact">◷ {{ course.duration|default:"Self-paced" }}</span>
+          <span class="cd-market-fact">▣ {{ course.get_level_display }} level</span>
+          <span class="cd-market-fact">{% if course.expires_on %}Access until {{ course.expires_on|date:"d M Y" }}{% else %}Lifetime access{% endif %}</span>
+        </div>
+      </div>
+      <aside class="cd-market-card">
+        <div class="cd-market-preview" aria-label="Course preview">
+          {% if course.thumbnail %}<img src="{{ course.thumbnail.url }}" alt="{{ course.title }} course preview" />{% else %}<div class="cd-thumb-placeholder">&#128214;</div>{% endif %}
+        </div>
+        <div class="cd-market-card-body">
+          <div class="cd-market-price">{% if course.price %}₹ {{ course.sale_price }}{% else %}Free{% endif %}{% if course.discount %}<del>₹ {{ course.price }}</del>{% endif %}</div>
+          {% if course.expires_on %}<p class="cd-market-access">Access available until {{ course.expires_on|date:"d M Y" }}</p>{% else %}<p class="cd-market-access">Full lifetime access</p>{% endif %}
+          <div class="cd-actions">
+            <button class="btn cd-primary-action">Enroll Now</button>
+            <button class="btn btn-secondary cd-secondary-action">Add to Wishlist</button>
+          </div>
+          <ul class="cd-market-includes"><li><strong>Course includes:</strong></li>{% if study_video_count %}<li>✓ {{ study_video_count }} video lessons and study resources</li>{% endif %}{% if question_exam_count %}<li>✓ {{ question_exam_count }} exams and question bank items</li>{% endif %}{% if course_content_count %}<li>✓ {{ course_content_count }} documents and images</li>{% endif %}<li>✓ {% if course.expires_on %}Access until {{ course.expires_on|date:"d M Y" }}{% else %}Lifetime access{% endif %}</li></ul>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <div class="cd-hero cd-legacy-hero">
     <div>
       {% if course.thumbnail %}
-        <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" style="width: 100%; border-radius: 8px; margin-bottom: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+        <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" class="cd-thumb" />
       {% else %}
         <div style="width: 100%; aspect-ratio: 4/3; background: linear-gradient(165deg, #003870 0%, #053C74 50%, #1078B0 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 5rem; margin-bottom: 1rem;">📚</div>
       {% endif %}
-      <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+      <div class="cd-meta-card">
         <h3 style="color: #1078B0; margin-bottom: 1rem;">Course Details</h3>
         <div style="margin-bottom: 1rem;">
-          <strong>Category:</strong> {{ course.category.name }}
+          <strong>Category:</strong> {{ course.category.name }}{% if course.subcategory %} · {{ course.subcategory }}{% endif %}
+        </div>
+        <div style="margin-bottom: 1rem;">
+          <strong>Price:</strong>
+          {% if course.price %}
+            ₹ {{ course.sale_price }}
+            {% if course.discount %}
+              <span style="color:#94a3b8; text-decoration:line-through; margin-left:6px;">₹ {{ course.price }}</span>
+            {% endif %}
+          {% else %}
+            Free
+          {% endif %}
+        </div>
+        <div style="margin-bottom: 1rem;">
+          <strong>Access:</strong>
+          {% if course.expires_on %}Until {{ course.expires_on|date:"d M Y" }}{% else %}Lifetime{% endif %}
         </div>
         <div style="margin-bottom: 1rem;">
           <strong>Level:</strong> {{ course.get_level_display }}
@@ -44,26 +212,35 @@
       </div>
     </div>
 
-    <div>
-      <h1 style="color: #333; margin-bottom: 1rem;">{{ course.title }}</h1>
-      <p style="font-size: 1.1rem; line-height: 1.8; color: #666; margin-bottom: 2rem;">{{ course.description }}</p>
+    <div class="cd-copy">
+      <span class="cd-eyebrow">{{ course.category.name }}{% if course.subcategory %} · {{ course.subcategory }}{% endif %} / {{ course.get_level_display }}</span>
+      <h1>{{ course.title }}</h1>
+      {% if course.description %}<p class="cd-description">{{ course.description }}</p>{% endif %}
+      <div class="cd-highlights">
+        {% if course.duration %}<span class="cd-highlight">◷ {{ course.duration }}</span>{% endif %}
+        <span class="cd-highlight">⭐ {{ course.rating }} / 5 rating</span>
+        <span class="cd-highlight">♧ {{ course.students_enrolled }} learners</span>
+      </div>
 
-      <button class="btn" style="font-size: 1.1rem; padding: 1rem 2rem; width: 100%; margin-bottom: 1rem;">Enroll Now</button>
-      <button class="btn btn-secondary" style="font-size: 1.1rem; padding: 1rem 2rem; width: 100%;">Add to Wishlist</button>
+      <div class="cd-actions">
+        <button class="btn cd-primary-action">Enroll Now</button>
+        <button class="btn btn-secondary cd-secondary-action">Add to Wishlist</button>
+      </div>
     </div>
   </div>
 
   <!-- Tabs for content -->
   <div style="margin-top: 3rem;">
-    <div style="display: flex; gap: 0; border-bottom: 2px solid #ddd; margin-bottom: 2rem;">
-      <button onclick="showTab('overview')" class="tab-button active" style="padding: 1rem 2rem; border: none; background: none; cursor: pointer; font-size: 1rem; color: #1078B0; border-bottom: 3px solid #1078B0; margin-bottom: -2px;">Overview</button>
-      <button onclick="showTab('materials')" class="tab-button" style="padding: 1rem 2rem; border: none; background: none; cursor: pointer; font-size: 1rem; color: #999;">Study Materials</button>
-      <button onclick="showTab('questions')" class="tab-button" style="padding: 1rem 2rem; border: none; background: none; cursor: pointer; font-size: 1rem; color: #999;">Question Banks</button>
+    <div class="cd-tabs" role="tablist" aria-label="Course information">
+      <button type="button" role="tab" aria-selected="{% if default_course_tab == 'overview' %}true{% else %}false{% endif %}" aria-controls="overview" onclick="showTab('overview', this)" class="tab-button{% if default_course_tab == 'overview' %} active{% endif %}">Overview</button>
+      <button type="button" role="tab" aria-selected="{% if default_course_tab == 'content' %}true{% else %}false{% endif %}" aria-controls="content" onclick="showTab('content', this)" class="tab-button{% if default_course_tab == 'content' %} active{% endif %}">Course Content{% if course_content_count %} ({{ course_content_count }}){% endif %}</button>
+      <button type="button" role="tab" aria-selected="{% if default_course_tab == 'materials' %}true{% else %}false{% endif %}" aria-controls="materials" onclick="showTab('materials', this)" class="tab-button{% if default_course_tab == 'materials' %} active{% endif %}">Study Materials{% if study_video_count %} ({{ study_video_count }}){% endif %}</button>
+      <button type="button" role="tab" aria-selected="{% if default_course_tab == 'questions' %}true{% else %}false{% endif %}" aria-controls="questions" onclick="showTab('questions', this)" class="tab-button{% if default_course_tab == 'questions' %} active{% endif %}">Question Banks{% if question_exam_count %} ({{ question_exam_count }}){% endif %}</button>
     </div>
 
     <!-- Overview Tab -->
-    <div id="overview" class="tab-content" style="display: block;">
-      <div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <div id="overview" class="tab-content" style="display: {% if default_course_tab == 'overview' %}block{% else %}none{% endif %};" aria-hidden="{% if default_course_tab == 'overview' %}false{% else %}true{% endif %}">
+      <div class="cd-panel cd-copy" style="max-width: 100%;">
         <h2 style="color: #333; margin-bottom: 1.5rem;">Course Overview</h2>
         <div style="line-height: 1.8; color: #666;">
           <h3 style="color: #333; margin-top: 1.5rem;">What You'll Learn</h3>
@@ -127,10 +304,25 @@
       </div>
     </div>
 
+    <!-- Content Tab -->
+    <div id="content" class="tab-content" style="display: {% if default_course_tab == 'content' %}block{% else %}none{% endif %};" aria-hidden="{% if default_course_tab == 'content' %}false{% else %}true{% endif %}">
+      <div class="cd-panel cd-content-list">
+        <h2 style="color: #333; margin-bottom: 1.5rem;">Course Content</h2>
+        {% if course_content_tree %}
+          {% include "courses/_course_content_nodes.html" with nodes=course_content_tree %}
+        {% else %}
+          <p style="color: #999;">No folders, documents, or images have been added yet.</p>
+        {% endif %}
+      </div>
+    </div>
+
     <!-- Materials Tab -->
-    <div id="materials" class="tab-content" style="display: none;">
-      <div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <div id="materials" class="tab-content" style="display: {% if default_course_tab == 'materials' %}block{% else %}none{% endif %};" aria-hidden="{% if default_course_tab == 'materials' %}false{% else %}true{% endif %}">
+      <div class="cd-panel cd-content-list">
         <h2 style="color: #333; margin-bottom: 1.5rem;">Study Materials</h2>
+        {% if study_video_tree %}
+          {% include "courses/_course_content_nodes.html" with nodes=study_video_tree %}
+        {% endif %}
         {% if course.study_materials.all %}
           <div class="grid" style="grid-template-columns: 1fr;">
             {% for material in course.study_materials.all %}
@@ -149,16 +341,19 @@
               </div>
             {% endfor %}
           </div>
-        {% else %}
+        {% elif not study_video_tree %}
           <p style="color: #999;">No study materials available yet.</p>
         {% endif %}
       </div>
     </div>
 
     <!-- Questions Tab -->
-    <div id="questions" class="tab-content" style="display: none;">
-      <div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <div id="questions" class="tab-content" style="display: {% if default_course_tab == 'questions' %}block{% else %}none{% endif %};" aria-hidden="{% if default_course_tab == 'questions' %}false{% else %}true{% endif %}">
+      <div class="cd-panel cd-content-list">
         <h2 style="color: #333; margin-bottom: 1.5rem;">Question Banks</h2>
+        {% if question_exam_tree %}
+          {% include "courses/_course_content_nodes.html" with nodes=question_exam_tree %}
+        {% endif %}
         {% if course.question_banks.all %}
           <div class="grid" style="grid-template-columns: 1fr;">
             {% for bank in course.question_banks.all %}
@@ -205,7 +400,7 @@
               </div>
             {% endfor %}
           </div>
-        {% else %}
+        {% elif not question_exam_tree %}
           <p style="color: #999;">No question banks available yet.</p>
         {% endif %}
       </div>
@@ -213,21 +408,20 @@
   </div>
 
   <script>
-    function showTab(tabName) {
+    function showTab(tabName, button) {
       const tabs = document.querySelectorAll('.tab-content')
       const buttons = document.querySelectorAll('.tab-button')
-    
-      tabs.forEach((tab) => (tab.style.display = 'none'))
-      buttons.forEach((btn) => {
-        btn.style.color = '#999'
-        btn.style.borderBottom = 'none'
-        btn.style.marginBottom = '0'
+      tabs.forEach((tab) => {
+        const active = tab.id === tabName
+        tab.style.display = active ? 'block' : 'none'
+        tab.setAttribute('aria-hidden', active ? 'false' : 'true')
       })
-    
-      document.getElementById(tabName).style.display = 'block'
-      event.target.style.color = '#1078B0'
-      event.target.style.borderBottom = '3px solid #1078B0'
-      event.target.style.marginBottom = '-2px'
+      buttons.forEach((btn) => {
+        const active = btn === button
+        btn.classList.toggle('active', active)
+        btn.setAttribute('aria-selected', active ? 'true' : 'false')
+      })
+      if (typeof renderCoursePdfViewers === 'function') renderCoursePdfViewers()
     }
     
     function toggleBank(element) {
@@ -242,13 +436,124 @@
         arrow.style.transform = 'rotate(0deg)'
       }
     }
+
+    function toggleFolder(btn) {
+      const node = btn.closest('.cc-node')
+      if (!node) return
+      const children = node.querySelector('.cc-children')
+      if (!children) return
+      const expanded = btn.getAttribute('aria-expanded') === 'true'
+      if (expanded) {
+        children.style.display = 'none'
+        btn.setAttribute('aria-expanded', 'false')
+        btn.innerHTML = 'Show <span class="cc-arrow">▶</span>'
+      } else {
+        children.style.display = 'block'
+        btn.setAttribute('aria-expanded', 'true')
+        btn.innerHTML = 'Hide <span class="cc-arrow">▼</span>'
+      }
+    }
   </script>
 
-  <style>
-    .tab-button.active {
-      color: #1078B0;
-      border-bottom: 3px solid #1078B0;
-      margin-bottom: -2px;
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+(function () {
+  if (!window.pdfjsLib) return
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
+
+  function setMessage(stage, text) {
+    var message = stage.querySelector('[data-pdf-status]')
+    if (!message) {
+      message = document.createElement('p')
+      message.className = 'course-pdf-status'
+      message.setAttribute('data-pdf-status', '')
+      stage.appendChild(message)
     }
-  </style>
+    message.textContent = text
+  }
+
+  function renderViewer(viewer) {
+    if (viewer.dataset.loading === 'true' || viewer.dataset.ready === 'true' || viewer.dataset.failed === 'true') return
+    var stage = viewer
+    if (stage.clientWidth < 80) return
+    viewer.dataset.loading = 'true'
+    pdfjsLib.getDocument({ url: viewer.getAttribute('data-pdf-url'), withCredentials: true }).promise
+      .then(function (pdf) {
+        viewer.dataset.loading = 'false'
+        viewer.dataset.ready = 'true'
+        viewer.coursePdf = pdf
+        viewer.coursePdfPage = 1
+        var shell = viewer.closest('.course-pdf-viewer')
+        var previous = shell.querySelector('[data-pdf-prev]')
+        var next = shell.querySelector('[data-pdf-next]')
+        var label = shell.querySelector('[data-pdf-page]')
+        function draw(pageNumber) {
+          viewer.coursePdfPage = pageNumber
+          pdf.getPage(pageNumber).then(function (page) {
+            var ratio = Math.min(window.devicePixelRatio || 1, 2)
+            var base = page.getViewport({ scale: 1 })
+            var width = Math.max(160, viewer.clientWidth - 26)
+            var scale = Math.min(width / base.width, 1.5)
+            var viewport = page.getViewport({ scale: scale * ratio })
+            var canvas = document.createElement('canvas')
+            var ctx = canvas.getContext('2d', { alpha: false })
+            canvas.width = Math.floor(viewport.width)
+            canvas.height = Math.floor(viewport.height)
+            canvas.style.width = Math.floor(viewport.width / ratio) + 'px'
+            ctx.fillStyle = '#fff'
+            ctx.fillRect(0, 0, canvas.width, canvas.height)
+            viewer.querySelectorAll('canvas').forEach(function (oldCanvas) { oldCanvas.remove() })
+            var status = viewer.querySelector('[data-pdf-status]')
+            if (status) status.remove()
+            viewer.appendChild(canvas)
+            page.render({ canvasContext: ctx, viewport: viewport }).promise.then(function () {
+              label.textContent = 'Page ' + pageNumber + ' of ' + pdf.numPages
+              previous.disabled = pageNumber <= 1
+              next.disabled = pageNumber >= pdf.numPages
+            }).catch(function () { setMessage(viewer, 'This page could not be rendered.') })
+          }).catch(function () { setMessage(viewer, 'This page could not be opened.') })
+        }
+        previous.addEventListener('click', function () { if (viewer.coursePdfPage > 1) draw(viewer.coursePdfPage - 1) })
+        next.addEventListener('click', function () { if (viewer.coursePdfPage < pdf.numPages) draw(viewer.coursePdfPage + 1) })
+        draw(1)
+      })
+      .catch(function (error) {
+        viewer.dataset.loading = 'false'
+        viewer.dataset.failed = 'true'
+        setMessage(viewer, 'Document preview could not be loaded. Refresh the page and try again.')
+        console.error('Course document preview failed', error)
+      })
+  }
+
+  window.renderCoursePdfViewers = function () {
+    document.querySelectorAll('[data-course-pdf]').forEach(renderViewer)
+  }
+  window.addEventListener('load', window.renderCoursePdfViewers)
+  window.addEventListener('resize', function () {
+    document.querySelectorAll('[data-course-pdf][data-ready="true"]').forEach(function (viewer) {
+      var canvas = viewer.querySelector('canvas')
+      if (canvas) canvas.remove()
+      if (viewer.coursePdf) {
+        viewer.coursePdf.getPage(viewer.coursePdfPage || 1).then(function (page) {
+          var ratio = Math.min(window.devicePixelRatio || 1, 2)
+          var base = page.getViewport({ scale: 1 })
+          var width = Math.max(160, viewer.clientWidth - 26)
+          var viewport = page.getViewport({ scale: Math.min(width / base.width, 1.5) * ratio })
+          var resized = document.createElement('canvas')
+          var ctx = resized.getContext('2d', { alpha: false })
+          resized.width = Math.floor(viewport.width)
+          resized.height = Math.floor(viewport.height)
+          resized.style.width = Math.floor(viewport.width / ratio) + 'px'
+          ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, resized.width, resized.height)
+          viewer.appendChild(resized)
+          page.render({ canvasContext: ctx, viewport: viewport }).promise.catch(function () {})
+        })
+      }
+    })
+  })
+})()
+</script>
 {% endblock %}

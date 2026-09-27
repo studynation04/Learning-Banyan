@@ -292,8 +292,14 @@
           </div>
           <div class="course-card-body">
             <h3>{{ course.title }}</h3>
-            <p class="course-card-meta">{{ course.category.name }} • {{ course.get_level_display }}</p>
-            <p class="course-card-desc">{{ course.description|truncatewords:28 }}</p>
+            <p class="course-card-meta">{{ course.category.name }}{% if course.subcategory %} · {{ course.subcategory }}{% endif %} • {{ course.get_level_display }}</p>
+            {% if course.description %}<p class="course-card-desc">{{ course.description|truncatewords:28 }}</p>{% endif %}
+            <p class="course-card-meta">
+              {% if course.price %}
+                <strong>₹ {{ course.sale_price }}</strong>{% if course.discount %} <del>₹ {{ course.price }}</del>{% endif %}
+              {% else %}<strong>Free</strong>{% endif %}
+              · {% if course.expires_on %}Access until {{ course.expires_on|date:"d M Y" }}{% else %}Lifetime access{% endif %}
+            </p>
             <div class="course-card-stats">
               <span>⭐ {{ course.rating }}</span>
               <span>👥 {{ course.students_enrolled }}</span>

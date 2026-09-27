@@ -53,6 +53,23 @@
     white-space: nowrap;
     padding: 6px 10px;
   }
+
+  /* PDF and Word readers: a faint watermark so the page text stays clear */
+  .rd-pdf-wrap .ns-watermark,
+  .rd-doc-body .ns-watermark,
+  .bd-pdf-wrap .ns-watermark {
+    background-image: none;
+  }
+
+  .rd-pdf-wrap .ns-watermark-text,
+  .rd-doc-body .ns-watermark-text,
+  .bd-pdf-wrap .ns-watermark-text {
+    opacity: 0.035;
+    color: #c5d4e6;
+    font-weight: 600;
+    font-size: 13px;
+    gap: 80px 110px;
+  }
   
   /* Full-screen shield while capture is suspected / window not focused */
   .ns-capture-shield {
@@ -237,7 +254,9 @@
     function addWatermarks() {
       var targets = document.querySelectorAll(['.no-screenshot-zone .rd-viewer', '.no-screenshot-zone .rd-doc-body', '.no-screenshot-zone .rd-pdf-wrap', '.no-screenshot-zone .rd-img-wrap', '.no-screenshot-zone .bd-article', '.no-screenshot-zone .bd-media', '.no-screenshot-zone .bd-content', '.no-screenshot-zone .bd-pdf-wrap', '.no-screenshot-zone .bd-video-wrap', '.no-screenshot-zone .bl-card-media'].join(', '))
       targets.forEach(function (el) {
-        if (el.querySelector('.ns-watermark')) return
+        /* One watermark on the page itself. A second copy on the outer viewer darkens the PDF. */
+        if (el.classList.contains('rd-viewer') && el.querySelector('.rd-pdf-wrap, .rd-doc-body, .rd-img-wrap')) return
+        if (el.querySelector(':scope > .ns-watermark')) return
         var style = window.getComputedStyle(el)
         if (style.position === 'static') el.style.position = 'relative'
         if (style.overflow === 'visible') {
@@ -249,7 +268,9 @@
         var inner = document.createElement('div')
         inner.className = 'ns-watermark-text'
         var stamp = MARK || 'PROTECTED · NO SCREENSHOT · NO PRINT'
-        for (var i = 0; i < 36; i++) {
+        var reader = el.classList.contains('rd-pdf-wrap') || el.classList.contains('rd-doc-body') || el.classList.contains('bd-pdf-wrap')
+        var copies = reader ? 8 : 36
+        for (var i = 0; i < copies; i++) {
           var s = document.createElement('span')
           s.textContent = stamp
           inner.appendChild(s)

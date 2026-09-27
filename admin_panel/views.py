@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Max, Q
 from django.utils import timezone
 from django.http import JsonResponse, HttpResponseBadRequest, FileResponse, Http404
 from django.views.decorators.http import require_POST
@@ -35,6 +35,7 @@ from courses.models import (
     QuestionOption,
     QuestionBank,
     Course,
+    CourseContent,
     Blog,
     CourseCategory,
     Resource,
@@ -1676,18 +1677,345 @@ def manage_courses(request):
     )
 
 
+def _course_editor_context(form, action, course=None):
+    context = {
+        "form": form,
+        "action": action,
+        "courses": Course.objects.all().order_by("-created_at"),
+        "content_exams": Exam.objects.order_by("name").only("id", "name")[:500],
+    }
+    if course is not None:
+        context["course"] = course
+        context["content_tree"] = course.nested_contents()
+        context["content_folders"] = (
+            course.contents.filter(content_type="folder")
+            .select_related("parent")
+            .order_by("title")
+        )
+    return context
+
+
+_CONTENT_FILE_EXTS = {
+    "video": {"mp4", "webm", "ogg", "mov", "m4v"},
+    "document": {"pdf", "doc", "docx", "txt"},
+    "image": {"png", "jpg", "jpeg", "gif", "webp", "bmp"},
+}
+_CONTENT_EXAM_TYPES = {"quiz", "practice", "subjective"}
+
+
+def _real_upload(upload):
+    """Ignore an empty file input so it does not block course creation."""
+    if upload is None:
+        return None
+    name = (getattr(upload, "name", "") or "").strip()
+    size = getattr(upload, "size", 0) or 0
+    if not name or size <= 0:
+        return None
+    return upload
+
+
+def _content_request_values(request):
+    """Read the Add content fields. Names are prefixed so they do not clash with the course form."""
+    uploads = [upload for upload in request.FILES.getlist("content_files") if _real_upload(upload)]
+    folder_uploads = [upload for upload in request.FILES.getlist("content_folder_files") if _real_upload(upload)]
+    if not uploads:
+        legacy_upload = _real_upload(request.FILES.get("content_file"))
+        if legacy_upload:
+            uploads = [legacy_upload]
+    content_kind = (request.POST.get("content_type") or "").strip()
+    exam_field = {
+        "quiz": "content_exam_ids_quiz",
+        "subjective": "content_exam_ids_subjective",
+        "practice": "content_exam_ids_practice",
+    }.get(content_kind)
+    exam_ids = request.POST.getlist(exam_field) if exam_field else []
+    if not exam_ids:
+        exam_ids = request.POST.getlist("content_exam_ids") or request.POST.getlist("content_exam")
+    raw_urls = request.POST.get("content_video_urls") or request.POST.get("content_video_url", "")
+    try:
+        folder_paths = json.loads(request.POST.get("content_folder_paths", "[]"))
+    except (TypeError, ValueError):
+        folder_paths = []
+    return {
+        "content_type": (request.POST.get("content_type") or "").strip(),
+        "title": (request.POST.get("content_title") or "").strip(),
+        "parent_id": (request.POST.get("content_parent") or "").strip(),
+        "exam_ids": [value.strip() for value in exam_ids if value.strip()],
+        "description": (request.POST.get("content_description") or "").strip(),
+        "uploads": uploads,
+        "folder_uploads": folder_uploads,
+        "folder_paths": folder_paths if isinstance(folder_paths, list) else [],
+        "video_urls": [line.strip() for line in raw_urls.splitlines() if line.strip()],
+    }
+
+
+def _clean_youtube_url(raw):
+    """Return a YouTube URL, '' when empty, or None when it is not YouTube."""
+    from urllib.parse import urlparse
+
+    text = (raw or "").strip()
+    if not text:
+        return ""
+    if not text.startswith(("http://", "https://")):
+        text = "https://" + text
+    parsed = urlparse(text)
+    host = (parsed.netloc or "").lower()
+    if host.startswith("www."):
+        host = host[4:]
+    allowed = {"youtube.com", "m.youtube.com", "youtu.be", "youtube-nocookie.com"}
+    if host not in allowed:
+        return None
+    return text[:500]
+
+
+def _validate_course_content(request, course, *, required):
+    values = _content_request_values(request)
+    has_content = any((values["uploads"], values["folder_uploads"], values["video_urls"], values["exam_ids"]))
+    if not required and not values["title"] and not has_content:
+        return None
+    valid_types = {key for key, _label in CourseContent.CONTENT_TYPES}
+    kind = values["content_type"]
+    if kind not in valid_types:
+        return "Choose a content type."
+    if not values["title"]:
+        return "A title is required."
+    if values["parent_id"] and (
+        course is None
+        or not course.contents.filter(id=values["parent_id"], content_type="folder").exists()
+    ):
+        return "Choose a folder from this course."
+    if kind in _CONTENT_EXAM_TYPES:
+        if not values["exam_ids"]:
+            return "Select one or more exams."
+        if Exam.objects.filter(id__in=values["exam_ids"]).count() != len(set(values["exam_ids"])):
+            return "One or more selected exams are invalid."
+    elif kind == "folder":
+        pass
+    elif kind == "video":
+        if not values["uploads"] and not values["video_urls"]:
+            return "Upload one or more videos or enter YouTube links."
+        if any(os.path.splitext(item.name)[1].lower().lstrip(".") not in _CONTENT_FILE_EXTS["video"] for item in values["uploads"]):
+            return "Choose video files (MP4, WebM, OGG, MOV, or M4V)."
+        if any(not _clean_youtube_url(url) for url in values["video_urls"]):
+            return "Each video link must be a valid YouTube URL."
+    elif kind in _CONTENT_FILE_EXTS:
+        if not values["uploads"]:
+            return "Browse and select one or more files."
+        allowed = _CONTENT_FILE_EXTS[kind]
+        if any(os.path.splitext(item.name)[1].lower().lstrip(".") not in allowed for item in values["uploads"]):
+            return f"Choose files with these extensions: {', '.join(sorted(allowed))}."
+    return None
+
+
+def _save_course_content(request, course):
+    values = _content_request_values(request)
+    kind = values["content_type"]
+    parent = course.contents.filter(id=values["parent_id"], content_type="folder").first() if values["parent_id"] else None
+    created = []
+
+    def create_item(item_kind, title, item_parent=None, *, upload=None, video_url="", exam=None):
+        next_order = (course.contents.filter(parent=item_parent).aggregate(m=Max("order"))["m"] or 0) + 1
+        item = CourseContent.objects.create(
+            course=course,
+            parent=item_parent,
+            content_type=item_kind,
+            title=title[:200],
+            description=values["description"],
+            file=upload,
+            video_url=video_url,
+            exam=exam,
+            order=next_order,
+        )
+        created.append(item)
+        return item
+
+    if kind == "folder":
+        root = create_item("folder", values["title"], parent)
+        folder_nodes = {"": root}
+        root_name = next(
+            (str(path).replace("\\", "/").strip("/").split("/")[0] for path in values["folder_paths"] if path),
+            "",
+        )
+        for index, upload in enumerate(values["folder_uploads"]):
+            relative = (values["folder_paths"][index] if index < len(values["folder_paths"]) else getattr(upload, "name", "") or "").replace("\\", "/")
+            parts = [part for part in relative.split("/") if part not in {"", ".", ".."}]
+            if len(parts) > 1 and parts[0] == root_name:
+                parts = parts[1:]
+            filename = parts[-1] if parts else "File"
+            current = root
+            key = ""
+            for dirname in parts[:-1]:
+                key = f"{key}/{dirname}"
+                if key not in folder_nodes:
+                    folder_nodes[key] = create_item("folder", dirname, current)
+                current = folder_nodes[key]
+            extension = os.path.splitext(filename)[1].lower().lstrip(".")
+            file_kind = "image" if extension in _CONTENT_FILE_EXTS["image"] else "video" if extension in _CONTENT_FILE_EXTS["video"] else "document"
+            create_item(file_kind, filename, current, upload=upload)
+    elif kind in _CONTENT_EXAM_TYPES:
+        exams = list(Exam.objects.filter(id__in=values["exam_ids"]).order_by("id"))
+        for exam in exams:
+            label = values["title"] if len(exams) == 1 else f"{values['title']} — {exam.name}"
+            create_item(kind, label, parent, exam=exam)
+    else:
+        uploads = values["uploads"]
+        links = values["video_urls"] if kind == "video" else []
+        multiple = len(uploads) + len(links) > 1
+        for upload in uploads:
+            label = f"{values['title']} — {os.path.basename(upload.name)}" if multiple else values["title"]
+            create_item(kind, label, parent, upload=upload)
+        for number, raw_url in enumerate(links, 1):
+            label = f"{values['title']} — Video {number}" if multiple else values["title"]
+            create_item(kind, label, parent, video_url=_clean_youtube_url(raw_url) or "")
+    return created
+
+
+def _new_course_content_entries(request):
+    try:
+        count = min(max(int(request.POST.get("content_entry_count", "0")), 0), 100)
+    except (TypeError, ValueError):
+        count = 0
+    entries = []
+    for index in range(count):
+        prefix = f"content_{index}_"
+        kind = (request.POST.get(prefix + "type") or "").strip()
+        title = (request.POST.get(prefix + "title") or "").strip()
+        uploads = [item for item in request.FILES.getlist(prefix + "files") if _real_upload(item)]
+        folder_uploads = [item for item in request.FILES.getlist(prefix + "folder_files") if _real_upload(item)]
+        urls = [line.strip() for line in request.POST.get(prefix + "video_urls", "").splitlines() if line.strip()]
+        exams = [value.strip() for value in request.POST.getlist(prefix + "exam_ids") if value.strip()]
+        try:
+            folder_paths = json.loads(request.POST.get(prefix + "folder_paths", "[]"))
+        except (TypeError, ValueError):
+            folder_paths = []
+        if not title and not uploads and not folder_uploads and not urls and not exams:
+            continue
+        entries.append({
+            "content_type": kind,
+            "title": title,
+            "uploads": uploads,
+            "folder_uploads": folder_uploads,
+            "folder_paths": folder_paths if isinstance(folder_paths, list) else [],
+            "video_urls": urls,
+            "exam_ids": exams,
+        })
+    return entries
+
+
+def _validate_new_course_content_entries(entries):
+    valid_types = {key for key, _label in CourseContent.CONTENT_TYPES}
+    for values in entries:
+        kind = values["content_type"]
+        if kind not in valid_types:
+            return "Choose a valid content type for each course content entry."
+        if not values["title"]:
+            return "Add a title to every course content entry you fill in."
+        if kind in _CONTENT_EXAM_TYPES:
+            if not values["exam_ids"]:
+                return f"Select one or more exams for {dict(CourseContent.CONTENT_TYPES)[kind]}."
+            if Exam.objects.filter(id__in=values["exam_ids"]).count() != len(set(values["exam_ids"])):
+                return "One or more selected exams are invalid."
+        elif kind == "video":
+            if not values["uploads"] and not values["video_urls"]:
+                return "Add a video file or YouTube link to every Video entry."
+            if any(os.path.splitext(item.name)[1].lower().lstrip(".") not in _CONTENT_FILE_EXTS["video"] for item in values["uploads"]):
+                return "Video entries accept MP4, WebM, OGG, MOV, or M4V files."
+            if any(not _clean_youtube_url(url) for url in values["video_urls"]):
+                return "Each video link must be a valid YouTube URL."
+        elif kind in _CONTENT_FILE_EXTS:
+            if not values["uploads"]:
+                return f"Select at least one file for each {dict(CourseContent.CONTENT_TYPES)[kind]} entry."
+            allowed = _CONTENT_FILE_EXTS[kind]
+            if any(os.path.splitext(item.name)[1].lower().lstrip(".") not in allowed for item in values["uploads"]):
+                return f"Choose {kind} files with these extensions: {', '.join(sorted(allowed))}."
+    return None
+
+
+def _save_new_course_content_entries(course, entries):
+    created = []
+
+    def create_item(kind, title, parent=None, *, upload=None, video_url="", exam=None):
+        order = (course.contents.filter(parent=parent).aggregate(m=Max("order"))["m"] or 0) + 1
+        item = CourseContent.objects.create(
+            course=course, parent=parent, content_type=kind, title=title[:200],
+            file=upload, video_url=video_url, exam=exam, order=order,
+        )
+        created.append(item)
+        return item
+
+    for values in entries:
+        kind, title = values["content_type"], values["title"]
+        if kind == "folder":
+            root = create_item("folder", title)
+            folders = {"": root}
+            root_name = next((str(path).replace("\\", "/").strip("/").split("/")[0] for path in values["folder_paths"] if path), "")
+            for index, upload in enumerate(values["folder_uploads"]):
+                relative = (values["folder_paths"][index] if index < len(values["folder_paths"]) else upload.name).replace("\\", "/")
+                parts = [part for part in relative.split("/") if part not in {"", ".", ".."}]
+                if len(parts) > 1 and parts[0] == root_name:
+                    parts = parts[1:]
+                filename = parts[-1] if parts else os.path.basename(upload.name)
+                parent, key = root, ""
+                for dirname in parts[:-1]:
+                    key = f"{key}/{dirname}"
+                    if key not in folders:
+                        folders[key] = create_item("folder", dirname, parent)
+                    parent = folders[key]
+                extension = os.path.splitext(filename)[1].lower().lstrip(".")
+                file_kind = "image" if extension in _CONTENT_FILE_EXTS["image"] else "video" if extension in _CONTENT_FILE_EXTS["video"] else "document"
+                create_item(file_kind, filename, parent, upload=upload)
+        elif kind in _CONTENT_EXAM_TYPES:
+            exams = list(Exam.objects.filter(id__in=values["exam_ids"]).order_by("id"))
+            for exam in exams:
+                label = title if len(exams) == 1 else f"{title} — {exam.name}"
+                create_item(kind, label, exam=exam)
+        else:
+            uploads, urls = values["uploads"], values["video_urls"] if kind == "video" else []
+            multiple = len(uploads) + len(urls) > 1
+            for upload in uploads:
+                label = f"{title} — {os.path.basename(upload.name)}" if multiple else title
+                create_item(kind, label, upload=upload)
+            for number, url in enumerate(urls, 1):
+                label = f"{title} — Video {number}" if multiple else title
+                create_item(kind, label, video_url=_clean_youtube_url(url) or "")
+    return created
+
+
 @admin_required
 def create_course(request):
     if request.method == "POST":
         form = CourseForm(request.POST, request.FILES)
+        content_entries = _new_course_content_entries(request)
+        content_error = _validate_new_course_content_entries(content_entries)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Course created successfully!")
-            return redirect("admin_panel:manage_courses")
+            course = form.save()
+            if content_error:
+                messages.warning(
+                    request,
+                    "Course created. The content item was not added: " + content_error,
+                )
+            else:
+                added = _save_new_course_content_entries(course, content_entries)
+                if added:
+                    messages.success(
+                        request,
+                        f"Course created with {len(added)} course content item(s). You can add more below.",
+                    )
+                else:
+                    messages.success(
+                        request,
+                        "Course created. Use Add content below for folders, videos, tests, and files.",
+                    )
+            return redirect("admin_panel:edit_course", course_id=course.id)
+        messages.error(request, "Course was not created. Fix the fields below.")
+        if content_error:
+            messages.error(request, content_error)
     else:
         form = CourseForm()
     return render(
-        request, "admin_panel/manage_courses.html", {"form": form, "action": "Create"}
+        request,
+        "admin_panel/manage_courses.html",
+        _course_editor_context(form, "Create"),
     )
 
 
@@ -1699,14 +2027,39 @@ def edit_course(request, course_id):
         if form.is_valid():
             form.save()
             messages.success(request, "Course updated successfully!")
-            return redirect("admin_panel:manage_courses")
+            return redirect("admin_panel:edit_course", course_id=course.id)
     else:
         form = CourseForm(instance=course)
     return render(
         request,
         "admin_panel/manage_courses.html",
-        {"form": form, "course": course, "action": "Edit"},
+        _course_editor_context(form, "Edit", course),
     )
+
+
+@admin_required
+@require_POST
+def add_course_content(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+    error = _validate_course_content(request, course, required=True)
+    if error:
+        messages.error(request, error)
+        return redirect("admin_panel:edit_course", course_id=course.id)
+    added = _save_course_content(request, course)
+    if added:
+        messages.success(request, f"Added {len(added)} course content item(s).")
+    return redirect("admin_panel:edit_course", course_id=course.id)
+
+
+@admin_required
+@require_POST
+def delete_course_content(request, course_id, content_id):
+    course = get_object_or_404(Course, id=course_id)
+    item = get_object_or_404(CourseContent, id=content_id, course=course)
+    title = item.title
+    item.delete()
+    messages.success(request, f"Removed “{title}”.")
+    return redirect("admin_panel:edit_course", course_id=course.id)
 
 
 @admin_required

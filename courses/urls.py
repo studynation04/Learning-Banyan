@@ -12,6 +12,7 @@ from .views import (
     ResourcesListView,
     ResourceDetailView,
     resource_file_stream,
+    course_content_file_stream,
     QuestionForumView,
     PublicChatView,
     student_signup,
@@ -58,6 +59,11 @@ urlpatterns = [
         "resources/<int:pk>/stream/",
         resource_file_stream,
         name="resource_file_stream",
+    ),
+    path(
+        "course-content/<int:pk>/preview/",
+        course_content_file_stream,
+        name="course_content_file_stream",
     ),
     # Question Forum (topic boards for community Q&A)
     path("question-forum/", QuestionForumView.as_view(), name="question_forum"),

@@ -399,6 +399,13 @@
               <p style="font-size:12.5px;color:#64748b;margin:-8px 0 14px;">
                 When enabled, the on-screen calculator is available during practice. When disabled, it is hidden.
               </p>
+              <div class="form-group checkbox-row">
+                {{ settings_form.allow_hint }}
+                {{ settings_form.allow_hint.label_tag }}
+              </div>
+              <p style="font-size:12.5px;color:#64748b;margin:-8px 0 14px;">
+                When enabled, the Hint button appears during practice. When disabled, hints stay hidden.
+              </p>
               <button type="submit" class="btn-save">💾 Save Settings</button>
             </form>
           </div>

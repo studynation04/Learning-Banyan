@@ -1,0 +1,139 @@
+<div class="course-content-block" id="course-content">
+  <h3>Course Content</h3>
+  {% if not course %}
+    <p class="content-note">Add one or more content entries below. Every completed entry will be saved with this course.</p>
+    <div id="contentEntries"></div>
+    <template id="contentEntryTemplate">
+      <div class="content-entry" style="border:1px solid #e2e8f0; border-radius:8px; padding:16px; margin:12px 0; background:#f8fafc;">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Content type</label>
+            <select data-entry-type>
+              <option value="folder">Folder</option>
+              <option value="video">Video</option>
+              <option value="quiz">Online Test/Quiz</option>
+              <option value="subjective">Subjective Test</option>
+              <option value="practice">Practice Test</option>
+              <option value="document">Document</option>
+              <option value="image">Image</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Title</label>
+            <input type="text" data-entry-title placeholder="Content title" />
+          </div>
+          <div class="form-group full" data-entry-kind="folder">
+            <label>Browse for folder</label>
+            <input type="file" data-entry-folder-files webkitdirectory directory multiple />
+            <input type="hidden" data-entry-folder-paths value="[]" />
+            <small>Select a folder to add its files and subfolders under this course folder.</small>
+          </div>
+          <div class="form-group full" data-entry-kind="video" style="display:none;">
+            <label>Upload one or more videos</label>
+            <input type="file" data-entry-files multiple accept=".mp4,.webm,.ogg,.mov,.m4v" disabled />
+          </div>
+          <div class="form-group full" data-entry-kind="video" style="display:none;">
+            <label>YouTube links</label>
+            <textarea data-entry-video-urls rows="3" placeholder="Paste one YouTube URL per line" disabled></textarea>
+          </div>
+          <div class="form-group full" data-entry-kind="quiz" style="display:none;">
+            <label>Online Test/Quiz exams</label>
+            <select data-entry-exams multiple size="5" disabled>
+              {% for exam in content_exams %}<option value="{{ exam.id }}">{{ exam.name }}</option>{% endfor %}
+            </select>
+            <small>Select one or more exams for this Quiz entry.</small>
+          </div>
+          <div class="form-group full" data-entry-kind="subjective" style="display:none;">
+            <label>Subjective Test exams</label>
+            <select data-entry-exams multiple size="5" disabled>
+              {% for exam in content_exams %}<option value="{{ exam.id }}">{{ exam.name }}</option>{% endfor %}
+            </select>
+            <small>Select one or more exams for this Subjective Test entry.</small>
+          </div>
+          <div class="form-group full" data-entry-kind="practice" style="display:none;">
+            <label>Practice Test exams</label>
+            <select data-entry-exams multiple size="5" disabled>
+              {% for exam in content_exams %}<option value="{{ exam.id }}">{{ exam.name }}</option>{% endfor %}
+            </select>
+            <small>Select one or more exams for this Practice Test entry.</small>
+          </div>
+          <div class="form-group full" data-entry-kind="document" style="display:none;">
+            <label>Browse for one or more documents</label>
+            <input type="file" data-entry-files multiple accept=".pdf,.doc,.docx,.txt" disabled />
+          </div>
+          <div class="form-group full" data-entry-kind="image" style="display:none;">
+            <label>Browse for one or more images</label>
+            <input type="file" data-entry-files multiple accept="image/*" disabled />
+          </div>
+        </div>
+        <button type="button" class="btn btn-danger" data-remove-entry style="margin-top:8px;">Remove entry</button>
+      </div>
+    </template>
+    <input type="hidden" name="content_entry_count" id="contentEntryCount" value="0" />
+    <button type="button" class="btn btn-secondary" id="addContentEntry">＋ Add another content entry</button>
+  {% else %}
+    <p class="content-note">Choose a type and add an item to this course. Multiple selected files and exams are saved as separate items.</p>
+    <div class="content-types" id="contentTypeButtons">
+      <button type="button" class="content-type-btn is-active" data-type="folder">Folder</button>
+      <button type="button" class="content-type-btn" data-type="video">Video</button>
+      <button type="button" class="content-type-btn" data-type="quiz">Online Test/Quiz</button>
+      <button type="button" class="content-type-btn" data-type="subjective">Subjective Test</button>
+      <button type="button" class="content-type-btn" data-type="practice">Practice Test</button>
+      <button type="button" class="content-type-btn" data-type="document">Document</button>
+      <button type="button" class="content-type-btn" data-type="image">Image</button>
+    </div>
+    <p class="content-note" id="contentTypeStatus">Selected: Folder.</p>
+    <form id="contentAddForm" method="post" action="{% url 'admin_panel:add_course_content' course.id %}" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="content_type" id="contentTypeInput" value="folder" />
+      <input type="hidden" name="content_folder_paths" id="contentFolderPaths" value="[]" />
+      <div class="form-grid" id="contentFields">
+        <div class="form-group" id="contentParentField">
+          <label for="contentParent">Inside folder</label>
+          <select name="content_parent" id="contentParent">
+            <option value="">Top level</option>
+            {% for folder in content_folders %}<option value="{{ folder.id }}">{% if folder.parent %}{{ folder.parent.title }} / {% endif %}{{ folder.title }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-group" id="contentTitleField">
+          <label for="contentTitle">Title</label>
+          <input type="text" name="content_title" id="contentTitle" placeholder="Content title" required />
+        </div>
+        <div class="form-group full" id="contentFolderField">
+          <label for="contentFolderFiles">Browse for folder</label>
+          <input type="file" name="content_folder_files" id="contentFolderFiles" webkitdirectory directory multiple />
+          <small>Select a folder. Its subfolders and files will be added under this course folder.</small>
+        </div>
+        <div class="form-group full" id="contentVideoFilesField" style="display:none;">
+          <label for="contentVideoFiles">Upload one or more videos</label>
+          <input type="file" name="content_files" id="contentVideoFiles" multiple accept=".mp4,.webm,.ogg,.mov,.m4v" />
+        </div>
+        <div class="form-group full" id="contentYoutubeField" style="display:none;">
+          <label for="contentVideoUrls">YouTube links</label>
+          <textarea name="content_video_urls" id="contentVideoUrls" rows="3" placeholder="Paste one YouTube URL per line"></textarea>
+        </div>
+        <div class="form-group full content-exam-field" id="contentQuizExamsField" style="display:none;">
+          <label for="contentQuizExams">Online Test/Quiz exams</label>
+          <select name="content_exam_ids_quiz" id="contentQuizExams" multiple size="6" disabled>{% for exam in content_exams %}<option value="{{ exam.id }}">{{ exam.name }}</option>{% endfor %}</select>
+        </div>
+        <div class="form-group full content-exam-field" id="contentSubjectiveExamsField" style="display:none;">
+          <label for="contentSubjectiveExams">Subjective Test exams</label>
+          <select name="content_exam_ids_subjective" id="contentSubjectiveExams" multiple size="6" disabled>{% for exam in content_exams %}<option value="{{ exam.id }}">{{ exam.name }}</option>{% endfor %}</select>
+        </div>
+        <div class="form-group full content-exam-field" id="contentPracticeExamsField" style="display:none;">
+          <label for="contentPracticeExams">Practice Test exams</label>
+          <select name="content_exam_ids_practice" id="contentPracticeExams" multiple size="6" disabled>{% for exam in content_exams %}<option value="{{ exam.id }}">{{ exam.name }}</option>{% endfor %}</select>
+        </div>
+        <div class="form-group full" id="contentFilesField" style="display:none;">
+          <label for="contentFiles">Browse for one or more files</label>
+          <input type="file" name="content_files" id="contentFiles" multiple />
+        </div>
+      </div>
+      <div class="form-actions"><button type="submit" class="btn btn-primary">Add to course</button></div>
+    </form>
+    <h3 style="margin:22px 0 12px;font-size:16px;color:#333;">Contents</h3>
+    {% if content_tree %}
+      {% include "admin_panel/_partials/course_content_nodes.html" with nodes=content_tree course=course %}
+    {% else %}<p class="content-note">No content yet. Choose a type above and add its content.</p>{% endif %}
+  {% endif %}
+</div>

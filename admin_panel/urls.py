@@ -83,6 +83,16 @@ urlpatterns = [
     path("manage-courses/create/", views.create_course, name="create_course"),
     path("manage-courses/<int:course_id>/edit/", views.edit_course, name="edit_course"),
     path(
+        "manage-courses/<int:course_id>/content/add/",
+        views.add_course_content,
+        name="add_course_content",
+    ),
+    path(
+        "manage-courses/<int:course_id>/content/<int:content_id>/delete/",
+        views.delete_course_content,
+        name="delete_course_content",
+    ),
+    path(
         "manage-courses/<int:course_id>/delete/",
         views.delete_course,
         name="delete_course",

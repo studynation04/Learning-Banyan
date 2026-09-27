@@ -15,7 +15,7 @@ class StudentProfile(models.Model):
         blank=True,
         null=True,
         unique=True,
-        help_text="Required at registration. Must be unique. Existing accounts may be empty.",
+        help_text="Optional. Must be unique when a number is provided.",
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -53,7 +53,7 @@ class Course(models.Model):
     """Course model"""
 
     title = models.CharField(max_length=200)
-    description = models.TextField()
+    description = models.TextField(blank=True)
     category = models.ForeignKey(
         CourseCategory, on_delete=models.CASCADE, related_name="courses"
     )
@@ -87,6 +87,29 @@ class Course(models.Model):
             "Example: Module 1: Introduction and Fundamentals"
         ),
     )
+    price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        help_text="Course price in rupees. 0 means free.",
+    )
+    discount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        help_text="Rupee amount taken off the price.",
+    )
+    subcategory = models.CharField(
+        max_length=150,
+        blank=True,
+        default="",
+        help_text="Optional sub category, e.g. CUET.",
+    )
+    expires_on = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Leave empty for lifetime access.",
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -96,6 +119,116 @@ class Course(models.Model):
 
     def __str__(self):
         return self.title
+
+    @property
+    def sale_price(self):
+        from decimal import Decimal
+
+        price = self.price or Decimal("0")
+        discount = self.discount or Decimal("0")
+        if discount < 0:
+            discount = Decimal("0")
+        net = price - discount
+        return net if net > 0 else Decimal("0")
+
+    def nested_contents(self):
+        """Top-level course content, each with child_nodes filled in."""
+        items = list(
+            self.contents.select_related("exam", "parent").order_by("order", "id")
+        )
+        by_parent = {}
+        for item in items:
+            by_parent.setdefault(item.parent_id, []).append(item)
+
+        def build(parent_id):
+            nodes = []
+            for item in by_parent.get(parent_id, []):
+                item.child_nodes = build(item.id)
+                nodes.append(item)
+            return nodes
+
+        return build(None)
+
+
+class CourseContent(models.Model):
+    """Folder, video, test, or file attached to a course."""
+
+    CONTENT_TYPES = [
+        ("folder", "Folder"),
+        ("video", "Video"),
+        ("quiz", "Online Test/Quiz"),
+        ("subjective", "Subjective Test"),
+        ("practice", "Practice Test"),
+        ("document", "Document"),
+        ("image", "Image"),
+    ]
+
+    course = models.ForeignKey(
+        Course, on_delete=models.CASCADE, related_name="contents"
+    )
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="children",
+    )
+    content_type = models.CharField(max_length=20, choices=CONTENT_TYPES)
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True, default="")
+    file = models.FileField(upload_to="course_content/", null=True, blank=True)
+    video_url = models.CharField(
+        max_length=500,
+        blank=True,
+        default="",
+        help_text="YouTube link when the video is not an uploaded file.",
+    )
+    exam = models.ForeignKey(
+        "Exam",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="course_contents",
+    )
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["order", "id"]
+
+    def __str__(self):
+        return f"{self.course.title} · {self.title}"
+
+    def youtube_embed_url(self):
+        """Return an embed URL for a YouTube link, or '' when it is not YouTube."""
+        from urllib.parse import parse_qs, urlparse
+
+        raw = (self.video_url or "").strip()
+        if not raw:
+            return ""
+        parsed = urlparse(raw if "://" in raw else "https://" + raw)
+        host = (parsed.netloc or "").lower()
+        if host.startswith("www."):
+            host = host[4:]
+        video_id = ""
+        if host == "youtu.be":
+            video_id = parsed.path.strip("/").split("/")[0]
+        elif host in {"youtube.com", "m.youtube.com", "youtube-nocookie.com"}:
+            query = parse_qs(parsed.query)
+            if query.get("v"):
+                video_id = query["v"][0]
+            else:
+                parts = [part for part in parsed.path.split("/") if part]
+                for key in ("embed", "shorts", "live", "v"):
+                    if key in parts:
+                        index = parts.index(key)
+                        if index + 1 < len(parts):
+                            video_id = parts[index + 1]
+                        break
+        video_id = "".join(ch for ch in video_id if ch.isalnum() or ch in "-_")
+        if not video_id:
+            return ""
+        return f"https://www.youtube.com/embed/{video_id}"
 
 
 class StudyMaterial(models.Model):
@@ -604,6 +737,10 @@ class Exam(models.Model):
     allow_calculator = models.BooleanField(
         default=False,
         help_text="If enabled, students can use the on-screen calculator during practice.",
+    )
+    allow_hint = models.BooleanField(
+        default=False,
+        help_text="If enabled, students can open each question's hint during practice.",
     )
 
     questions = models.ManyToManyField(

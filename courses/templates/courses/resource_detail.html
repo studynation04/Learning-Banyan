@@ -68,6 +68,14 @@
     margin: 0 0 0.75rem;
     font-size: 1rem;
   }
+  .rd-doc-body img {
+    max-width: 100%;
+    height: auto;
+  }
+  .rd-doc-body .katex-display {
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
   .rd-para-spacer { height: 0.55rem; }
   .rd-table {
     width: 100%;
@@ -93,7 +101,7 @@
 
   /* PDF.js canvas viewer — no native PDF chrome, no text layer */
   .rd-pdf-wrap {
-    background: #f1f5f9;
+    background: #f8fafc;
     border: 1px solid #e6e9f5;
     border-radius: 12px;
     min-height: 70vh;
@@ -213,19 +221,12 @@
           <button type="button" id="rdPdfZoomIn">+</button>
         </div>
         <div class="rd-pdf-wrap" id="rdPdfWrap" data-pdf-url="{{ stream_url }}">
-          <div class="rd-pdf-status" id="rdPdfStatus">Loading protected PDF…</div>
+          <div class="rd-pdf-status" id="rdPdfStatus">{% if word_layout %}Opening the Word file…{% else %}Loading protected PDF…{% endif %}</div>
         </div>
 
-      {% elif preview_kind == 'docx' or preview_kind == 'text' %}
+      {% elif preview_kind == 'docx' or preview_kind == 'doc' or preview_kind == 'text' %}
         <div class="rd-doc-body" oncopy="return false;" oncut="return false;" onselectstart="return false;">
           {{ preview_html|safe }}
-        </div>
-
-      {% elif preview_kind == 'doc' %}
-        <div class="rd-blocked">
-          <strong>Word .doc (legacy) protected</strong>
-          Legacy .doc files are not opened for download.
-          Please re-upload as <strong>.docx</strong> or <strong>PDF</strong> so students can view the content in the protected reader.
         </div>
 
       {% elif preview_kind == 'image' and stream_url %}
@@ -294,12 +295,17 @@
   function renderPage(num) {
     rendering = true;
     pdfDoc.getPage(num).then(function (page) {
-      var viewport = page.getViewport({ scale: scale });
+      // Draw at screen resolution so equations stay sharp when the page is scaled.
+      var pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+      var viewport = page.getViewport({ scale: scale * pixelRatio });
       var canvas = document.createElement('canvas');
-      var ctx = canvas.getContext('2d');
-      canvas.height = viewport.height;
-      canvas.width = viewport.width;
+      var ctx = canvas.getContext('2d', { alpha: false });
+      canvas.width = Math.floor(viewport.width);
+      canvas.height = Math.floor(viewport.height);
+      canvas.style.width = Math.floor(viewport.width / pixelRatio) + 'px';
       canvas.setAttribute('draggable', 'false');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // Clear previous canvases
       wrap.querySelectorAll('canvas').forEach(function (c) { c.remove(); });

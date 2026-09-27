@@ -418,7 +418,7 @@ class StudentSignupForm(forms.Form):
     mobile_number = forms.CharField(
         max_length=20,
         label="Mobile number",
-        required=True,
+        required=False,
         widget=forms.TextInput(
             attrs={
                 "class": "form-control",
@@ -426,11 +426,9 @@ class StudentSignupForm(forms.Form):
                 "type": "tel",
                 "inputmode": "tel",
                 "autocomplete": "tel-national",
-                "required": "required",
             }
         ),
-        help_text="Required and unique. Select your country code, then enter your mobile number.",
-        error_messages={"required": "Mobile number is required to register."},
+        help_text="Optional. If you add a number it must be unique. Select your country code, then enter the mobile number.",
     )
     password = forms.CharField(
         widget=forms.PasswordInput(
@@ -460,10 +458,7 @@ class StudentSignupForm(forms.Form):
         return email
 
     def clean_mobile_number(self):
-        raw = (self.cleaned_data.get("mobile_number") or "").strip()
-        if not raw:
-            raise forms.ValidationError("Mobile number is required to register.")
-        return raw
+        return (self.cleaned_data.get("mobile_number") or "").strip()
 
     def clean(self):
         from courses.phone import compose_e164, mobile_is_registered
@@ -471,7 +466,10 @@ class StudentSignupForm(forms.Form):
         cleaned = super().clean()
         country_code = cleaned.get("country_code")
         raw_number = cleaned.get("mobile_number")
-        if not country_code or not raw_number:
+        if not raw_number:
+            cleaned["mobile_number"] = None
+            return cleaned
+        if not country_code:
             return cleaned
         try:
             e164 = compose_e164(country_code, raw_number)
@@ -514,7 +512,7 @@ class StudentSignupForm(forms.Form):
         from courses.models import StudentProfile
 
         StudentProfile.objects.create(
-            user=user, mobile_number=self.cleaned_data["mobile_number"]
+            user=user, mobile_number=self.cleaned_data.get("mobile_number") or None
         )
         return user
 
@@ -550,9 +548,11 @@ class StudentExamForm(forms.ModelForm):
             "questions_per_page",
             "shuffle_questions",
             "allow_calculator",
+            "allow_hint",
         ]
         labels = {
             "allow_calculator": "Need calculator (show calculator during practice)",
+            "allow_hint": "Need Hint (show hints during practice)",
             "shuffle_questions": "Shuffle questions",
         }
         widgets = {
@@ -575,6 +575,9 @@ class StudentExamForm(forms.ModelForm):
                 attrs={"class": "form-check-input"}
             ),
             "allow_calculator": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
+            "allow_hint": forms.CheckboxInput(
                 attrs={"class": "form-check-input"}
             ),
         }

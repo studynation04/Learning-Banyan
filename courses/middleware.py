@@ -16,7 +16,9 @@ class InlineMediaMiddleware:
         "/media/blog_images/",
         "/media/blog_media/",
         "/media/resources/",
+        "/media/resource_previews/",
         "/media/course_thumbnails/",
+        "/media/course_content/",
         "/media/discussion_images/",
         "/media/question_equations/",
     )
@@ -66,6 +68,14 @@ class InlineMediaMiddleware:
         try:
             if any(path.startswith(p) for p in self.PROTECTED_PREFIXES):
                 # Resources: block top-level open of raw media files
+                if path.startswith("/media/resource_previews/"):
+                    return HttpResponse(
+                        "Downloading this file is not allowed. "
+                        "Open the Resources page to view content online only.",
+                        status=403,
+                        content_type="text/plain; charset=utf-8",
+                    )
+
                 if path.startswith("/media/resources/"):
                     if self._is_top_level_navigation(request):
                         return HttpResponse(
@@ -120,8 +130,10 @@ class InlineMediaMiddleware:
                 if "Cache-Control" not in response:
                     response["Cache-Control"] = "private, max-age=3600"
                 low = (request.path or "").lower()
-                if low.startswith("/media/resources/") or low.startswith(
-                    "/media/blog_media/"
+                if (
+                    low.startswith("/media/resources/")
+                    or low.startswith("/media/resource_previews/")
+                    or low.startswith("/media/blog_media/")
                 ):
                     response["X-Robots-Tag"] = "noindex, noarchive, nosnippet"
                     response["Cache-Control"] = "private, no-store"

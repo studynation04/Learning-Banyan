@@ -242,6 +242,11 @@ MIDDLEWARE = [
     "courses.middleware.InlineMediaMiddleware",
 ]
 
+# YouTube's embedded player requires an HTTP Referer (or equivalent client
+# identity). Send only this site's origin to cross-origin players; Django's
+# same-origin policy suppresses it and can trigger YouTube error 153.
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+
 ROOT_URLCONF = "config.urls"
 
 TEMPLATES = [

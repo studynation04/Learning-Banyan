@@ -48,6 +48,7 @@ LaTeX-first strategy (clean KaTeX rendering on the site):
 import copy
 import hashlib
 import json
+import logging
 import os
 import re
 import shutil
@@ -1280,10 +1281,13 @@ def _word_com_convert_document(src_path, target_ext, outdir):
 
     Used when LibreOffice is not installed. Preserves equations well enough
     for the OMML → LaTeX pipeline that follows.
+
+    target_ext "pdf" exports the document as laid out in Word (wdFormatPDF).
     """
     if sys.platform != "win32":
         return None
-    if (target_ext or "").lower().lstrip(".") != "docx":
+    fmt = (target_ext or "").lower().lstrip(".")
+    if fmt not in ("docx", "pdf"):
         return None
     if not os.path.isfile(src_path):
         return None
@@ -1291,14 +1295,14 @@ def _word_com_convert_document(src_path, target_ext, outdir):
     os.makedirs(outdir, exist_ok=True)
     base = os.path.splitext(os.path.basename(src_path))[0]
     # Avoid overwriting the source when already in outdir
-    out_path = os.path.join(outdir, f"{base}_converted.docx")
+    out_path = os.path.join(outdir, f"{base}_converted.{fmt}")
     if os.path.exists(out_path):
         try:
             os.remove(out_path)
         except OSError:
             pass
 
-    # wdFormatXMLDocument = 16 (.docx)
+    # wdFormatXMLDocument = 16 (.docx), wdExportFormatPDF = 17
     # Use absolute paths; Word COM is picky about relative paths.
     src_abs = os.path.abspath(src_path)
     out_abs = os.path.abspath(out_path)
@@ -1306,6 +1310,11 @@ def _word_com_convert_document(src_path, target_ext, outdir):
     # Escape single quotes for PowerShell single-quoted strings
     src_ps = src_abs.replace("'", "''")
     out_ps = out_abs.replace("'", "''")
+    save_step = (
+        "$doc.ExportAsFixedFormat($dst, 17)"
+        if fmt == "pdf"
+        else "$null = $doc.SaveAs([ref]$dst, [ref]16)"
+    )
     script = f"""
 $ErrorActionPreference = 'Stop'
 $src = '{src_ps}'
@@ -1317,8 +1326,7 @@ try {{
   $word.Visible = $false
   $word.DisplayAlerts = 0
   $doc = $word.Documents.Open($src, $false, $true)
-  # 16 = wdFormatXMLDocument (.docx)
-  $null = $doc.SaveAs([ref]$dst, [ref]16)
+  {save_step}
   $doc.Close($false) | Out-Null
   $doc = $null
   $word.Quit() | Out-Null
@@ -1352,6 +1360,11 @@ try {{
             text=True,
         )
         if result.returncode != 0:
+            logging.getLogger(__name__).warning(
+                "Word conversion to %s failed: %s",
+                fmt,
+                ((result.stdout or "") + " " + (result.stderr or ""))[:500],
+            )
             return None
         if os.path.exists(out_abs) and os.path.getsize(out_abs) > 0:
             return out_abs

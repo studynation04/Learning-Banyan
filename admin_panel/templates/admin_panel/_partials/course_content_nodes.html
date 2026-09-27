@@ -1,0 +1,26 @@
+{% for node in nodes %}
+  <div class="cc-row">
+    <div class="cc-row-main">
+      <span class="cc-kind">{{ node.get_content_type_display }}</span>
+      <strong>{{ node.title }}</strong>
+      {% if node.exam %}
+        <span style="color:#64748b;"> · {{ node.exam.name }}</span>
+      {% endif %}
+      {% if node.file %}
+        <span style="color:#64748b;"> · file attached</span>
+      {% endif %}
+      {% if node.video_url %}
+        <span style="color:#64748b;"> · YouTube</span>
+      {% endif %}
+    </div>
+    <form method="post" action="{% url 'admin_panel:delete_course_content' course.id node.id %}" style="margin:0;" onsubmit="return confirm('Remove this item? Items inside a folder are removed too.');">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger">Delete</button>
+    </form>
+  </div>
+  {% if node.child_nodes %}
+    <div class="cc-children">
+      {% include "admin_panel/_partials/course_content_nodes.html" with nodes=node.child_nodes course=course %}
+    </div>
+  {% endif %}
+{% endfor %}

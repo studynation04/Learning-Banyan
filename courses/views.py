@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Q, Count
-from django.http import JsonResponse, HttpResponseBadRequest
+from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest, Http404, FileResponse
 from django.core.paginator import Paginator
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -17,10 +17,12 @@ import json
 import random
 import re
 import logging
+import copy
 
 from .models import (
     Course,
     CourseCategory,
+    CourseContent,
     Resource,
     Blog,
     Question,
@@ -78,7 +80,55 @@ class CourseDetailView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         course_id = self.kwargs.get("course_id")
-        context["course"] = get_object_or_404(Course, pk=course_id)
+        course = get_object_or_404(Course, pk=course_id)
+        content_tree = course.nested_contents()
+
+        exam_types = {"quiz", "subjective", "practice"}
+        course_content_types = {"folder", "document", "image", "zip"}
+
+        def select_tree(nodes, selected_types):
+            selected = []
+            for node in nodes:
+                children = select_tree(getattr(node, "child_nodes", []), selected_types)
+                if node.content_type in selected_types or (
+                    node.content_type == "folder" and children
+                ):
+                    selected_node = copy.copy(node)
+                    selected_node.child_nodes = children
+                    selected.append(selected_node)
+            return selected
+
+        def count_tree(nodes, selected_types):
+            return sum(
+                (1 if node.content_type in selected_types else 0)
+                + count_tree(getattr(node, "child_nodes", []), selected_types)
+                for node in nodes
+            )
+
+        context["course_content_tree"] = select_tree(
+            content_tree, course_content_types
+        )
+        context["study_video_tree"] = select_tree(content_tree, {"video"})
+        context["question_exam_tree"] = select_tree(content_tree, exam_types)
+        context["course_content_count"] = count_tree(
+            content_tree, {"document", "image", "zip"}
+        )
+        context["study_video_count"] = (
+            count_tree(content_tree, {"video"}) + course.study_materials.count()
+        )
+        context["question_exam_count"] = (
+            count_tree(content_tree, exam_types) + course.question_banks.count()
+        )
+        if context["course_content_count"]:
+            context["default_course_tab"] = "content"
+        elif context["study_video_count"] or course.study_materials.exists():
+            context["default_course_tab"] = "materials"
+        elif context["question_exam_count"] or course.question_banks.exists():
+            context["default_course_tab"] = "questions"
+        else:
+            context["default_course_tab"] = "overview"
+        context["course"] = course
+        context["content_count"] = course.contents.count()
         return context
 
 
@@ -131,8 +181,20 @@ class ResourceDetailView(DetailView):
         except (ValueError, OSError):
             context["stream_url"] = ""
         try:
-            if kind == "docx":
-                context["preview_html"] = docx_to_protected_html(resource.file)
+            if kind in ("doc", "docx"):
+                from .resource_protection import (
+                    ensure_word_preview_pdf,
+                    legacy_doc_to_protected_html,
+                )
+
+                # PDF export keeps the Word file as it was written (layout and equations).
+                if ensure_word_preview_pdf(resource.file):
+                    context["preview_kind"] = "pdf"
+                    context["word_layout"] = True
+                elif kind == "docx":
+                    context["preview_html"] = docx_to_protected_html(resource.file)
+                else:
+                    context["preview_html"] = legacy_doc_to_protected_html(resource.file)
             elif kind == "text":
                 context["preview_html"] = text_file_to_protected_html(resource.file)
         except Exception:
@@ -199,8 +261,11 @@ def resource_file_stream(request, pk):
         forbidden_download_response,
         guess_content_type,
         resource_file_ext,
+        open_word_preview_pdf,
         PDF_EXTS,
         IMAGE_EXTS,
+        DOC_EXTS,
+        DOCX_EXTS,
     )
 
     resource = get_object_or_404(Resource, pk=pk)
@@ -216,22 +281,78 @@ def resource_file_stream(request, pk):
     if request.GET.get("download") in ("1", "true", "yes"):
         return forbidden_download_response()
 
-    try:
-        fh = resource.file.open("rb")
-    except Exception as exc:
-        raise Http404(str(exc)) from exc
-
     name = resource.file.name or "resource"
     content_type = guess_content_type(name)
     ext = resource_file_ext(resource)
-    if ext in PDF_EXTS:
+    if ext in DOC_EXTS or ext in DOCX_EXTS:
+        # Serve the original Word layout as PDF. The .doc/.docx bytes are not a PDF.
+        fh = open_word_preview_pdf(resource.file)
+        if fh is None:
+            return HttpResponse(
+                "Could not open this Word file for viewing.",
+                status=422,
+                content_type="text/plain; charset=utf-8",
+            )
         content_type = "application/pdf"
-    elif ext in IMAGE_EXTS and content_type == "application/octet-stream":
-        content_type = "image/jpeg"
+    else:
+        try:
+            fh = resource.file.open("rb")
+        except Exception as exc:
+            raise Http404(str(exc)) from exc
+        if ext in PDF_EXTS:
+            content_type = "application/pdf"
+        elif ext in IMAGE_EXTS and content_type == "application/octet-stream":
+            content_type = "image/jpeg"
 
     response = FileResponse(fh, content_type=content_type)
     # Generic filename — do not advertise original download name
     response["Content-Disposition"] = 'inline; filename="view-only"'
+    response["X-Content-Type-Options"] = "nosniff"
+    response["Cache-Control"] = "private, no-store, no-cache, must-revalidate"
+    response["X-Robots-Tag"] = "noindex, noarchive, nosnippet"
+    response["X-Frame-Options"] = "SAMEORIGIN"
+    return response
+
+
+def course_content_file_stream(request, pk):
+    """Stream course PDFs and Word files to the in-page PDF.js preview only."""
+    from .resource_protection import (
+        forbidden_download_response,
+        is_top_level_file_navigation,
+        open_word_preview_pdf,
+        resource_file_ext,
+    )
+
+    content = get_object_or_404(CourseContent, pk=pk)
+    if not content.file:
+        raise Http404("Course file not found")
+    if is_top_level_file_navigation(request) or request.GET.get("download") in (
+        "1",
+        "true",
+        "yes",
+    ):
+        return forbidden_download_response()
+
+    ext = resource_file_ext(content)
+    if ext in {".doc", ".docx"}:
+        # Use the same cached Word-to-PDF conversion as the Resources viewer.
+        file_handle = open_word_preview_pdf(content.file)
+        if file_handle is None:
+            return HttpResponse(
+                "Could not prepare this Word file for preview.",
+                status=422,
+                content_type="text/plain; charset=utf-8",
+            )
+    elif ext == ".pdf":
+        try:
+            file_handle = content.file.open("rb")
+        except (OSError, ValueError) as exc:
+            raise Http404("Course PDF not found") from exc
+    else:
+        raise Http404("This course file does not have a PDF preview")
+
+    response = FileResponse(file_handle, content_type="application/pdf")
+    response["Content-Disposition"] = 'inline; filename="course-preview.pdf"'
     response["X-Content-Type-Options"] = "nosniff"
     response["Cache-Control"] = "private, no-store, no-cache, must-revalidate"
     response["X-Robots-Tag"] = "noindex, noarchive, nosnippet"
@@ -784,6 +905,33 @@ def _get_owned_exam_or_404(request, exam_id):
     return get_object_or_404(Exam, id=exam_id, created_by=request.user)
 
 
+def _course_content_for_exam(exam_id):
+    return (
+        CourseContent.objects.filter(exam_id=exam_id)
+        .select_related("course")
+        .order_by("id")
+        .first()
+    )
+
+
+def _get_practice_exam_or_404(request, exam_id):
+    """Owned practice papers, plus exams attached to a course."""
+    exam = get_object_or_404(Exam, id=exam_id)
+    if exam.created_by_id == request.user.id:
+        return exam
+    if _course_content_for_exam(exam_id):
+        return exam
+    raise Http404("Exam not found")
+
+
+def _practice_missing_questions_redirect(request, exam):
+    messages.error(request, "Add some questions to this exam before practicing.")
+    content = _course_content_for_exam(exam.id)
+    if content and exam.created_by_id != request.user.id:
+        return redirect("courses:course_detail", course_id=content.course_id)
+    return redirect("courses:student_edit_exam", exam_id=exam.id)
+
+
 def _question_type_choices():
     """All question types available for the generate-paper form."""
     return list(Question.QUESTION_TYPES)
@@ -1098,8 +1246,14 @@ def student_generate_exam_paper(request, exam_id):
             f"{pick_count}Q{sec_bit}"
         )[:200]
 
-    # Calculator allowed during practice only when opted-in on Create Paper
+    # Calculator and hints during practice only when opted-in on Create Paper
     exam.allow_calculator = request.POST.get("allow_calculator") in (
+        "1",
+        "true",
+        "on",
+        "yes",
+    )
+    exam.allow_hint = request.POST.get("allow_hint") in (
         "1",
         "true",
         "on",
@@ -1382,7 +1536,7 @@ def student_practice_start(request, exam_id):
     for choice-based questions, a text box for numerical/structured/
     matching) — all auto-graded on submit, on a best-effort basis for the
     free-text types."""
-    exam = _get_owned_exam_or_404(request, exam_id)
+    exam = _get_practice_exam_or_404(request, exam_id)
     exam_questions = (
         ExamQuestion.objects.filter(exam=exam)
         .select_related("question")
@@ -1390,8 +1544,7 @@ def student_practice_start(request, exam_id):
         .order_by("order", "added_at")
     )
     if not exam_questions.exists():
-        messages.error(request, "Add some questions to this exam before practicing.")
-        return redirect("courses:student_edit_exam", exam_id=exam.id)
+        return _practice_missing_questions_redirect(request, exam)
 
     # Server-authoritative start time (not trustable from the client alone)
     started_at = timezone.now()
@@ -1413,7 +1566,7 @@ def student_practice_start(request, exam_id):
 @require_POST
 def student_practice_submit(request, exam_id):
     """Grades the submitted answers and records an ExamAttempt."""
-    exam = _get_owned_exam_or_404(request, exam_id)
+    exam = _get_practice_exam_or_404(request, exam_id)
     exam_questions = list(
         ExamQuestion.objects.filter(exam=exam)
         .select_related("question")
@@ -1421,8 +1574,7 @@ def student_practice_submit(request, exam_id):
         .order_by("order", "added_at")
     )
     if not exam_questions:
-        messages.error(request, "This exam has no questions to grade.")
-        return redirect("courses:student_edit_exam", exam_id=exam.id)
+        return _practice_missing_questions_redirect(request, exam)
 
     session_key = f"practice_start_{exam.id}"
     started_at = None
@@ -1499,7 +1651,7 @@ def student_practice_submit(request, exam_id):
 
 @student_required
 def student_practice_result(request, exam_id, attempt_id):
-    exam = _get_owned_exam_or_404(request, exam_id)
+    exam = _get_practice_exam_or_404(request, exam_id)
     attempt = get_object_or_404(ExamAttempt, id=attempt_id, exam=exam, student=request.user)
     answers = list(
         ExamAttemptAnswer.objects.filter(attempt=attempt)
@@ -1524,6 +1676,11 @@ def student_practice_result(request, exam_id, attempt_id):
         "time_taken_seconds": attempt.time_taken_seconds,
     }
 
+    content = _course_content_for_exam(exam.id)
+    content_course = None
+    if content and exam.created_by_id != request.user.id:
+        content_course = content.course
+
     return render(
         request,
         "courses/student_practice_result.html",
@@ -1532,6 +1689,7 @@ def student_practice_result(request, exam_id, attempt_id):
             "attempt": attempt,
             "answers": answers,
             "chart_data": chart_data,
+            "content_course": content_course,
         },
     )
 

@@ -165,7 +165,11 @@
 
     <div class="pr-actions">
       <a href="{% url 'courses:student_practice_start' exam.id %}" class="pr-btn pr-btn-primary">↻ Restart Practice</a>
-      <a href="{% url 'courses:student_edit_exam' exam.id %}#practice" class="pr-btn pr-btn-secondary">← Back to Exam</a>
+      {% if content_course %}
+        <a href="{% url 'courses:course_detail' content_course.id %}" class="pr-btn pr-btn-secondary">← Back to course</a>
+      {% else %}
+        <a href="{% url 'courses:student_edit_exam' exam.id %}#practice" class="pr-btn pr-btn-secondary">← Back to Exam</a>
+      {% endif %}
     </div>
   </div>
 

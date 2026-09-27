@@ -16,24 +16,28 @@
     <style>
       :root {
         --sn-navy: #003870;
-        --sn-ink: #053C74;
-        --sn-muted: #5A7A96;
-        --sn-line: #C8D8E8;
-        --sn-soft: #E9EEF2;
+        --sn-ink: #053c74;
+        --sn-muted: #5a7a96;
+        --sn-line: #c8d8e8;
+        --sn-soft: #e9eef2;
         --sn-white: #ffffff;
-        --sn-accent: #1078B0;
-        --sn-accent-hover: #1880B8;
-        --sn-accent-soft: #D4E4F0;
+        --sn-accent: #1078b0;
+        --sn-accent-hover: #1880b8;
+        --sn-accent-soft: #d4e4f0;
         --sn-violet: #004078;
         --sn-card-shadow: 0 1px 2px rgba(0, 56, 112, 0.04), 0 8px 24px rgba(0, 56, 112, 0.08);
         --sn-radius: 16px;
         --sn-max: 1140px;
-        --font-sans: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        --font-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+        --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
       }
-
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-
+      
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
       body {
         font-family: var(--font-sans);
         background: var(--sn-white);
@@ -41,9 +45,11 @@
         line-height: 1.6;
         -webkit-font-smoothing: antialiased;
       }
-
-      a { color: inherit; }
-
+      
+      a {
+        color: inherit;
+      }
+      
       /* ========== HEADER — fixed 3-zone layout (logo | links | actions) ========== */
       header.site-header {
         background: #ffffff;
@@ -53,9 +59,9 @@
         z-index: 1000;
         width: 100%;
       }
-
+      
       .site-nav {
-        max-width: 1280px;
+        max-width: 100%%;
         margin: 0 auto;
         padding: 0 1.25rem;
         min-height: 104px;
@@ -64,7 +70,7 @@
         align-items: center;
         gap: 1rem;
       }
-
+      
       .nav-right {
         display: flex;
         align-items: center;
@@ -72,7 +78,7 @@
         flex-shrink: 0;
         margin-left: auto;
       }
-
+      
       .nav-brand {
         display: flex;
         align-items: center;
@@ -83,7 +89,7 @@
         min-width: 0;
         z-index: 2;
       }
-
+      
       .nav-brand img {
         height: 88px;
         width: 88px;
@@ -92,13 +98,13 @@
         background: transparent;
         flex-shrink: 0;
       }
-
+      
       .nav-brand-text {
         display: flex;
         flex-direction: column;
         line-height: 1.1;
       }
-
+      
       .nav-brand-text strong {
         font-size: 1.22rem;
         font-weight: 800;
@@ -106,9 +112,11 @@
         color: var(--sn-navy);
         white-space: nowrap;
       }
-
-      .nav-brand-text span { display: none; }
-
+      
+      .nav-brand-text span {
+        display: none;
+      }
+      
       /* Center links — take remaining space, never cover actions */
       .nav-center {
         display: flex;
@@ -120,7 +128,7 @@
         flex-wrap: nowrap;
         overflow: hidden;
       }
-
+      
       .nav-link {
         display: inline-flex;
         align-items: center;
@@ -137,23 +145,25 @@
         position: relative;
         line-height: 1.2;
       }
-
-      .nav-link i { display: none; }
-
+      
+      .nav-link i {
+        display: none;
+      }
+      
       .nav-link:hover {
         color: var(--sn-navy);
         background: transparent !important;
       }
-
+      
       .nav-link.is-active {
         color: var(--sn-navy);
         font-weight: 700;
         background: transparent !important;
       }
-
+      
       /* Underline only — no pill that collides with buttons */
       .nav-link.is-active::after {
-        content: "";
+        content: '';
         position: absolute;
         left: 0.45rem;
         right: 0.45rem;
@@ -162,7 +172,7 @@
         border-radius: 2px;
         background: var(--sn-accent);
       }
-
+      
       /* Right actions — fixed zone, never under links */
       .nav-actions {
         display: flex;
@@ -174,7 +184,7 @@
         padding-left: 0.85rem;
         border-left: 1px solid var(--sn-line);
       }
-
+      
       .nav-btn {
         display: inline-flex;
         align-items: center;
@@ -191,7 +201,7 @@
         line-height: 1.2;
         flex-shrink: 0;
       }
-
+      
       .nav-btn-ghost {
         color: #475569;
         background: transparent;
@@ -200,7 +210,7 @@
         color: var(--sn-navy);
         background: var(--sn-soft);
       }
-
+      
       .nav-btn-outline {
         color: var(--sn-navy);
         background: #fff;
@@ -210,7 +220,7 @@
         border-color: #94a3b8;
         background: var(--sn-soft);
       }
-
+      
       .nav-btn-solid {
         color: #fff;
         background: var(--sn-accent);
@@ -220,7 +230,7 @@
         background: var(--sn-accent-hover);
         border-color: var(--sn-accent-hover);
       }
-
+      
       .nav-user {
         display: flex;
         flex-direction: column;
@@ -252,7 +262,7 @@
         color: var(--sn-muted);
         font-size: 0.72rem;
       }
-
+      
       .nav-toggle {
         display: none;
         align-items: center;
@@ -268,13 +278,13 @@
         margin-left: 0;
         z-index: 3;
       }
-
+      
       /* Legacy header fallback */
       header:not(.site-header) {
         background: var(--sn-navy);
         color: white;
       }
-
+      
       .video-solution-link {
         display: inline-flex;
         align-items: center;
@@ -289,24 +299,24 @@
         text-decoration: none !important;
         border: 1px solid #fecaca;
       }
-
+      
       .container {
         max-width: var(--sn-max);
         margin: 0 auto;
         padding: 0 1.5rem;
       }
-
+      
       main {
         min-height: calc(100vh - 220px);
         padding: 0 0 3rem;
         background: var(--sn-soft);
       }
-
+      
       /* Full-bleed blocks can opt out of container padding via block */
       main > .container {
         padding-top: 2rem;
       }
-
+      
       /* ========== FOOTER ========== */
       footer {
         background: var(--sn-navy);
@@ -314,13 +324,13 @@
         padding: 3.5rem 0 1.5rem;
         margin-top: 0;
       }
-
+      
       footer .container {
         display: grid;
         grid-template-columns: 1.4fr repeat(3, 1fr);
         gap: 2rem;
       }
-
+      
       footer h4 {
         margin-bottom: 1rem;
         color: #fff;
@@ -329,7 +339,7 @@
         letter-spacing: 0.04em;
         text-transform: uppercase;
       }
-
+      
       footer p,
       footer a {
         color: #94a3b8;
@@ -339,9 +349,11 @@
         font-size: 0.92rem;
         line-height: 1.55;
       }
-
-      footer a:hover { color: #7EB8D8; }
-
+      
+      footer a:hover {
+        color: #7eb8d8;
+      }
+      
       .footer-bottom {
         max-width: var(--sn-max);
         margin: 2rem auto 0;
@@ -351,7 +363,7 @@
         font-size: 0.85rem;
         color: #64748b;
       }
-
+      
       /* ========== SHARED UI ========== */
       .grid {
         display: grid;
@@ -359,7 +371,7 @@
         gap: 1.25rem;
         margin: 1.5rem 0;
       }
-
+      
       .card {
         background: var(--sn-white);
         border-radius: var(--sn-radius);
@@ -368,13 +380,13 @@
         box-shadow: var(--sn-card-shadow);
         transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
       }
-
+      
       .card:hover {
         transform: translateY(-3px);
         box-shadow: 0 12px 32px rgba(0, 56, 112, 0.1);
         border-color: #cbd5e1;
       }
-
+      
       .card h3 {
         color: var(--sn-navy);
         margin-bottom: 0.5rem;
@@ -382,14 +394,14 @@
         font-weight: 700;
         letter-spacing: -0.02em;
       }
-
+      
       .card p {
         color: var(--sn-muted);
         line-height: 1.65;
         margin-bottom: 1rem;
         font-size: 0.95rem;
       }
-
+      
       .btn {
         display: inline-flex;
         align-items: center;
@@ -407,31 +419,31 @@
         font-family: inherit;
         transition: background 0.15s ease, transform 0.15s ease;
       }
-
+      
       .btn:hover {
         background: var(--sn-accent-hover);
       }
-
+      
       .btn-secondary {
         background: var(--sn-white);
         color: var(--sn-navy);
         border: 1.5px solid var(--sn-line);
       }
-
+      
       .btn-secondary:hover {
         background: var(--sn-soft);
         border-color: #cbd5e1;
       }
-
+      
       .hero {
-        background: linear-gradient(160deg, #003870 0%, #053C74 55%, #1078B0 100%);
+        background: linear-gradient(160deg, #003870 0%, #053c74 55%, #1078b0 100%);
         color: white;
         padding: 3.5rem 2rem;
         text-align: left;
         border-radius: 0;
         margin: 0 0 0;
       }
-
+      
       .hero h1 {
         font-family: var(--font-serif);
         font-size: clamp(2rem, 4vw, 2.85rem);
@@ -440,7 +452,7 @@
         line-height: 1.15;
         font-weight: 700;
       }
-
+      
       .hero p {
         font-size: 1.08rem;
         margin-bottom: 1.75rem;
@@ -448,14 +460,14 @@
         color: #cbd5e1;
         max-width: 48rem;
       }
-
+      
       .stats {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
         gap: 1rem;
         margin: 1.5rem 0 2rem;
       }
-
+      
       .stat-item {
         text-align: center;
         background: var(--sn-white);
@@ -464,21 +476,21 @@
         padding: 1.25rem 1rem;
         box-shadow: var(--sn-card-shadow);
       }
-
+      
       .stat-item .number {
         font-size: 1.75rem;
         font-weight: 800;
         color: var(--sn-navy);
         letter-spacing: -0.03em;
       }
-
+      
       .stat-item .label {
         color: var(--sn-muted);
         margin-top: 0.35rem;
         font-size: 0.88rem;
         font-weight: 600;
       }
-
+      
       .filter-section {
         background: white;
         padding: 1.25rem 1.5rem;
@@ -487,9 +499,11 @@
         border: 1px solid var(--sn-line);
         box-shadow: var(--sn-card-shadow);
       }
-
-      .form-group { margin-bottom: 1.25rem; }
-
+      
+      .form-group {
+        margin-bottom: 1.25rem;
+      }
+      
       .form-group label {
         display: block;
         margin-bottom: 0.45rem;
@@ -497,7 +511,7 @@
         color: var(--sn-ink);
         font-size: 0.92rem;
       }
-
+      
       .form-group input,
       .form-group textarea,
       .form-group select {
@@ -510,7 +524,7 @@
         background: #fff;
         color: var(--sn-ink);
       }
-
+      
       .form-group input:focus,
       .form-group textarea:focus,
       .form-group select:focus {
@@ -518,12 +532,12 @@
         border-color: var(--sn-accent);
         box-shadow: 0 0 0 3px rgba(16, 120, 176, 0.12);
       }
-
+      
       .form-group textarea {
         resize: vertical;
         min-height: 120px;
       }
-
+      
       .error {
         background: #fef2f2;
         color: #b91c1c;
@@ -532,16 +546,16 @@
         border-radius: 12px;
         margin: 1rem 0;
       }
-
+      
       .success {
-        background: #E8EDF3;
+        background: #e8edf3;
         color: #047857;
-        border: 1px solid #C8D8E8;
+        border: 1px solid #c8d8e8;
         padding: 0.9rem 1rem;
         border-radius: 12px;
         margin: 1rem 0;
       }
-
+      
       .warning {
         background: #fffbeb;
         color: #92400e;
@@ -550,7 +564,7 @@
         border-radius: 12px;
         margin: 1rem 0;
       }
-
+      
       /* Section helpers for pages */
       .sn-section-title {
         font-family: var(--font-serif);
@@ -560,24 +574,30 @@
         letter-spacing: -0.02em;
         margin-bottom: 0.5rem;
       }
-
+      
       .sn-section-lead {
         color: var(--sn-muted);
         font-size: 1.02rem;
         max-width: 40rem;
         margin-bottom: 1.5rem;
       }
-
+      
       /* Keep logo + name together; tighten links before the hamburger kicks in */
       @media (max-width: 1280px) {
-        .nav-link { font-size: 0.82rem; padding: 0.35rem 0.45rem; }
-        .nav-btn { font-size: 0.78rem; padding: 0.45rem 0.8rem; }
+        .nav-link {
+          font-size: 0.82rem;
+          padding: 0.35rem 0.45rem;
+        }
+        .nav-btn {
+          font-size: 0.78rem;
+          padding: 0.45rem 0.8rem;
+        }
       }
-
+      
       /*
-        Many nav items (esp. logged-in + admin) won't fit — use hamburger
-        before links crash into the action buttons.
-      */
+              Many nav items (esp. logged-in + admin) won't fit — use hamburger
+              before links crash into the action buttons.
+            */
       @media (max-width: 1180px) {
         .site-nav {
           flex-wrap: wrap;
@@ -585,20 +605,20 @@
           min-height: 100px;
           padding: 0.55rem 1rem;
         }
-
+      
         .nav-toggle {
           display: inline-flex;
         }
-
+      
         .nav-center,
         .nav-actions {
           display: none;
         }
-
+      
         .nav-right {
           margin-left: auto;
         }
-
+      
         .site-nav.is-open .nav-center {
           display: flex;
           order: 3;
@@ -613,7 +633,7 @@
           overflow: visible;
           flex: none;
         }
-
+      
         .site-nav.is-open .nav-actions {
           display: flex;
           order: 4;
@@ -628,7 +648,7 @@
           border-left: none;
           padding-left: 0;
         }
-
+      
         .site-nav.is-open .nav-right {
           width: 100%;
           flex-direction: column;
@@ -636,12 +656,12 @@
           order: 4;
           margin-left: 0;
         }
-
+      
         /* Keep toggle on the top row when open */
         .site-nav.is-open .nav-toggle {
           order: 0;
         }
-
+      
         .site-nav.is-open .nav-link {
           width: 100%;
           justify-content: flex-start;
@@ -649,22 +669,22 @@
           border-radius: 10px;
           font-size: 0.95rem;
         }
-
+      
         .site-nav.is-open .nav-link:hover,
         .site-nav.is-open .nav-link.is-active {
           background: var(--sn-soft) !important;
         }
-
+      
         .site-nav.is-open .nav-link.is-active::after {
           display: none;
         }
-
+      
         .site-nav.is-open .nav-btn {
           width: 100%;
           justify-content: center;
           padding: 0.7rem 0.9rem;
         }
-
+      
         .site-nav.is-open .nav-user {
           align-items: flex-start;
           max-width: none;
@@ -675,14 +695,20 @@
           max-width: none;
         }
       }
-
+      
       @media (max-width: 1080px) {
-        footer .container { grid-template-columns: 1fr 1fr; }
+        footer .container {
+          grid-template-columns: 1fr 1fr;
+        }
       }
-
+      
       @media (max-width: 768px) {
-        .grid { grid-template-columns: 1fr; }
-        footer .container { grid-template-columns: 1fr; }
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        footer .container {
+          grid-template-columns: 1fr;
+        }
       }
     </style>
     {% include 'partials/katex.html' %}
@@ -701,7 +727,8 @@
         font-size: 1rem;
       }
     </style>
-    {% block extra_css %}{% endblock %}
+    {% block extra_css %}
+    {% endblock %}
   </head>
   <body>
     <header class="site-header">
@@ -734,7 +761,9 @@
                 <span class="nav-user-label">Logged in as</span>
                 <span class="nav-user-name">
                   {{ user.get_full_name|default:user.username }}
-                  {% if user.get_full_name %}<span class="nav-user-handle">· {{ user.username }}</span>{% endif %}
+                  {% if user.get_full_name %}
+                    <span class="nav-user-handle">· {{ user.username }}</span>
+                  {% endif %}
                 </span>
               </div>
               {% if is_admin_user %}
@@ -747,24 +776,17 @@
             {% endif %}
           </div>
 
-          <button
-            type="button"
-            class="nav-toggle"
-            id="navToggle"
-            aria-label="Toggle menu"
-            aria-expanded="false"
-            aria-controls="navCenter"
-          >
-            <i class="fas fa-bars" id="navToggleIcon"></i>
-          </button>
+          <button type="button" class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="navCenter"><i class="fas fa-bars" id="navToggleIcon"></i></button>
         </div>
       </nav>
     </header>
 
     <main>
-      {% block full_width %}{% endblock %}
+      {% block full_width %}
+      {% endblock %}
       <div class="container">
-        {% block content %}{% endblock %}
+        {% block content %}
+        {% endblock %}
       </div>
     </main>
 
@@ -772,10 +794,7 @@
       <div class="container">
         <div>
           <h4>Learning Banyan</h4>
-          <p>
-            Practice smarter with curated questions, past papers, courses, and community support —
-            everything you need for exam revision in one place.
-          </p>
+          <p>Practice smarter with curated questions, past papers, courses, and community support — everything you need for exam revision in one place.</p>
         </div>
         <div>
           <h4>Learn</h4>
@@ -805,35 +824,38 @@
         </div>
       </div>
       <div class="footer-bottom">
-        <p>&copy; {% now "Y" %} Learning Banyan. All rights reserved.</p>
+        <p>
+          &copy; {% now 'Y' %}Learning Banyan. All rights reserved.
+        </p>
       </div>
     </footer>
 
     <script>
-      (function () {
-        var nav = document.getElementById("siteNav");
-        var toggle = document.getElementById("navToggle");
-        var icon = document.getElementById("navToggleIcon");
-        if (!nav || !toggle) return;
-
-        toggle.addEventListener("click", function () {
-          var open = nav.classList.toggle("is-open");
-          toggle.setAttribute("aria-expanded", open ? "true" : "false");
-          if (icon) icon.className = open ? "fas fa-xmark" : "fas fa-bars";
-        });
-
-        nav.querySelectorAll("a").forEach(function (link) {
-          link.addEventListener("click", function () {
-            if (nav.classList.contains("is-open")) {
-              nav.classList.remove("is-open");
-              toggle.setAttribute("aria-expanded", "false");
-              if (icon) icon.className = "fas fa-bars";
+      ;(function () {
+        var nav = document.getElementById('siteNav')
+        var toggle = document.getElementById('navToggle')
+        var icon = document.getElementById('navToggleIcon')
+        if (!nav || !toggle) return
+      
+        toggle.addEventListener('click', function () {
+          var open = nav.classList.toggle('is-open')
+          toggle.setAttribute('aria-expanded', open ? 'true' : 'false')
+          if (icon) icon.className = open ? 'fas fa-xmark' : 'fas fa-bars'
+        })
+      
+        nav.querySelectorAll('a').forEach(function (link) {
+          link.addEventListener('click', function () {
+            if (nav.classList.contains('is-open')) {
+              nav.classList.remove('is-open')
+              toggle.setAttribute('aria-expanded', 'false')
+              if (icon) icon.className = 'fas fa-bars'
             }
-          });
-        });
-      })();
+          })
+        })
+      })()
     </script>
 
-    {% block extra_js %}{% endblock %}
+    {% block extra_js %}
+    {% endblock %}
   </body>
 </html>

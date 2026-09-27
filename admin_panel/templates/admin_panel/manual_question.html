@@ -146,9 +146,14 @@
       .modal-overlay.open { display: flex; }
       .modal-box { background: #fff; border-radius: 10px; width: 100%; max-width: 620px; box-shadow: 0 20px 60px rgba(0,0,0,.25); }
       .modal-box.wide { max-width: 900px; }
-      .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 20px 26px; border-bottom: 1px solid #eee; }
+      .modal-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 20px 26px; border-bottom: 1px solid #eee; }
       .modal-head h2 { font-size: 19px; }
-      .modal-head .close-x { background: none; border: none; font-size: 20px; cursor: pointer; color: #888; }
+      .modal-head .close-x {
+        background: #fff; border: 1px solid #e2e8f0; width: 36px; height: 36px;
+        border-radius: 8px; font-size: 22px; line-height: 1; cursor: pointer; color: #334155;
+        display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+      }
+      .modal-head .close-x:hover { background: #f8fafc; color: #0f172a; }
       .modal-body { padding: 24px 26px; }
       .modal-foot { padding: 16px 26px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px; }
 
@@ -175,7 +180,7 @@
       /* Editor modal */
       .editor-head-left { display: flex; align-items: center; gap: 10px; }
       .editor-head-left .badge { background: #eef2ff; color: #4f7cff; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 10px; }
-      .editor-nav { display: flex; gap: 8px; }
+      .editor-nav { display: flex; gap: 8px; align-items: center; flex-shrink: 0; flex-wrap: wrap; }
 
       .q-field-label { font-size: 13px; font-weight: 700; color: #333; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
       .rt-toolbar { display: flex; gap: 4px; border: 1.5px solid #dfe3ea; border-bottom: none; border-radius: 6px 6px 0 0; padding: 6px; background: #fafbfc; flex-wrap: wrap; }
@@ -527,7 +532,7 @@
             <button class="btn btn-ghost" id="btnPrev" onclick="goPrev()">Previous</button>
             <button class="btn btn-outline" onclick="saveCurrent(function(){ showToast('Saved'); })">Save</button>
             <button class="btn btn-primary" id="btnNext" onclick="goNext()">Next</button>
-            <button class="close-x" onclick="closeEditor()">✕</button>
+            <button type="button" class="close-x" onclick="closeEditor()" aria-label="Close" title="Close">×</button>
           </div>
         </div>
         <div class="modal-body">
@@ -875,11 +880,17 @@
       }
 
       function closeEditor() {
-        if (!wizardQueue.length) { closeModal('editorModal'); return; }
-        saveCurrent(function () {
+        function leave() {
           closeModal('editorModal');
           window.location.href = `${URLS.manualQuestion}?question_bank=${BANK_ID}`;
-        }, true);
+        }
+        var q = wizardQueue[currentIndex];
+        var text = '';
+        var field = document.getElementById('questionField');
+        if (field) text = (field.innerText || '').trim();
+        // An empty draft cannot be saved, so Close leaves instead of doing nothing.
+        if (!q || !text) { leave(); return; }
+        saveCurrent(leave);
       }
 
       function renderEditor() {

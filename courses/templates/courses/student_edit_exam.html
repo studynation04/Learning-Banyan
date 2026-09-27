@@ -533,6 +533,7 @@
       cursor: pointer;
     }
     .eb-calc-option strong { color: #1e293b; }
+    .eb-option-stack { display: grid; gap: 10px; }
 
     .eb-practice-card {
       background: white; border: 1px solid #dde2f7; border-radius: 10px; padding: 1.5rem; max-width: 640px;
@@ -764,18 +765,32 @@
             </div>
 
             <div class="eb-field eb-field-full">
-              <label class="eb-calc-option">
-                <input
-                  type="checkbox"
-                  name="allow_calculator"
-                  value="1"
-                  {% if exam.allow_calculator %}checked{% endif %}
-                />
-                <span>
-                  <strong>Need calculator</strong>
-                  <span class="eb-field-hint"> — if checked, students can open the on-screen calculator during practice; if unchecked, the calculator is hidden.</span>
-                </span>
-              </label>
+              <div class="eb-option-stack">
+                <label class="eb-calc-option">
+                  <input
+                    type="checkbox"
+                    name="allow_calculator"
+                    value="1"
+                    {% if exam.allow_calculator %}checked{% endif %}
+                  />
+                  <span>
+                    <strong>Need calculator</strong>
+                    <span class="eb-field-hint"> — if checked, students can open the on-screen calculator during practice; if unchecked, the calculator is hidden.</span>
+                  </span>
+                </label>
+                <label class="eb-calc-option">
+                  <input
+                    type="checkbox"
+                    name="allow_hint"
+                    value="1"
+                    {% if exam.allow_hint %}checked{% endif %}
+                  />
+                  <span>
+                    <strong>Need Hint</strong>
+                    <span class="eb-field-hint"> — if checked, students can open the hint for each question during practice; if unchecked, hints stay hidden.</span>
+                  </span>
+                </label>
+              </div>
             </div>
           </div>
 
@@ -827,6 +842,11 @@
             <strong>Calculator allowed</strong>
           {% else %}
             <span style="color:#94a3b8;">No calculator</span>
+          {% endif %}
+          {% if exam.allow_hint %}
+            · <strong>Hints on</strong>
+          {% else %}
+            · <span style="color:#94a3b8;">No hints</span>
           {% endif %}
         </div>
         {% if selected_count %}
@@ -945,6 +965,13 @@
           </div>
           <p style="font-size:0.82rem;color:#64748b;margin:-6px 0 14px;">
             When enabled, the on-screen calculator appears during Practice. When disabled, it is completely hidden.
+          </p>
+          <div class="form-group eb-checkbox-row">
+            {{ settings_form.allow_hint }}
+            {{ settings_form.allow_hint.label_tag }}
+          </div>
+          <p style="font-size:0.82rem;color:#64748b;margin:-6px 0 14px;">
+            When enabled, the Hint button appears during Practice and shows that question's hint. When disabled, hints stay hidden.
           </p>
           <button type="submit" class="btn">💾 Save Settings</button>
         </form>
