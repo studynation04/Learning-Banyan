@@ -119,14 +119,7 @@ class CourseDetailView(TemplateView):
         context["question_exam_count"] = (
             count_tree(content_tree, exam_types) + course.question_banks.count()
         )
-        if context["course_content_count"]:
-            context["default_course_tab"] = "content"
-        elif context["study_video_count"] or course.study_materials.exists():
-            context["default_course_tab"] = "materials"
-        elif context["question_exam_count"] or course.question_banks.exists():
-            context["default_course_tab"] = "questions"
-        else:
-            context["default_course_tab"] = "overview"
+        context["default_course_tab"] = "overview"
         context["course"] = course
         context["content_count"] = course.contents.count()
         return context
