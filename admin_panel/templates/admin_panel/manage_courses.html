@@ -829,6 +829,12 @@
                   {{ form.thumbnail.label_tag }}
                   {{ form.thumbnail }}
                   <small style="color:#888; display:block; margin-top:4px;">Course logo / thumbnail image</small>
+                  {% if course and course.thumbnail %}
+                    <div class="current-course-thumbnail" style="display:flex; align-items:center; gap:12px; margin-top:10px; padding:10px; border:1px solid #e2e8f0; border-radius:8px; background:#f8fafc;">
+                      <img src="{{ course.thumbnail.url }}" alt="Current thumbnail for {{ course.title }}" style="width:112px; height:72px; object-fit:cover; border-radius:6px;">
+                      <span style="color:#475569; font-size:13px;">Current course thumbnail<br><strong>{{ course.thumbnail.name }}</strong></span>
+                    </div>
+                  {% endif %}
                 </div>
                 </div>
               </section>
