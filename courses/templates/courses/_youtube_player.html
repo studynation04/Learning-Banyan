@@ -1,0 +1,9 @@
+<div class="yt-lock" data-yt-player>
+  <iframe id="yt-player-{{ node.pk }}" src="{{ node.youtube_embed_url }}&amp;origin={{ request.scheme }}%3A%2F%2F{{ request.get_host|urlencode }}" title="{{ node.title }}" sandbox="allow-scripts allow-same-origin allow-presentation" allow="autoplay; encrypted-media" referrerpolicy="strict-origin-when-cross-origin" tabindex="-1" loading="lazy"></iframe>
+  <div class="yt-shield" aria-hidden="true"></div>
+  <div class="yt-controls">
+    <button type="button" class="yt-play" data-yt-play>Play</button>
+    <input class="yt-seek" data-yt-seek type="range" min="0" max="1000" value="0" aria-label="Video position">
+    <span class="yt-time" data-yt-time>0:00 / 0:00</span>
+  </div>
+</div>

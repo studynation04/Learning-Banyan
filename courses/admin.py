@@ -9,6 +9,10 @@ from .models import (
     CourseCategory,
     Course,
     CourseContent,
+    CourseEnrollment,
+    CartItem,
+    CourseOrder,
+    CourseOrderItem,
     Exam,
     StudyMaterial,
     QuestionBank,
@@ -294,6 +298,36 @@ class CourseContentAdmin(admin.ModelAdmin):
     @admin.display(boolean=True, description="File")
     def has_file(self, obj):
         return bool(obj.file)
+
+
+@admin.register(CartItem)
+class CartItemAdmin(admin.ModelAdmin):
+    list_display = ["user", "course", "added_at"]
+    search_fields = ["user__username", "course__title"]
+    raw_id_fields = ["user", "course"]
+
+
+class CourseOrderItemInline(admin.TabularInline):
+    model = CourseOrderItem
+    extra = 0
+    raw_id_fields = ["course"]
+
+
+@admin.register(CourseOrder)
+class CourseOrderAdmin(admin.ModelAdmin):
+    list_display = ["id", "user", "total", "created_at"]
+    search_fields = ["user__username", "items__course_title"]
+    raw_id_fields = ["user"]
+    inlines = [CourseOrderItemInline]
+
+
+@admin.register(CourseEnrollment)
+class CourseEnrollmentAdmin(admin.ModelAdmin):
+    list_display = ["user", "course", "enrolled_at"]
+    list_filter = ["enrolled_at", "course"]
+    search_fields = ["user__username", "user__email", "course__title"]
+    raw_id_fields = ["user", "course"]
+    ordering = ["-enrolled_at"]
 
 
 # ==================== COURSE ====================

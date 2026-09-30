@@ -307,7 +307,19 @@
             {% if course.instructor %}
               <p class="course-card-instructor">Instructor: {{ course.instructor }}</p>
             {% endif %}
-            <a href="{% url 'courses:course_detail' course.id %}" class="btn">View Course</a>
+            <div style="display:flex; flex-wrap:wrap; gap:8px;">
+              <a href="{% url 'courses:course_detail' course.id %}" class="btn">View Course</a>
+              {% if course.id in enrolled_ids %}
+                <a href="{% url 'courses:course_detail' course.id %}?tab=materials" class="btn btn-secondary">Study materials</a>
+              {% elif course.id in cart_ids %}
+                <a href="{% url 'courses:cart' %}" class="btn btn-secondary">In cart</a>
+              {% else %}
+                <form method="post" action="{% url 'courses:add_to_cart' course.id %}">{% csrf_token %}
+                  <input type="hidden" name="next" value="{{ request.path }}" />
+                  <button type="submit" class="btn btn-secondary">Add to cart</button>
+                </form>
+              {% endif %}
+            </div>
           </div>
         </article>
       {% empty %}

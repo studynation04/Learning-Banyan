@@ -1,0 +1,48 @@
+<details class="study-file">
+  <summary>
+    <span class="study-type study-type-{{ node.material_kind|lower }}">{{ node.material_kind }}</span>
+    <span class="study-file-title">{{ node.title }}</span>
+  </summary>
+  <div class="study-file-body">
+    {% if node.description %}
+      <p class="study-empty">{{ node.description }}</p>
+    {% endif %}
+
+    {% if node.content_type == 'video' and node.youtube_embed_url %}
+      {% include "courses/_youtube_player.html" with node=node %}
+    {% endif %}
+    {% if node.content_type == 'video' and node.file %}
+      <video controls controlsList="nodownload" preload="metadata" src="{{ node.file.url }}" style="width:100%; max-height:420px; margin-top:0.75rem; border-radius:8px; background:#0f172a;"></video>
+    {% endif %}
+
+    {% if node.content_type == 'image' and node.file %}
+      <img src="{{ node.file.url }}" alt="{{ node.title }}" style="max-width:100%; margin-top:0.75rem; border-radius:8px;" />
+    {% elif node.is_pdf_preview %}
+      <div class="course-pdf-viewer" style="margin-top:0.75rem;">
+        <div class="course-pdf-toolbar">
+          <button type="button" data-pdf-prev disabled aria-label="Previous PDF page">‹</button>
+          <span data-pdf-page>Loading preview…</span>
+          <button type="button" data-pdf-next disabled aria-label="Next PDF page">›</button>
+        </div>
+        <div class="course-pdf-stage" data-course-pdf data-pdf-url="{% url 'courses:course_content_file_stream' node.pk %}">
+          <p class="course-pdf-status" data-pdf-status>Preparing document preview…</p>
+        </div>
+      </div>
+    {% elif node.file and node.content_type != 'video' %}
+      <p style="margin:0.7rem 0 0;">
+        <a href="{{ node.file.url }}" style="color:#1078B0; font-weight:700;">Open file</a>
+      </p>
+    {% endif %}
+
+    {% if node.exam %}
+      <p style="margin:0.7rem 0 0;">
+        <a href="{% url 'courses:student_practice_start' node.exam.id %}" class="btn" style="padding:0.55rem 1rem;">
+          {% if node.content_type == 'quiz' %}Start Online Test/Quiz
+          {% elif node.content_type == 'subjective' %}Open Subjective Test
+          {% elif node.content_type == 'practice' %}Start Practice Test
+          {% else %}Open test{% endif %}
+        </a>
+      </p>
+    {% endif %}
+  </div>
+</details>

@@ -36,6 +36,7 @@ from courses.models import (
     QuestionBank,
     Course,
     CourseContent,
+    next_numbered_label,
     Blog,
     CourseCategory,
     Resource,
@@ -1677,12 +1678,38 @@ def manage_courses(request):
     )
 
 
+def _admin_content_sections(course):
+    """One block per content type, with that type's folders and loose items."""
+    tree = course.nested_contents() if course is not None else []
+    sections = []
+    for key, label in CourseContent.SECTION_TYPES:
+        sections.append(
+            {
+                "key": key,
+                "label": label,
+                "folders": [
+                    node
+                    for node in tree
+                    if node.content_type == "folder" and node.section == key
+                ],
+                "loose": [node for node in tree if node.content_type == key],
+            }
+        )
+    unsectioned = [
+        node for node in tree if node.content_type == "folder" and not node.section
+    ]
+    return sections, unsectioned
+
+
 def _course_editor_context(form, action, course=None):
+    content_sections, unsectioned_folders = _admin_content_sections(course)
     context = {
         "form": form,
         "action": action,
         "courses": Course.objects.all().order_by("-created_at"),
         "content_exams": Exam.objects.order_by("name").only("id", "name")[:500],
+        "content_sections": content_sections,
+        "unsectioned_folders": unsectioned_folders,
     }
     if course is not None:
         context["course"] = course
@@ -1746,6 +1773,7 @@ def _content_request_values(request):
         "folder_uploads": folder_uploads,
         "folder_paths": folder_paths if isinstance(folder_paths, list) else [],
         "video_urls": [line.strip() for line in raw_urls.splitlines() if line.strip()],
+        "section": (request.POST.get("content_section") or "").strip(),
     }
 
 
@@ -1774,16 +1802,22 @@ def _validate_course_content(request, course, *, required):
     if not required and not values["title"] and not has_content:
         return None
     valid_types = {key for key, _label in CourseContent.CONTENT_TYPES}
+    section_keys = {key for key, _label in CourseContent.SECTION_TYPES}
     kind = values["content_type"]
     if kind not in valid_types:
         return "Choose a content type."
-    if not values["title"]:
-        return "A title is required."
-    if values["parent_id"] and (
-        course is None
-        or not course.contents.filter(id=values["parent_id"], content_type="folder").exists()
-    ):
-        return "Choose a folder from this course."
+    if values["section"] and values["section"] not in section_keys:
+        return "Choose a valid content section."
+    if values["section"] and kind not in {"folder", values["section"]}:
+        return "Add this item in the matching section."
+    if values["parent_id"]:
+        if course is None or not course.contents.filter(
+            id=values["parent_id"], content_type="folder"
+        ).exists():
+            return "Choose a folder from this course."
+        parent = course.contents.filter(id=values["parent_id"], content_type="folder").first()
+        if parent and parent.section and kind != "folder" and parent.section != kind:
+            return "Add this item inside a folder from the same section."
     if kind in _CONTENT_EXAM_TYPES:
         if not values["exam_ids"]:
             return "Select one or more exams."
@@ -1807,18 +1841,31 @@ def _validate_course_content(request, course, *, required):
     return None
 
 
+def _default_label(used_titles, prefix, explicit="", suffix=""):
+    """Use the typed name, or the next Folder/Title number."""
+    cleaned = (explicit or "").strip()
+    if cleaned:
+        label = f"{cleaned} — {suffix}" if suffix else cleaned
+        used_titles.append(label)
+        return label[:200]
+    name = next_numbered_label(used_titles, prefix)
+    used_titles.append(name)
+    return name
+
+
 def _save_course_content(request, course):
     values = _content_request_values(request)
     kind = values["content_type"]
     parent = course.contents.filter(id=values["parent_id"], content_type="folder").first() if values["parent_id"] else None
     created = []
 
-    def create_item(item_kind, title, item_parent=None, *, upload=None, video_url="", exam=None):
+    def create_item(item_kind, title, item_parent=None, *, upload=None, video_url="", exam=None, section=""):
         next_order = (course.contents.filter(parent=item_parent).aggregate(m=Max("order"))["m"] or 0) + 1
         item = CourseContent.objects.create(
             course=course,
             parent=item_parent,
             content_type=item_kind,
+            section=section or "",
             title=title[:200],
             description=values["description"],
             file=upload,
@@ -1829,8 +1876,21 @@ def _save_course_content(request, course):
         created.append(item)
         return item
 
+    section = values["section"]
+    if kind == "folder" and not (values["title"] or "").strip():
+        used_folders = list(
+            course.contents.filter(content_type="folder", section=section).values_list("title", flat=True)
+        )
+        values["title"] = _default_label(used_folders, "Folder")
+    sibling_titles = list(course.contents.filter(parent=parent).values_list("title", flat=True))
+
+    def item_label(explicit, suffix=""):
+        return _default_label(
+            sibling_titles, "Title", explicit, suffix if (explicit or "").strip() else ""
+        )
+
     if kind == "folder":
-        root = create_item("folder", values["title"], parent)
+        root = create_item("folder", values["title"], parent, section=section)
         folder_nodes = {"": root}
         root_name = next(
             (str(path).replace("\\", "/").strip("/").split("/")[0] for path in values["folder_paths"] if path),
@@ -1847,26 +1907,28 @@ def _save_course_content(request, course):
             for dirname in parts[:-1]:
                 key = f"{key}/{dirname}"
                 if key not in folder_nodes:
-                    folder_nodes[key] = create_item("folder", dirname, current)
+                    folder_nodes[key] = create_item("folder", dirname, current, section=section)
                 current = folder_nodes[key]
             extension = os.path.splitext(filename)[1].lower().lstrip(".")
             file_kind = "image" if extension in _CONTENT_FILE_EXTS["image"] else "video" if extension in _CONTENT_FILE_EXTS["video"] else "document"
-            create_item(file_kind, filename, current, upload=upload)
+            create_item(file_kind, filename, current, upload=upload, section=file_kind)
     elif kind in _CONTENT_EXAM_TYPES:
         exams = list(Exam.objects.filter(id__in=values["exam_ids"]).order_by("id"))
+        item_section = parent.section if parent and parent.section else (section or kind)
         for exam in exams:
-            label = values["title"] if len(exams) == 1 else f"{values['title']} — {exam.name}"
-            create_item(kind, label, parent, exam=exam)
+            label = item_label(values["title"], "" if len(exams) == 1 else exam.name)
+            create_item(kind, label, parent, exam=exam, section=item_section)
     else:
         uploads = values["uploads"]
         links = values["video_urls"] if kind == "video" else []
+        item_section = parent.section if parent and parent.section else (section or kind)
         multiple = len(uploads) + len(links) > 1
         for upload in uploads:
-            label = f"{values['title']} — {os.path.basename(upload.name)}" if multiple else values["title"]
-            create_item(kind, label, parent, upload=upload)
+            label = item_label(values["title"], os.path.basename(upload.name) if multiple else "")
+            create_item(kind, label, parent, upload=upload, section=item_section)
         for number, raw_url in enumerate(links, 1):
-            label = f"{values['title']} — Video {number}" if multiple else values["title"]
-            create_item(kind, label, parent, video_url=_clean_youtube_url(raw_url) or "")
+            label = item_label(values["title"], f"Video {number}" if multiple else "")
+            create_item(kind, label, parent, video_url=_clean_youtube_url(raw_url) or "", section=item_section)
     return created
 
 
@@ -1884,15 +1946,22 @@ def _new_course_content_entries(request):
         folder_uploads = [item for item in request.FILES.getlist(prefix + "folder_files") if _real_upload(item)]
         urls = [line.strip() for line in request.POST.get(prefix + "video_urls", "").splitlines() if line.strip()]
         exams = [value.strip() for value in request.POST.getlist(prefix + "exam_ids") if value.strip()]
+        section = (request.POST.get(prefix + "section") or "").strip()
+        folder_title = (request.POST.get(prefix + "folder_title") or "").strip()
         try:
             folder_paths = json.loads(request.POST.get(prefix + "folder_paths", "[]"))
         except (TypeError, ValueError):
             folder_paths = []
-        if not title and not uploads and not folder_uploads and not urls and not exams:
+        if kind == "folder":
+            if not title and not section and not folder_uploads:
+                continue
+        elif not title and not uploads and not folder_uploads and not urls and not exams:
             continue
         entries.append({
             "content_type": kind,
             "title": title,
+            "section": section,
+            "folder_title": folder_title,
             "uploads": uploads,
             "folder_uploads": folder_uploads,
             "folder_paths": folder_paths if isinstance(folder_paths, list) else [],
@@ -1904,12 +1973,15 @@ def _new_course_content_entries(request):
 
 def _validate_new_course_content_entries(entries):
     valid_types = {key for key, _label in CourseContent.CONTENT_TYPES}
+    section_keys = {key for key, _label in CourseContent.SECTION_TYPES}
     for values in entries:
         kind = values["content_type"]
         if kind not in valid_types:
             return "Choose a valid content type for each course content entry."
-        if not values["title"]:
-            return "Add a title to every course content entry you fill in."
+        if values["section"] and values["section"] not in section_keys:
+            return "Choose a valid content section."
+        if values["section"] and kind not in {"folder", values["section"]}:
+            return "Each content item has to match its section."
         if kind in _CONTENT_EXAM_TYPES:
             if not values["exam_ids"]:
                 return f"Select one or more exams for {dict(CourseContent.CONTENT_TYPES)[kind]}."
@@ -1933,51 +2005,96 @@ def _validate_new_course_content_entries(entries):
 
 def _save_new_course_content_entries(course, entries):
     created = []
+    named_folders = {}
 
-    def create_item(kind, title, parent=None, *, upload=None, video_url="", exam=None):
+    def create_item(kind, title, parent=None, *, upload=None, video_url="", exam=None, section=""):
         order = (course.contents.filter(parent=parent).aggregate(m=Max("order"))["m"] or 0) + 1
         item = CourseContent.objects.create(
-            course=course, parent=parent, content_type=kind, title=title[:200],
-            file=upload, video_url=video_url, exam=exam, order=order,
+            course=course, parent=parent, content_type=kind, section=section or "",
+            title=title[:200], file=upload, video_url=video_url, exam=exam, order=order,
         )
         created.append(item)
         return item
 
+    folder_titles = {}
+    item_titles = {}
+
+    def folder_for(section, title):
+        key = (section or "", (title or "").strip().lower())
+        if not key[1]:
+            return None
+        if key not in named_folders:
+            named_folders[key] = create_item("folder", title.strip(), section=section or "")
+        return named_folders[key]
+
+    def claim_folder_name(section, explicit, *, reuse_last=False):
+        used = folder_titles.setdefault(section or "", [])
+        cleaned = (explicit or "").strip()
+        if cleaned:
+            if cleaned not in used:
+                used.append(cleaned)
+            return cleaned
+        if reuse_last and used:
+            return used[-1]
+        name = next_numbered_label(used, "Folder")
+        used.append(name)
+        return name
+
+    def claim_item_title(parent, explicit, suffix=""):
+        key = parent.id if parent is not None else 0
+        if key not in item_titles:
+            item_titles[key] = (
+                list(course.contents.filter(parent=parent).values_list("title", flat=True))
+                if parent is not None
+                else []
+            )
+        return _default_label(
+            item_titles[key], "Title", explicit, suffix if (explicit or "").strip() else ""
+        )
+
+    for values in entries:
+        if values["content_type"] != "folder":
+            continue
+        section = values.get("section") or ""
+        root = folder_for(section, claim_folder_name(section, values["title"]))
+        imported = {"": root}
+        root_name = next((str(path).replace("\\", "/").strip("/").split("/")[0] for path in values["folder_paths"] if path), "")
+        for index, upload in enumerate(values["folder_uploads"]):
+            relative = (values["folder_paths"][index] if index < len(values["folder_paths"]) else upload.name).replace("\\", "/")
+            parts = [part for part in relative.split("/") if part not in {"", ".", ".."}]
+            if len(parts) > 1 and parts[0] == root_name:
+                parts = parts[1:]
+            filename = parts[-1] if parts else os.path.basename(upload.name)
+            parent, key = root, ""
+            for dirname in parts[:-1]:
+                key = f"{key}/{dirname}"
+                if key not in imported:
+                    imported[key] = create_item("folder", dirname, parent, section=section)
+                parent = imported[key]
+            extension = os.path.splitext(filename)[1].lower().lstrip(".")
+            file_kind = "image" if extension in _CONTENT_FILE_EXTS["image"] else "video" if extension in _CONTENT_FILE_EXTS["video"] else "document"
+            create_item(file_kind, filename, parent, upload=upload, section=file_kind)
+
     for values in entries:
         kind, title = values["content_type"], values["title"]
         if kind == "folder":
-            root = create_item("folder", title)
-            folders = {"": root}
-            root_name = next((str(path).replace("\\", "/").strip("/").split("/")[0] for path in values["folder_paths"] if path), "")
-            for index, upload in enumerate(values["folder_uploads"]):
-                relative = (values["folder_paths"][index] if index < len(values["folder_paths"]) else upload.name).replace("\\", "/")
-                parts = [part for part in relative.split("/") if part not in {"", ".", ".."}]
-                if len(parts) > 1 and parts[0] == root_name:
-                    parts = parts[1:]
-                filename = parts[-1] if parts else os.path.basename(upload.name)
-                parent, key = root, ""
-                for dirname in parts[:-1]:
-                    key = f"{key}/{dirname}"
-                    if key not in folders:
-                        folders[key] = create_item("folder", dirname, parent)
-                    parent = folders[key]
-                extension = os.path.splitext(filename)[1].lower().lstrip(".")
-                file_kind = "image" if extension in _CONTENT_FILE_EXTS["image"] else "video" if extension in _CONTENT_FILE_EXTS["video"] else "document"
-                create_item(file_kind, filename, parent, upload=upload)
-        elif kind in _CONTENT_EXAM_TYPES:
+            continue
+        section = values.get("section") or kind
+        parent = folder_for(section, claim_folder_name(section, values.get("folder_title") or "", reuse_last=True))
+        if kind in _CONTENT_EXAM_TYPES:
             exams = list(Exam.objects.filter(id__in=values["exam_ids"]).order_by("id"))
             for exam in exams:
-                label = title if len(exams) == 1 else f"{title} — {exam.name}"
-                create_item(kind, label, exam=exam)
+                label = claim_item_title(parent, title, "" if len(exams) == 1 else exam.name)
+                create_item(kind, label, parent, exam=exam, section=section)
         else:
             uploads, urls = values["uploads"], values["video_urls"] if kind == "video" else []
             multiple = len(uploads) + len(urls) > 1
             for upload in uploads:
-                label = f"{title} — {os.path.basename(upload.name)}" if multiple else title
-                create_item(kind, label, upload=upload)
+                label = claim_item_title(parent, title, os.path.basename(upload.name) if multiple else "")
+                create_item(kind, label, parent, upload=upload, section=section)
             for number, url in enumerate(urls, 1):
-                label = f"{title} — Video {number}" if multiple else title
-                create_item(kind, label, video_url=_clean_youtube_url(url) or "")
+                label = claim_item_title(parent, title, f"Video {number}" if multiple else "")
+                create_item(kind, label, parent, video_url=_clean_youtube_url(url) or "", section=section)
     return created
 
 

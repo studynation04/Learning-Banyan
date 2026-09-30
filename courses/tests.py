@@ -12,6 +12,7 @@ from courses.models import (
     Course,
     CourseCategory,
     CourseContent,
+    CourseEnrollment,
     Exam,
     ExamQuestion,
     Question,
@@ -400,17 +401,22 @@ class CourseContentAdminTests(TestCase):
         self.assertContains(page, "Practice Test")
         self.assertContains(page, "01 Relation and Function")
         self.assertContains(page, "Sub category")
+        self.assertContains(page, 'id="section-video"')
+        self.assertContains(page, "Add folder")
+        self.assertNotContains(page, "data-entry-type")
 
     def test_create_page_content_options_open_fields(self):
         response = self.client.get(reverse("admin_panel:create_course"))
-        self.assertContains(response, 'data-type="video"')
-        self.assertContains(response, 'id="contentTitle"')
-        self.assertContains(response, 'id="contentFile"')
+        self.assertContains(response, 'data-section="video"')
+        self.assertContains(response, "data-item-title")
+        self.assertContains(response, "data-item-files")
         self.assertContains(response, "Course Content")
-        self.assertContains(response, "Upload video")
-        self.assertContains(response, "YouTube link")
-        self.assertContains(response, 'id="contentVideoUrl"')
+        self.assertContains(response, "Upload one or more videos")
+        self.assertContains(response, "YouTube links")
+        self.assertContains(response, "Add folder")
+        self.assertContains(response, "data-item-urls")
         self.assertNotContains(response, "Save the course first")
+        self.assertNotContains(response, "data-entry-type")
 
         created = self.client.post(
             reverse("admin_panel:create_course"),
@@ -421,8 +427,9 @@ class CourseContentAdminTests(TestCase):
                 "level": "beginner",
                 "students_enrolled": "0",
                 "rating": "0",
-                "content_type": "folder",
-                "content_title": "Video Lectures",
+                "content_entry_count": "1",
+                "content_0_type": "folder",
+                "content_0_title": "Video Lectures",
             },
         )
         course = Course.objects.get(title="CUET With Folder")
@@ -472,10 +479,27 @@ class CourseContentAdminTests(TestCase):
         self.assertEqual(item.video_url, "https://youtu.be/dQw4w9WgXcQ")
         self.assertFalse(item.file)
         self.assertEqual(
-            item.youtube_embed_url(), "https://www.youtube.com/embed/dQw4w9WgXcQ"
+            item.youtube_embed_url(),
+            "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ"
+            "?rel=0&modestbranding=1&iv_load_policy=3&playsinline=1"
+            "&controls=0&fs=0&disablekb=1&enablejsapi=1",
         )
+        locked = self.client.get(reverse("courses:course_detail", args=[course.id]))
+        self.assertNotContains(locked, "youtube-nocookie.com/embed/dQw4w9WgXcQ")
+        CourseEnrollment.objects.create(user=self.admin, course=course)
         page = self.client.get(reverse("courses:course_detail", args=[course.id]))
-        self.assertContains(page, "https://www.youtube.com/embed/dQw4w9WgXcQ")
+        self.assertContains(page, "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ")
+        self.assertContains(page, 'class="yt-shield"')
+        self.assertContains(
+            page, 'sandbox="allow-scripts allow-same-origin allow-presentation"'
+        )
+        self.assertNotContains(page, "allowfullscreen")
+        self.assertNotContains(page, "allow-popups")
+        self.assertNotContains(page, "allow-top-navigation")
+        self.assertNotContains(page, "Open video on YouTube")
+        self.assertNotContains(page, "Watch on YouTube")
+        self.assertNotContains(page, "youtu.be/dQw4w9WgXcQ")
+        self.assertNotContains(page, "youtube.com/watch")
 
     def test_video_rejects_a_non_youtube_link(self):
         course = Course.objects.create(
@@ -493,6 +517,293 @@ class CourseContentAdminTests(TestCase):
             },
         )
         self.assertEqual(CourseContent.objects.filter(course=course).count(), 0)
+
+    def test_sections_keep_separate_folders(self):
+        course = Course.objects.create(
+            title="Section Course",
+            description="Desc",
+            category=self.category,
+        )
+        add_url = reverse("admin_panel:add_course_content", args=[course.id])
+        self.client.post(
+            add_url,
+            {
+                "content_type": "folder",
+                "content_section": "video",
+                "content_title": "Lectures",
+            },
+        )
+        self.client.post(
+            add_url,
+            {
+                "content_type": "folder",
+                "content_section": "video",
+                "content_title": "Revision",
+            },
+        )
+        self.client.post(
+            add_url,
+            {
+                "content_type": "folder",
+                "content_section": "document",
+                "content_title": "Notes",
+            },
+        )
+        lectures = CourseContent.objects.get(course=course, title="Lectures")
+        notes = CourseContent.objects.get(course=course, title="Notes")
+        added = self.client.post(
+            add_url,
+            {
+                "content_type": "video",
+                "content_section": "video",
+                "content_parent": str(lectures.id),
+                "content_title": "Week",
+                "content_video_urls": "https://youtu.be/dQw4w9WgXcQ\nhttps://youtu.be/abcdefghijk",
+            },
+        )
+        self.assertRedirects(added, reverse("admin_panel:edit_course", args=[course.id]))
+        self.assertEqual(lectures.children.filter(content_type="video").count(), 2)
+        self.client.post(
+            add_url,
+            {
+                "content_type": "video",
+                "content_section": "video",
+                "content_parent": str(notes.id),
+                "content_title": "Wrong place",
+                "content_video_urls": "https://youtu.be/dQw4w9WgXcQ",
+            },
+        )
+        self.assertEqual(notes.children.count(), 0)
+        page = self.client.get(reverse("admin_panel:edit_course", args=[course.id]))
+        self.assertContains(page, 'id="section-video"')
+        self.assertContains(page, 'id="section-document"')
+        self.assertContains(page, "Lectures")
+        self.assertContains(page, "Revision")
+        self.assertContains(page, "Add to this folder")
+
+    def test_blank_folder_and_title_get_numbered_names(self):
+        course = Course.objects.create(
+            title="Defaults Course",
+            description="Desc",
+            category=self.category,
+        )
+        add_url = reverse("admin_panel:add_course_content", args=[course.id])
+        self.client.post(
+            add_url,
+            {"content_type": "folder", "content_section": "video", "content_title": ""},
+        )
+        self.client.post(
+            add_url,
+            {"content_type": "folder", "content_section": "video", "content_title": ""},
+        )
+        folders = list(
+            course.contents.filter(content_type="folder").order_by("id").values_list("title", flat=True)
+        )
+        self.assertEqual(folders, ["Folder 1", "Folder 2"])
+        folder = course.contents.get(title="Folder 1")
+        self.client.post(
+            add_url,
+            {
+                "content_type": "video",
+                "content_section": "video",
+                "content_parent": str(folder.id),
+                "content_title": "",
+                "content_video_urls": "https://youtu.be/dQw4w9WgXcQ\nhttps://youtu.be/abcdefghijk",
+            },
+        )
+        self.assertEqual(
+            list(folder.children.order_by("id").values_list("title", flat=True)),
+            ["Title 1", "Title 2"],
+        )
+
+
+class CourseEnrollmentTests(TestCase):
+    def setUp(self):
+        self.category = CourseCategory.objects.create(name="Enrollment Maths")
+        self.course = Course.objects.create(
+            title="Locked Algebra",
+            description="Paid course",
+            category=self.category,
+            students_enrolled=2,
+        )
+        self.folder = CourseContent.objects.create(
+            course=self.course, content_type="folder", title="Notes", order=1
+        )
+        self.video = CourseContent.objects.create(
+            course=self.course,
+            parent=self.folder,
+            content_type="video",
+            title="Lecture",
+            video_url="https://youtu.be/dQw4w9WgXcQ",
+            order=1,
+        )
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        self.document = CourseContent.objects.create(
+            course=self.course,
+            parent=self.folder,
+            content_type="document",
+            title="Chapter 1",
+            file=SimpleUploadedFile("chapter.pdf", b"%PDF-1.4 chapter"),
+            order=2,
+        )
+        self.exam = Exam.objects.create(name="Algebra Quiz", category=self.category)
+        self.quiz = CourseContent.objects.create(
+            course=self.course,
+            parent=self.folder,
+            content_type="quiz",
+            title="Quiz 1",
+            exam=self.exam,
+            order=3,
+        )
+        self.student = User.objects.create_user(
+            username="enroll_student",
+            email="enroll@example.com",
+            password="LearningBanyanPass123",
+        )
+        StudentProfile.objects.create(user=self.student, mobile_number="9000000002")
+
+    def test_materials_stay_locked_until_enrollment(self):
+        page = self.client.get(reverse("courses:course_detail", args=[self.course.id]))
+        self.assertContains(page, "Add to cart")
+        self.assertContains(page, reverse("courses:add_to_cart", args=[self.course.id]))
+        self.assertContains(page, "Add this course to your cart")
+        self.assertNotContains(page, "Lecture")
+        self.assertNotContains(page, "Chapter 1")
+        self.assertNotContains(page, "youtube-nocookie.com")
+        self.assertNotContains(page, self.document.file.url)
+        self.assertNotContains(
+            page, reverse("courses:course_content_file_stream", args=[self.document.pk])
+        )
+        self.assertNotContains(
+            page, reverse("courses:student_practice_start", args=[self.exam.id])
+        )
+
+        blocked = self.client.get(
+            reverse("courses:course_content_file_stream", args=[self.document.pk])
+        )
+        self.assertEqual(blocked.status_code, 403)
+        media = self.client.get(self.document.file.url)
+        self.assertEqual(media.status_code, 403)
+
+    def test_enroll_now_enrolls_the_student_and_opens_folders(self):
+        self.client.login(username="enroll_student", password="LearningBanyanPass123")
+        response = self.client.post(
+            reverse("courses:enroll_course", args=[self.course.id])
+        )
+        self.assertRedirects(
+            response,
+            reverse("courses:course_detail", args=[self.course.id]) + "?tab=materials",
+        )
+        self.course.refresh_from_db()
+        self.assertEqual(self.course.students_enrolled, 3)
+        self.assertTrue(
+            CourseEnrollment.objects.filter(user=self.student, course=self.course).exists()
+        )
+
+        again = self.client.post(reverse("courses:enroll_course", args=[self.course.id]))
+        self.assertRedirects(
+            again,
+            reverse("courses:course_detail", args=[self.course.id]) + "?tab=materials",
+        )
+        self.course.refresh_from_db()
+        self.assertEqual(self.course.students_enrolled, 3)
+
+        page = self.client.get(reverse("courses:course_detail", args=[self.course.id]))
+        self.assertContains(page, "Notes")
+        self.assertContains(page, 'class="study-folder-pick"')
+        self.assertContains(page, ".study-file-body, .study-empty")
+        self.assertContains(
+            page, f'class="study-folder-panel" id="folder-panel-f{self.folder.id}" hidden'
+        )
+        html = page.content.decode()
+        pick_at = html.find(f'data-folder-target="f{self.folder.id}"')
+        self.assertIn(
+            f'id="folder-panel-f{self.folder.id}"',
+            html[pick_at:pick_at + 700],
+        )
+        self.assertContains(page, "1 Video")
+        self.assertContains(page, "1 PDF")
+        self.assertContains(page, "1 Test")
+        self.assertContains(page, "study-type-video")
+        self.assertContains(page, "study-type-pdf")
+        self.assertContains(page, "study-type-test")
+        self.assertContains(page, "youtube-nocookie.com/embed/dQw4w9WgXcQ")
+        self.assertNotContains(page, "Open video on YouTube")
+        self.assertNotContains(page, "youtu.be/dQw4w9WgXcQ")
+        self.assertNotContains(page, "youtube.com/watch")
+        self.assertContains(
+            page, reverse("courses:course_content_file_stream", args=[self.document.pk])
+        )
+
+        preview = self.client.get(
+            reverse("courses:course_content_file_stream", args=[self.document.pk]),
+            HTTP_SEC_FETCH_DEST="empty",
+            HTTP_SEC_FETCH_MODE="cors",
+        )
+        self.assertEqual(preview.status_code, 200)
+        self.assertEqual(preview["Content-Type"], "application/pdf")
+
+    def test_anonymous_enroll_goes_to_login_and_returns(self):
+        target = reverse("courses:enroll_course", args=[self.course.id])
+        response = self.client.post(target)
+        self.assertRedirects(response, reverse("courses:student_login") + "?next=" + target)
+
+    def test_course_test_requires_enrollment(self):
+        self.client.login(username="enroll_student", password="LearningBanyanPass123")
+        blocked = self.client.get(
+            reverse("courses:student_practice_start", args=[self.exam.id]),
+            follow=True,
+        )
+        self.assertContains(blocked, "Enroll in the course to open this test.")
+        self.assertEqual(CourseEnrollment.objects.count(), 0)
+
+        CourseEnrollment.objects.create(user=self.student, course=self.course)
+        opened = self.client.get(
+            reverse("courses:student_practice_start", args=[self.exam.id]),
+            follow=True,
+        )
+        self.assertContains(opened, "Add some questions to this exam before practicing.")
+
+    def test_checkout_opens_only_enrolled_course_content(self):
+        other = Course.objects.create(
+            title="Other Course",
+            description="Separate course",
+            category=self.category,
+        )
+        CourseContent.objects.create(
+            course=other, content_type="document", title="Secret Notes", order=1
+        )
+        self.client.login(username="enroll_student", password="LearningBanyanPass123")
+        locked = self.client.get(reverse("courses:course_detail", args=[self.course.id]))
+        self.assertNotContains(locked, "Lecture")
+        self.assertContains(locked, "Add to cart")
+
+        added = self.client.post(reverse("courses:add_to_cart", args=[self.course.id]))
+        self.assertRedirects(added, reverse("courses:cart"))
+        cart = self.client.get(reverse("courses:cart"))
+        self.assertContains(cart, "Locked Algebra")
+        self.assertNotContains(cart, "Other Course")
+
+        done = self.client.post(reverse("courses:checkout_cart"))
+        self.assertRedirects(
+            done,
+            reverse("courses:course_detail", args=[self.course.id]) + "?tab=materials",
+        )
+        page = self.client.get(reverse("courses:course_detail", args=[self.course.id]))
+        self.assertContains(page, "Lecture")
+        other_page = self.client.get(reverse("courses:course_detail", args=[other.id]))
+        self.assertNotContains(other_page, "Secret Notes")
+        self.assertContains(other_page, "Add to cart")
+        self.course.refresh_from_db()
+        self.assertEqual(self.course.students_enrolled, 3)
+
+    def test_guest_cart_survives_login(self):
+        self.client.post(reverse("courses:add_to_cart", args=[self.course.id]))
+        self.client.login(username="enroll_student", password="LearningBanyanPass123")
+        cart = self.client.get(reverse("courses:cart"))
+        self.assertContains(cart, "Locked Algebra")
+        self.assertContains(cart, "Checkout and enroll")
 
 
 class WordResourcePreviewTests(TestCase):

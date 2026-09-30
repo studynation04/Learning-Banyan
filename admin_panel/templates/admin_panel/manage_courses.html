@@ -254,6 +254,42 @@
         color: #1e293b;
       }
 
+      .kind-section {
+        border: 1px solid #d7e3ee;
+        border-radius: 12px;
+        padding: 16px;
+        margin: 0 0 16px;
+        background: transparent;
+      }
+
+      .kind-section h4 {
+        margin: 0 0 6px;
+        color: #173c60;
+        font-size: 16px;
+      }
+
+      .folder-card, .draft-folder, .draft-item {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 12px;
+        margin-top: 12px;
+      }
+
+      .folder-add-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: flex-end;
+        margin-top: 8px;
+      }
+
+      .folder-items-form {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px dashed #e2e8f0;
+      }
+
       .video-source {
         display: flex;
         flex-wrap: wrap;
@@ -590,7 +626,9 @@
       body[data-design="midnight"] { background:#111a24; color:#d8e3ed; }
       body[data-design="midnight"] .main-content { color:#d8e3ed; }
       body[data-design="midnight"] .header, body[data-design="midnight"] .form-section, body[data-design="midnight"] .content-section { background:#1b2734; border:1px solid #304253; box-shadow:0 12px 28px rgba(0,0,0,.2); }
-      body[data-design="midnight"] .header h1, body[data-design="midnight"] .form-section > h2, body[data-design="midnight"] .content-section h2, body[data-design="midnight"] .section-heading h3, body[data-design="midnight"] .course-content-block h3 { color:#e7f1fa; }
+      body[data-design="midnight"] .header h1, body[data-design="midnight"] .form-section > h2, body[data-design="midnight"] .content-section h2, body[data-design="midnight"] .section-heading h3, body[data-design="midnight"] .course-content-block h3, body[data-design="midnight"] .kind-section h4 { color:#e7f1fa; }
+      body[data-design="midnight"] .kind-section { border-color:#304253; }
+      body[data-design="midnight"] .folder-card, body[data-design="midnight"] .draft-folder, body[data-design="midnight"] .draft-item { background:#243444; border-color:#304253; }
       body[data-design="midnight"] .header p, body[data-design="midnight"] .section-heading p, body[data-design="midnight"] .content-note { color:#9aabba !important; }
       body[data-design="midnight"] .editor-section { border-color:#304253; }
       body[data-design="midnight"] .section-number { background:#203e52; color:#76c5ee; }
@@ -641,7 +679,9 @@
       body[data-design="courses3"] .header .btn-primary { background:#57d6dd; color:#102839; }
       body[data-design="courses3"] .design-choice.is-selected { background:#18384b; border-color:#57d6dd; color:#b9f5f4; box-shadow:inset 0 0 0 1px #57d6dd; }
       body[data-design="courses3"] .design-choice small { color:#9aabba; }
-      body[data-design="courses3"] .header h1, body[data-design="courses3"] .form-section > h2, body[data-design="courses3"] .content-section h2, body[data-design="courses3"] .section-heading h3, body[data-design="courses3"] .course-content-block h3 { color:#e7f1fa; }
+      body[data-design="courses3"] .header h1, body[data-design="courses3"] .form-section > h2, body[data-design="courses3"] .content-section h2, body[data-design="courses3"] .section-heading h3, body[data-design="courses3"] .course-content-block h3, body[data-design="courses3"] .kind-section h4 { color:#e7f1fa; }
+      body[data-design="courses3"] .kind-section { border-color:#304253; }
+      body[data-design="courses3"] .folder-card, body[data-design="courses3"] .draft-folder, body[data-design="courses3"] .draft-item { background:#243444; border-color:#304253; }
       body[data-design="courses3"] .header p, body[data-design="courses3"] .section-heading p, body[data-design="courses3"] .content-note { color:#9aabba !important; }
       body[data-design="courses3"] .editor-section { background:#17232f; border:1px solid #304253; border-radius:10px; padding:17px; margin:0 0 12px; }
       body[data-design="courses3"] .section-number { background:#203e52; color:#76c5ee; }
@@ -959,152 +999,6 @@
             });
           });
         });
-        var entriesContainer = document.getElementById("contentEntries");
-        if (entriesContainer) {
-          var entryTemplate = document.getElementById("contentEntryTemplate");
-          var entryCounter = document.getElementById("contentEntryCount");
-          var entryIndex = 0;
-
-          function configureEntry(entry) {
-            var selector = entry.querySelector("[data-entry-type]");
-            var title = entry.querySelector("[data-entry-title]");
-            var typeLabels = {
-              folder: "Folder title", video: "Video title", quiz: "Quiz title",
-              subjective: "Subjective test title", practice: "Practice test title",
-              document: "Document title", image: "Image title"
-            };
-            function updateFields() {
-              var kind = selector.value;
-              title.placeholder = typeLabels[kind] || "Content title";
-              entry.querySelectorAll("[data-entry-kind]").forEach(function (group) {
-                var visible = group.getAttribute("data-entry-kind") === kind || (kind === "video" && group.getAttribute("data-entry-kind") === "video");
-                group.style.display = visible ? "" : "none";
-                group.querySelectorAll("input,textarea,select").forEach(function (field) { field.disabled = !visible; });
-              });
-            }
-            selector.addEventListener("change", updateFields);
-            var folderInput = entry.querySelector("[data-entry-folder-files]");
-            var folderPaths = entry.querySelector("[data-entry-folder-paths]");
-            if (folderInput && folderPaths) {
-              folderInput.addEventListener("change", function () {
-                folderPaths.value = JSON.stringify(Array.from(folderInput.files).map(function (file) { return file.webkitRelativePath || file.name; }));
-              });
-            }
-            entry.querySelector("[data-remove-entry]").addEventListener("click", function () {
-              entry.remove();
-            });
-            updateFields();
-          }
-
-          function addEntry() {
-            var entry = entryTemplate.content.firstElementChild.cloneNode(true);
-            var index = entryIndex++;
-            entry.querySelector("[data-entry-type]").name = "content_" + index + "_type";
-            entry.querySelector("[data-entry-title]").name = "content_" + index + "_title";
-            entry.querySelector("[data-entry-folder-files]").name = "content_" + index + "_folder_files";
-            entry.querySelector("[data-entry-folder-paths]").name = "content_" + index + "_folder_paths";
-            entry.querySelectorAll("[data-entry-files]").forEach(function (field) { field.name = "content_" + index + "_files"; });
-            entry.querySelector("[data-entry-video-urls]").name = "content_" + index + "_video_urls";
-            entry.querySelectorAll("[data-entry-exams]").forEach(function (field) { field.name = "content_" + index + "_exam_ids"; });
-            entriesContainer.appendChild(entry);
-            entryCounter.value = String(entryIndex);
-            configureEntry(entry);
-          }
-
-          document.getElementById("addContentEntry").addEventListener("click", addEntry);
-          document.getElementById("courseForm").addEventListener("submit", function () {
-            entriesContainer.querySelectorAll(".content-entry").forEach(function (entry) {
-              var input = entry.querySelector("[data-entry-folder-files]");
-              var paths = entry.querySelector("[data-entry-folder-paths]");
-              if (input && paths && entry.querySelector("[data-entry-type]").value === "folder") {
-                paths.value = JSON.stringify(Array.from(input.files).map(function (file) { return file.webkitRelativePath || file.name; }));
-              }
-            });
-          });
-          addEntry();
-          return;
-        }
-        var buttons = document.querySelectorAll(".content-type-btn[data-type]");
-        var input = document.getElementById("contentTypeInput");
-        var fields = {
-          folder: document.getElementById("contentFolderField"),
-          videoFiles: document.getElementById("contentVideoFilesField"),
-          videoLinks: document.getElementById("contentYoutubeField"),
-          quizExams: document.getElementById("contentQuizExamsField"),
-          subjectiveExams: document.getElementById("contentSubjectiveExamsField"),
-          practiceExams: document.getElementById("contentPracticeExamsField"),
-          files: document.getElementById("contentFilesField")
-        };
-        var folderFiles = document.getElementById("contentFolderFiles");
-        var videoFiles = document.getElementById("contentVideoFiles");
-        var otherFiles = document.getElementById("contentFiles");
-        var videoLinks = document.getElementById("contentVideoUrls");
-        var folderPaths = document.getElementById("contentFolderPaths");
-        var status = document.getElementById("contentTypeStatus");
-        var titleInput = document.getElementById("contentTitle");
-        if (!buttons.length || !input) return;
-
-        var kinds = {
-          folder: { label: "Folder", title: "e.g. Algebra", fields: ["folder"] },
-          video: { label: "Video", title: "e.g. Introduction to Algebra", fields: ["videoFiles", "videoLinks"] },
-          quiz: { label: "Online Test/Quiz", title: "e.g. Algebra Quiz", fields: ["quizExams"] },
-          subjective: { label: "Subjective Test", title: "e.g. Algebra Written Test", fields: ["subjectiveExams"] },
-          practice: { label: "Practice Test", title: "e.g. Algebra Practice", fields: ["practiceExams"] },
-          document: { label: "Document", title: "e.g. Course Notes", fields: ["files"], accept: ".pdf,.doc,.docx,.txt" },
-          image: { label: "Image", title: "e.g. Course Diagram", fields: ["files"], accept: "image/*" }
-        };
-
-        function show(type) {
-          var spec = kinds[type] || kinds.folder;
-          input.value = type;
-          buttons.forEach(function (btn) {
-            btn.classList.toggle("is-active", btn.getAttribute("data-type") === type);
-          });
-          Object.keys(fields).forEach(function (key) {
-            var visible = spec.fields.indexOf(key) !== -1;
-            fields[key].style.display = visible ? "" : "none";
-            fields[key].querySelectorAll("input,textarea,select").forEach(function (field) { field.disabled = !visible; });
-          });
-          if (otherFiles) otherFiles.accept = spec.accept || "";
-          if (folderPaths) folderPaths.value = "[]";
-          if (titleInput) titleInput.placeholder = spec.title;
-          if (status) {
-            var instructions = {
-              folder: " Select a folder from your computer.",
-              video: " Upload multiple video files, paste multiple YouTube links, or use both.",
-              quiz: " Select one or more Quiz exams.",
-              subjective: " Select one or more Subjective Test exams.",
-              practice: " Select one or more Practice Test exams.",
-              document: " Browse for one or more documents.",
-              image: " Browse for one or more images."
-            };
-            status.textContent = "Selected: " + spec.label + ". Enter a title." + instructions[type];
-          }
-        }
-
-        buttons.forEach(function (btn) {
-          btn.addEventListener("click", function () {
-            show(btn.getAttribute("data-type"));
-          });
-        });
-        if (folderFiles && folderPaths) {
-          folderFiles.addEventListener("change", function () {
-            folderPaths.value = JSON.stringify(Array.from(folderFiles.files).map(function (file) {
-              return file.webkitRelativePath || file.name;
-            }));
-          });
-        }
-        var contentForm = document.getElementById("contentAddForm") || document.getElementById("courseForm");
-        if (contentForm) {
-          contentForm.addEventListener("submit", function () {
-            if (folderFiles && folderPaths && input.value === "folder") {
-              folderPaths.value = JSON.stringify(Array.from(folderFiles.files).map(function (file) {
-                return file.webkitRelativePath || file.name;
-              }));
-            }
-          });
-        }
-        show("folder");
       })();
     </script>
   </body>

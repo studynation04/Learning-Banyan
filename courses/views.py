@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Q, Count
+from django.db.models import Q, Count, F
 from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest, Http404, FileResponse
 from django.core.paginator import Paginator
 from django.utils import timezone
@@ -17,12 +17,23 @@ import json
 import random
 import re
 import logging
-import copy
 
+from .cart import (
+    add_course_to_cart,
+    cart_course_ids,
+    checkout_cart,
+    enrolled_course_ids,
+    enroll_user,
+    get_cart_courses,
+    remove_course_from_cart,
+)
 from .models import (
     Course,
     CourseCategory,
     CourseContent,
+    CourseEnrollment,
+    next_numbered_label,
+    user_can_view_course_materials,
     Resource,
     Blog,
     Question,
@@ -71,7 +82,96 @@ class CoursesListView(TemplateView):
         context = super().get_context_data(**kwargs)
         context["categories"] = CourseCategory.objects.all()
         context["courses"] = Course.objects.all()
+        context["cart_ids"] = set(cart_course_ids(self.request))
+        context["enrolled_ids"] = enrolled_course_ids(self.request)
         return context
+
+
+def _folder_summary(node):
+    """Count videos, PDFs, and tests stored inside a folder, including subfolders."""
+    counts = {"Video": 0, "PDF": 0, "Test": 0, "Image": 0}
+
+    def walk(items):
+        for item in items:
+            if item.content_type == "folder":
+                walk(getattr(item, "child_nodes", []) or [])
+            else:
+                kind = item.material_kind()
+                if kind in counts:
+                    counts[kind] += 1
+
+    walk(getattr(node, "child_nodes", []) or [])
+    labels = {
+        "Video": ("Video", "Videos"),
+        "PDF": ("PDF", "PDFs"),
+        "Test": ("Test", "Tests"),
+        "Image": ("Image", "Images"),
+    }
+    parts = []
+    for key in ("Video", "PDF", "Test", "Image"):
+        count = counts[key]
+        if count:
+            singular, plural = labels[key]
+            parts.append(f"{count} {singular if count == 1 else plural}")
+    return " · ".join(parts) if parts else "Empty"
+
+
+def _annotate_folder_summaries(nodes):
+    for node in nodes:
+        children = getattr(node, "child_nodes", []) or []
+        if node.content_type == "folder":
+            _annotate_folder_summaries(children)
+            node.folder_summary = _folder_summary(node)
+
+
+class _LooseFolder:
+    """Files saved without a folder, shown under a default folder name."""
+
+    content_type = "folder"
+
+    def __init__(self, title, children, pick_id):
+        self.title = title
+        self.child_nodes = children
+        self.pick_id = pick_id
+
+
+def _study_folder_groups(content_tree):
+    """Folder names grouped by section. Loose files share one default folder."""
+    groups = []
+    section_keys = {key for key, _label in CourseContent.SECTION_TYPES}
+
+    def with_loose(folders, loose, pick_prefix):
+        prepared = []
+        for folder in folders:
+            folder.pick_id = f"f{folder.id}"
+            prepared.append(folder)
+        if loose:
+            title = next_numbered_label([folder.title for folder in prepared], "Folder")
+            extra = _LooseFolder(title, loose, pick_prefix)
+            _annotate_folder_summaries([extra])
+            prepared.append(extra)
+        return prepared
+
+    for key, label in CourseContent.SECTION_TYPES:
+        folders = with_loose(
+            [node for node in content_tree if node.content_type == "folder" and node.section == key],
+            [node for node in content_tree if node.content_type == key],
+            f"loose-{key}",
+        )
+        if folders:
+            groups.append({"label": label, "folders": folders})
+    other = with_loose(
+        [node for node in content_tree if node.content_type == "folder" and not node.section],
+        [
+            node
+            for node in content_tree
+            if node.content_type not in section_keys and node.content_type != "folder"
+        ],
+        "loose-other",
+    )
+    if other:
+        groups.append({"label": "Folders", "folders": other})
+    return groups
 
 
 class CourseDetailView(TemplateView):
@@ -82,21 +182,9 @@ class CourseDetailView(TemplateView):
         course_id = self.kwargs.get("course_id")
         course = get_object_or_404(Course, pk=course_id)
         content_tree = course.nested_contents()
+        _annotate_folder_summaries(content_tree)
 
         exam_types = {"quiz", "subjective", "practice"}
-        course_content_types = {"folder", "document", "image", "zip"}
-
-        def select_tree(nodes, selected_types):
-            selected = []
-            for node in nodes:
-                children = select_tree(getattr(node, "child_nodes", []), selected_types)
-                if node.content_type in selected_types or (
-                    node.content_type == "folder" and children
-                ):
-                    selected_node = copy.copy(node)
-                    selected_node.child_nodes = children
-                    selected.append(selected_node)
-            return selected
 
         def count_tree(nodes, selected_types):
             return sum(
@@ -105,13 +193,29 @@ class CourseDetailView(TemplateView):
                 for node in nodes
             )
 
-        context["course_content_tree"] = select_tree(
-            content_tree, course_content_types
+        user = self.request.user
+        can_view = user_can_view_course_materials(user, course)
+        is_enrolled = bool(
+            getattr(user, "is_authenticated", False)
+            and course.enrollments.filter(user=user).exists()
         )
-        context["study_video_tree"] = select_tree(content_tree, {"video"})
-        context["question_exam_tree"] = select_tree(content_tree, exam_types)
+        requested_tab = (self.request.GET.get("tab") or "").strip()
+        section_keys = {key for key, _label in CourseContent.SECTION_TYPES}
+        study_sections = []
+        if can_view:
+            for key, label in CourseContent.SECTION_TYPES:
+                folders = [
+                    node
+                    for node in content_tree
+                    if node.content_type == "folder" and node.section == key
+                ]
+                loose = [node for node in content_tree if node.content_type == key]
+                if folders or loose:
+                    study_sections.append(
+                        {"key": key, "label": label, "folders": folders, "loose": loose}
+                    )
         context["course_content_count"] = count_tree(
-            content_tree, {"document", "image", "zip"}
+            content_tree, {"document", "image"}
         )
         context["study_video_count"] = (
             count_tree(content_tree, {"video"}) + course.study_materials.count()
@@ -119,10 +223,143 @@ class CourseDetailView(TemplateView):
         context["question_exam_count"] = (
             count_tree(content_tree, exam_types) + course.question_banks.count()
         )
-        context["default_course_tab"] = "overview"
+        context["material_count"] = (
+            context["course_content_count"]
+            + context["study_video_count"]
+            + context["question_exam_count"]
+        )
+        context["can_view_materials"] = can_view
+        context["is_enrolled"] = is_enrolled
+        context["in_cart"] = course.id in set(cart_course_ids(self.request))
+        context["study_sections"] = study_sections
+        context["study_folder_groups"] = _study_folder_groups(content_tree) if can_view else []
+        context["material_folders"] = (
+            [
+                node
+                for node in content_tree
+                if node.content_type == "folder" and not node.section
+            ]
+            if can_view
+            else []
+        )
+        context["material_files"] = (
+            [
+                node
+                for node in content_tree
+                if node.content_type not in section_keys
+                and node.content_type != "folder"
+            ]
+            if can_view
+            else []
+        )
+        context["default_course_tab"] = (
+            requested_tab if requested_tab in {"overview", "materials"} else "overview"
+        )
         context["course"] = course
         context["content_count"] = course.contents.count()
         return context
+
+
+@require_http_methods(["GET", "POST"])
+def enroll_in_course(request, course_id):
+    """Enroll the signed-in student. Logged-out visitors are sent through login first."""
+    course = get_object_or_404(Course, pk=course_id)
+    if not request.user.is_authenticated:
+        next_url = request.get_full_path()
+        return redirect(f"{reverse('courses:student_login')}?next={next_url}")
+    if not (_user_is_student(request.user) or _user_is_admin(request.user)):
+        messages.error(request, "Use a student account to enroll in this course.")
+        return redirect("courses:course_detail", course_id=course.id)
+
+    created = enroll_user(request.user, course)
+    if created:
+        messages.success(request, f"You are enrolled in {course.title}.")
+    else:
+        messages.info(request, "You are already enrolled in this course.")
+    materials = reverse("courses:course_detail", args=[course.id])
+    return redirect(f"{materials}?tab=materials")
+
+
+def _cart_redirect(request):
+    next_url = (request.POST.get("next") or "").strip()
+    if next_url and url_has_allowed_host_and_scheme(
+        next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return redirect(next_url)
+    return redirect("courses:cart")
+
+
+@require_POST
+def add_to_cart(request, course_id):
+    """Put a course in the cart. Enrollment happens at checkout."""
+    course = get_object_or_404(Course, pk=course_id)
+    status = add_course_to_cart(request, course)
+    if status == "enrolled":
+        messages.info(request, f"You are already enrolled in {course.title}.")
+        return redirect("courses:course_detail", course_id=course.id)
+    if status == "exists":
+        messages.info(request, f"{course.title} is already in your cart.")
+    else:
+        messages.success(request, f"Added {course.title} to your cart.")
+    return _cart_redirect(request)
+
+
+@require_POST
+def remove_from_cart(request, course_id):
+    course = get_object_or_404(Course, pk=course_id)
+    remove_course_from_cart(request, course.id)
+    messages.success(request, f"Removed {course.title} from your cart.")
+    return redirect("courses:cart")
+
+
+def cart_page(request):
+    courses = get_cart_courses(request)
+    total = sum((course.sale_price for course in courses), start=0)
+    enrolled_courses = []
+    if request.user.is_authenticated:
+        enrolled_courses = (
+            Course.objects.filter(enrollments__user=request.user)
+            .distinct()
+            .order_by("-enrollments__enrolled_at")
+        )
+    return render(
+        request,
+        "courses/cart.html",
+        {
+            "cart_courses": courses,
+            "cart_total": total,
+            "enrolled_courses": enrolled_courses,
+        },
+    )
+
+
+@require_POST
+def checkout(request):
+    """Enroll the signed-in student in every course currently in the cart."""
+    if not request.user.is_authenticated:
+        cart_url = reverse("courses:cart")
+        return redirect(f"{reverse('courses:student_login')}?next={cart_url}")
+    if not (_user_is_student(request.user) or _user_is_admin(request.user)):
+        messages.error(request, "Use a student account to check out.")
+        return redirect("courses:cart")
+    courses = get_cart_courses(request)
+    if not courses:
+        messages.info(request, "Your cart is empty.")
+        return redirect("courses:cart")
+    newly_enrolled = checkout_cart(request)
+    if not newly_enrolled:
+        messages.info(request, "You are already enrolled in the courses in your cart.")
+        return redirect("courses:cart")
+    if len(newly_enrolled) == 1:
+        course = newly_enrolled[0]
+        messages.success(request, f"You are enrolled in {course.title}.")
+        materials = reverse("courses:course_detail", args=[course.id])
+        return redirect(f"{materials}?tab=materials")
+    titles = ", ".join(course.title for course in newly_enrolled)
+    messages.success(request, f"You are enrolled in {titles}.")
+    return redirect("courses:cart")
 
 
 # ==================== RESOURCES ====================
@@ -317,6 +554,12 @@ def course_content_file_stream(request, pk):
     )
 
     content = get_object_or_404(CourseContent, pk=pk)
+    if not user_can_view_course_materials(request.user, content.course):
+        return HttpResponse(
+            "Enroll in the course to view this file.",
+            status=403,
+            content_type="text/plain; charset=utf-8",
+        )
     if not content.file:
         raise Http404("Course file not found")
     if is_top_level_file_navigation(request) or request.GET.get("download") in (
@@ -756,6 +999,9 @@ def student_signup(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
+            from .cart import absorb_session_cart
+
+            absorb_session_cart(request)
             messages.success(
                 request,
                 f"Welcome to Learning Banyan, {user.first_name or user.username}!",
@@ -810,6 +1056,9 @@ def student_login(request):
                     )
                 else:
                     login(request, user)
+                    from .cart import absorb_session_cart
+
+                    absorb_session_cart(request)
 
                     if is_admin:
                         admin_profile = _ensure_admin_profile(user)
@@ -907,14 +1156,36 @@ def _course_content_for_exam(exam_id):
     )
 
 
+class CourseEnrollmentRequired(Exception):
+    def __init__(self, course):
+        self.course = course
+
+
 def _get_practice_exam_or_404(request, exam_id):
-    """Owned practice papers, plus exams attached to a course."""
+    """Owned practice papers, plus course exams after the student enrolls."""
     exam = get_object_or_404(Exam, id=exam_id)
     if exam.created_by_id == request.user.id:
         return exam
-    if _course_content_for_exam(exam_id):
-        return exam
-    raise Http404("Exam not found")
+    linked = list(
+        CourseContent.objects.filter(exam_id=exam_id)
+        .select_related("course")
+        .order_by("id")
+    )
+    if not linked:
+        raise Http404("Exam not found")
+    for item in linked:
+        if user_can_view_course_materials(request.user, item.course):
+            return exam
+    raise CourseEnrollmentRequired(linked[0].course)
+
+
+def _open_practice_exam(request, exam_id):
+    """Return (exam, None), or (None, redirect) when the course is still locked."""
+    try:
+        return _get_practice_exam_or_404(request, exam_id), None
+    except CourseEnrollmentRequired as locked:
+        messages.error(request, "Enroll in the course to open this test.")
+        return None, redirect("courses:course_detail", course_id=locked.course.id)
 
 
 def _practice_missing_questions_redirect(request, exam):
@@ -1529,7 +1800,9 @@ def student_practice_start(request, exam_id):
     for choice-based questions, a text box for numerical/structured/
     matching) — all auto-graded on submit, on a best-effort basis for the
     free-text types."""
-    exam = _get_practice_exam_or_404(request, exam_id)
+    exam, blocked = _open_practice_exam(request, exam_id)
+    if blocked:
+        return blocked
     exam_questions = (
         ExamQuestion.objects.filter(exam=exam)
         .select_related("question")
@@ -1559,7 +1832,9 @@ def student_practice_start(request, exam_id):
 @require_POST
 def student_practice_submit(request, exam_id):
     """Grades the submitted answers and records an ExamAttempt."""
-    exam = _get_practice_exam_or_404(request, exam_id)
+    exam, blocked = _open_practice_exam(request, exam_id)
+    if blocked:
+        return blocked
     exam_questions = list(
         ExamQuestion.objects.filter(exam=exam)
         .select_related("question")
@@ -1644,7 +1919,9 @@ def student_practice_submit(request, exam_id):
 
 @student_required
 def student_practice_result(request, exam_id, attempt_id):
-    exam = _get_practice_exam_or_404(request, exam_id)
+    exam, blocked = _open_practice_exam(request, exam_id)
+    if blocked:
+        return blocked
     attempt = get_object_or_404(ExamAttempt, id=attempt_id, exam=exam, student=request.user)
     answers = list(
         ExamAttemptAnswer.objects.filter(attempt=attempt)

@@ -62,7 +62,49 @@ class InlineMediaMiddleware:
         ".7z",
     )
 
+    def _blocked_course_media(self, request):
+        """Course files stay on disk, but only an enrolled student or an admin may read them."""
+        from urllib.parse import unquote
+
+        from courses.models import (
+            CourseContent,
+            StudyMaterial,
+            user_can_view_course_materials,
+        )
+
+        raw = unquote(request.path or "")
+        lower = raw.lower()
+        if not (
+            lower.startswith("/media/course_content/")
+            or lower.startswith("/media/study_materials/")
+        ):
+            return None
+        try:
+            rel = raw[len("/media/") :] if lower.startswith("/media/") else raw
+            if lower.startswith("/media/course_content/"):
+                item = (
+                    CourseContent.objects.select_related("course").filter(file=rel).first()
+                )
+            else:
+                item = (
+                    StudyMaterial.objects.select_related("course").filter(file=rel).first()
+                )
+            if item is not None and user_can_view_course_materials(
+                request.user, item.course
+            ):
+                return None
+        except Exception:
+            pass
+        return HttpResponse(
+            "Enroll in the course to view this file.",
+            status=403,
+            content_type="text/plain; charset=utf-8",
+        )
+
     def __call__(self, request):
+        blocked = self._blocked_course_media(request)
+        if blocked is not None:
+            return blocked
         path = (request.path or "").lower()
 
         try:

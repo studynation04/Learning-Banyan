@@ -1,139 +1,242 @@
 <div class="course-content-block" id="course-content">
   <h3>Course Content</h3>
+  <p class="content-note">Each content type has its own section. Add as many folders as you need in a section, then add multiple items inside each folder.</p>
+
   {% if not course %}
-    <p class="content-note">Add one or more content entries below. Every completed entry will be saved with this course.</p>
-    <div id="contentEntries"></div>
-    <template id="contentEntryTemplate">
-      <div class="content-entry" style="border:1px solid #e2e8f0; border-radius:8px; padding:16px; margin:12px 0; background:#f8fafc;">
-        <div class="form-grid">
-          <div class="form-group">
-            <label>Content type</label>
-            <select data-entry-type>
-              <option value="folder">Folder</option>
-              <option value="video">Video</option>
-              <option value="quiz">Online Test/Quiz</option>
-              <option value="subjective">Subjective Test</option>
-              <option value="practice">Practice Test</option>
-              <option value="document">Document</option>
-              <option value="image">Image</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Title</label>
-            <input type="text" data-entry-title placeholder="Content title" />
-          </div>
-          <div class="form-group full" data-entry-kind="folder">
-            <label>Browse for folder</label>
-            <input type="file" data-entry-folder-files webkitdirectory directory multiple />
-            <input type="hidden" data-entry-folder-paths value="[]" />
-            <small>Select a folder to add its files and subfolders under this course folder.</small>
-          </div>
-          <div class="form-group full" data-entry-kind="video" style="display:none;">
-            <label>Upload one or more videos</label>
-            <input type="file" data-entry-files multiple accept=".mp4,.webm,.ogg,.mov,.m4v" disabled />
-          </div>
-          <div class="form-group full" data-entry-kind="video" style="display:none;">
-            <label>YouTube links</label>
-            <textarea data-entry-video-urls rows="3" placeholder="Paste one YouTube URL per line" disabled></textarea>
-          </div>
-          <div class="form-group full" data-entry-kind="quiz" style="display:none;">
-            <label>Online Test/Quiz exams</label>
-            <select data-entry-exams multiple size="5" disabled>
-              {% for exam in content_exams %}<option value="{{ exam.id }}">{{ exam.name }}</option>{% endfor %}
-            </select>
-            <small>Select one or more exams for this Quiz entry.</small>
-          </div>
-          <div class="form-group full" data-entry-kind="subjective" style="display:none;">
-            <label>Subjective Test exams</label>
-            <select data-entry-exams multiple size="5" disabled>
-              {% for exam in content_exams %}<option value="{{ exam.id }}">{{ exam.name }}</option>{% endfor %}
-            </select>
-            <small>Select one or more exams for this Subjective Test entry.</small>
-          </div>
-          <div class="form-group full" data-entry-kind="practice" style="display:none;">
-            <label>Practice Test exams</label>
-            <select data-entry-exams multiple size="5" disabled>
-              {% for exam in content_exams %}<option value="{{ exam.id }}">{{ exam.name }}</option>{% endfor %}
-            </select>
-            <small>Select one or more exams for this Practice Test entry.</small>
-          </div>
-          <div class="form-group full" data-entry-kind="document" style="display:none;">
-            <label>Browse for one or more documents</label>
-            <input type="file" data-entry-files multiple accept=".pdf,.doc,.docx,.txt" disabled />
-          </div>
-          <div class="form-group full" data-entry-kind="image" style="display:none;">
-            <label>Browse for one or more images</label>
-            <input type="file" data-entry-files multiple accept="image/*" disabled />
-          </div>
-        </div>
-        <button type="button" class="btn btn-danger" data-remove-entry style="margin-top:8px;">Remove entry</button>
-      </div>
-    </template>
-    <input type="hidden" name="content_entry_count" id="contentEntryCount" value="0" />
-    <button type="button" class="btn btn-secondary" id="addContentEntry">＋ Add another content entry</button>
-  {% else %}
-    <p class="content-note">Choose a type and add an item to this course. Multiple selected files and exams are saved as separate items.</p>
-    <div class="content-types" id="contentTypeButtons">
-      <button type="button" class="content-type-btn is-active" data-type="folder">Folder</button>
-      <button type="button" class="content-type-btn" data-type="video">Video</button>
-      <button type="button" class="content-type-btn" data-type="quiz">Online Test/Quiz</button>
-      <button type="button" class="content-type-btn" data-type="subjective">Subjective Test</button>
-      <button type="button" class="content-type-btn" data-type="practice">Practice Test</button>
-      <button type="button" class="content-type-btn" data-type="document">Document</button>
-      <button type="button" class="content-type-btn" data-type="image">Image</button>
+    <div id="contentSectionBuilder">
+      {% for section in content_sections %}
+        <section class="kind-section" data-section="{{ section.key }}">
+          <h4>{{ section.label }}</h4>
+          <p class="content-note">Create one or more folders, then add {{ section.label|lower }} inside each folder.</p>
+          <div data-folder-list></div>
+          <button type="button" class="btn btn-secondary" data-add-folder>Add folder</button>
+          <template data-item-template>
+            <div class="draft-item" data-item>
+              <input type="hidden" data-item-type value="{{ section.key }}" />
+              <input type="hidden" data-item-section value="{{ section.key }}" />
+              <input type="hidden" data-item-folder value="" />
+              <div class="form-group">
+                <label>Title</label>
+                <input type="text" data-item-title placeholder="Leave blank for Title 1, Title 2, ..." />
+              </div>
+              {% if section.key == "video" %}
+                <div class="form-group">
+                  <label>Upload one or more videos</label>
+                  <input type="file" data-item-files multiple accept=".mp4,.webm,.ogg,.mov,.m4v" />
+                </div>
+                <div class="form-group">
+                  <label>YouTube links</label>
+                  <textarea data-item-urls rows="3" placeholder="Paste one YouTube URL per line"></textarea>
+                </div>
+              {% elif section.key == "quiz" or section.key == "subjective" or section.key == "practice" %}
+                <div class="form-group">
+                  <label>Exams</label>
+                  <select data-item-exams multiple size="5">
+                    {% for exam in content_exams %}<option value="{{ exam.id }}">{{ exam.name }}</option>{% endfor %}
+                  </select>
+                  <small>Select one or more exams. Each exam is saved as its own item in this folder.</small>
+                </div>
+              {% elif section.key == "document" %}
+                <div class="form-group">
+                  <label>Browse for one or more documents</label>
+                  <input type="file" data-item-files multiple accept=".pdf,.doc,.docx,.txt" />
+                </div>
+              {% elif section.key == "image" %}
+                <div class="form-group">
+                  <label>Browse for one or more images</label>
+                  <input type="file" data-item-files multiple accept="image/*" />
+                </div>
+              {% endif %}
+              <button type="button" class="btn btn-danger" data-remove-item>Remove item</button>
+            </div>
+          </template>
+        </section>
+      {% endfor %}
+      <input type="hidden" name="content_entry_count" id="contentEntryCount" value="0" />
     </div>
-    <p class="content-note" id="contentTypeStatus">Selected: Folder.</p>
-    <form id="contentAddForm" method="post" action="{% url 'admin_panel:add_course_content' course.id %}" enctype="multipart/form-data">
-      {% csrf_token %}
-      <input type="hidden" name="content_type" id="contentTypeInput" value="folder" />
-      <input type="hidden" name="content_folder_paths" id="contentFolderPaths" value="[]" />
-      <div class="form-grid" id="contentFields">
-        <div class="form-group" id="contentParentField">
-          <label for="contentParent">Inside folder</label>
-          <select name="content_parent" id="contentParent">
-            <option value="">Top level</option>
-            {% for folder in content_folders %}<option value="{{ folder.id }}">{% if folder.parent %}{{ folder.parent.title }} / {% endif %}{{ folder.title }}</option>{% endfor %}
-          </select>
-        </div>
-        <div class="form-group" id="contentTitleField">
-          <label for="contentTitle">Title</label>
-          <input type="text" name="content_title" id="contentTitle" placeholder="Content title" required />
-        </div>
-        <div class="form-group full" id="contentFolderField">
-          <label for="contentFolderFiles">Browse for folder</label>
-          <input type="file" name="content_folder_files" id="contentFolderFiles" webkitdirectory directory multiple />
-          <small>Select a folder. Its subfolders and files will be added under this course folder.</small>
-        </div>
-        <div class="form-group full" id="contentVideoFilesField" style="display:none;">
-          <label for="contentVideoFiles">Upload one or more videos</label>
-          <input type="file" name="content_files" id="contentVideoFiles" multiple accept=".mp4,.webm,.ogg,.mov,.m4v" />
-        </div>
-        <div class="form-group full" id="contentYoutubeField" style="display:none;">
-          <label for="contentVideoUrls">YouTube links</label>
-          <textarea name="content_video_urls" id="contentVideoUrls" rows="3" placeholder="Paste one YouTube URL per line"></textarea>
-        </div>
-        <div class="form-group full content-exam-field" id="contentQuizExamsField" style="display:none;">
-          <label for="contentQuizExams">Online Test/Quiz exams</label>
-          <select name="content_exam_ids_quiz" id="contentQuizExams" multiple size="6" disabled>{% for exam in content_exams %}<option value="{{ exam.id }}">{{ exam.name }}</option>{% endfor %}</select>
-        </div>
-        <div class="form-group full content-exam-field" id="contentSubjectiveExamsField" style="display:none;">
-          <label for="contentSubjectiveExams">Subjective Test exams</label>
-          <select name="content_exam_ids_subjective" id="contentSubjectiveExams" multiple size="6" disabled>{% for exam in content_exams %}<option value="{{ exam.id }}">{{ exam.name }}</option>{% endfor %}</select>
-        </div>
-        <div class="form-group full content-exam-field" id="contentPracticeExamsField" style="display:none;">
-          <label for="contentPracticeExams">Practice Test exams</label>
-          <select name="content_exam_ids_practice" id="contentPracticeExams" multiple size="6" disabled>{% for exam in content_exams %}<option value="{{ exam.id }}">{{ exam.name }}</option>{% endfor %}</select>
-        </div>
-        <div class="form-group full" id="contentFilesField" style="display:none;">
-          <label for="contentFiles">Browse for one or more files</label>
-          <input type="file" name="content_files" id="contentFiles" multiple />
-        </div>
-      </div>
-      <div class="form-actions"><button type="submit" class="btn btn-primary">Add to course</button></div>
-    </form>
-    <h3 style="margin:22px 0 12px;font-size:16px;color:#333;">Contents</h3>
-    {% if content_tree %}
-      {% include "admin_panel/_partials/course_content_nodes.html" with nodes=content_tree course=course %}
-    {% else %}<p class="content-note">No content yet. Choose a type above and add its content.</p>{% endif %}
+    <script>
+      (function () {
+        var root = document.getElementById("contentSectionBuilder");
+        var counter = document.getElementById("contentEntryCount");
+        var form = document.getElementById("courseForm");
+        if (!root || !counter || !form) return;
+        var nextIndex = 0;
+
+        function addItem(sectionEl, folder) {
+          var template = sectionEl.querySelector("[data-item-template]");
+          var item = template.content.firstElementChild.cloneNode(true);
+          var index = nextIndex++;
+          item.querySelector("[data-item-type]").name = "content_" + index + "_type";
+          item.querySelector("[data-item-section]").name = "content_" + index + "_section";
+          item.querySelector("[data-item-folder]").name = "content_" + index + "_folder_title";
+          var title = item.querySelector("[data-item-title]");
+          title.name = "content_" + index + "_title";
+          var files = item.querySelector("[data-item-files]");
+          if (files) files.name = "content_" + index + "_files";
+          var urls = item.querySelector("[data-item-urls]");
+          if (urls) urls.name = "content_" + index + "_video_urls";
+          var exams = item.querySelector("[data-item-exams]");
+          if (exams) exams.name = "content_" + index + "_exam_ids";
+          item.querySelector("[data-remove-item]").addEventListener("click", function () {
+            item.remove();
+          });
+          folder.querySelector("[data-item-list]").appendChild(item);
+          counter.value = String(nextIndex);
+        }
+
+        function addFolder(sectionEl) {
+          var sectionKey = sectionEl.getAttribute("data-section");
+          var index = nextIndex++;
+          var folder = document.createElement("div");
+          folder.className = "draft-folder";
+          folder.setAttribute("data-folder", "");
+          folder.innerHTML =
+            '<input type="hidden" name="content_' + index + '_type" value="folder">' +
+            '<input type="hidden" name="content_' + index + '_section" value="' + sectionKey + '">' +
+            '<div class="folder-add-row">' +
+              '<div class="form-group" style="flex:1;margin:0;">' +
+                '<label>Folder name</label>' +
+                '<input type="text" name="content_' + index + '_title" data-folder-title placeholder="Leave blank for Folder 1, Folder 2, ...">' +
+              '</div>' +
+              '<button type="button" class="btn btn-danger" data-remove-folder>Remove folder</button>' +
+            '</div>' +
+            '<div data-item-list></div>' +
+            '<button type="button" class="btn btn-secondary" data-add-item>Add items in this folder</button>';
+          sectionEl.querySelector("[data-folder-list]").appendChild(folder);
+          counter.value = String(nextIndex);
+          folder.querySelector("[data-remove-folder]").addEventListener("click", function () {
+            folder.remove();
+          });
+          folder.querySelector("[data-add-item]").addEventListener("click", function () {
+            addItem(sectionEl, folder);
+          });
+        }
+
+        root.querySelectorAll("[data-add-folder]").forEach(function (button) {
+          button.addEventListener("click", function () {
+            addFolder(button.closest("[data-section]"));
+          });
+        });
+
+        form.addEventListener("submit", function () {
+          var usedFolders = {};
+          root.querySelectorAll("[data-folder]").forEach(function (folder) {
+            var sectionEl = folder.closest("[data-section]");
+            var section = sectionEl ? sectionEl.getAttribute("data-section") : "";
+            var titleInput = folder.querySelector("[data-folder-title]");
+            var title = titleInput.value.trim();
+            var used = usedFolders[section] || [];
+            if (!title) {
+              var number = 1;
+              while (used.indexOf("Folder " + number) !== -1) number += 1;
+              title = "Folder " + number;
+              titleInput.value = title;
+            }
+            used.push(title);
+            usedFolders[section] = used;
+            folder.querySelectorAll("[data-item-folder]").forEach(function (input) {
+              input.value = title;
+            });
+          });
+        });
+      })();
+    </script>
+  {% else %}
+    {% for section in content_sections %}
+      <section class="kind-section" id="section-{{ section.key }}">
+        <h4>{{ section.label }}</h4>
+        <form method="post" action="{% url 'admin_panel:add_course_content' course.id %}">
+          {% csrf_token %}
+          <input type="hidden" name="content_type" value="folder" />
+          <input type="hidden" name="content_section" value="{{ section.key }}" />
+          <div class="folder-add-row">
+            <div class="form-group" style="flex:1;margin:0;">
+              <label for="folder-{{ section.key }}">New folder</label>
+              <input type="text" name="content_title" id="folder-{{ section.key }}" placeholder="Leave blank for Folder 1, Folder 2, ..." />
+            </div>
+            <button type="submit" class="btn btn-secondary">Add folder</button>
+          </div>
+        </form>
+
+        {% for folder in section.folders %}
+          <div class="folder-card">
+            <div class="cc-row">
+              <div class="cc-row-main"><span class="cc-kind">Folder</span><strong>{{ folder.title }}</strong></div>
+              <form method="post" action="{% url 'admin_panel:delete_course_content' course.id folder.id %}" style="margin:0;" onsubmit="return confirm('Remove this folder and everything inside it?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Delete folder</button>
+              </form>
+            </div>
+            {% if folder.child_nodes %}
+              {% include "admin_panel/_partials/course_content_nodes.html" with nodes=folder.child_nodes course=course %}
+            {% else %}
+              <p class="content-note">This folder is empty.</p>
+            {% endif %}
+            <form method="post" action="{% url 'admin_panel:add_course_content' course.id %}" enctype="multipart/form-data" class="folder-items-form">
+              {% csrf_token %}
+              <input type="hidden" name="content_type" value="{{ section.key }}" />
+              <input type="hidden" name="content_section" value="{{ section.key }}" />
+              <input type="hidden" name="content_parent" value="{{ folder.id }}" />
+              <div class="form-group">
+                <label>Title</label>
+                <input type="text" name="content_title" placeholder="Leave blank for Title 1, Title 2, ..." />
+              </div>
+              {% if section.key == "video" %}
+                <div class="form-group">
+                  <label>Upload one or more videos</label>
+                  <input type="file" name="content_files" multiple accept=".mp4,.webm,.ogg,.mov,.m4v" />
+                </div>
+                <div class="form-group">
+                  <label>YouTube links</label>
+                  <textarea name="content_video_urls" rows="3" placeholder="Paste one YouTube URL per line"></textarea>
+                </div>
+              {% elif section.key == "quiz" %}
+                <div class="form-group">
+                  <label>Online Test/Quiz exams</label>
+                  <select name="content_exam_ids_quiz" multiple size="5">{% for exam in content_exams %}<option value="{{ exam.id }}">{{ exam.name }}</option>{% endfor %}</select>
+                  <small>Select one or more exams. Each exam is saved in this folder.</small>
+                </div>
+              {% elif section.key == "subjective" %}
+                <div class="form-group">
+                  <label>Subjective Test exams</label>
+                  <select name="content_exam_ids_subjective" multiple size="5">{% for exam in content_exams %}<option value="{{ exam.id }}">{{ exam.name }}</option>{% endfor %}</select>
+                </div>
+              {% elif section.key == "practice" %}
+                <div class="form-group">
+                  <label>Practice Test exams</label>
+                  <select name="content_exam_ids_practice" multiple size="5">{% for exam in content_exams %}<option value="{{ exam.id }}">{{ exam.name }}</option>{% endfor %}</select>
+                </div>
+              {% elif section.key == "document" %}
+                <div class="form-group">
+                  <label>Browse for one or more documents</label>
+                  <input type="file" name="content_files" multiple accept=".pdf,.doc,.docx,.txt" />
+                </div>
+              {% elif section.key == "image" %}
+                <div class="form-group">
+                  <label>Browse for one or more images</label>
+                  <input type="file" name="content_files" multiple accept="image/*" />
+                </div>
+              {% endif %}
+              <button type="submit" class="btn btn-primary">Add to this folder</button>
+            </form>
+          </div>
+        {% empty %}
+          <p class="content-note">No folders in {{ section.label }} yet.</p>
+        {% endfor %}
+
+        {% if section.loose %}
+          <h5 style="margin:14px 0 8px;">Not in a folder</h5>
+          {% include "admin_panel/_partials/course_content_nodes.html" with nodes=section.loose course=course %}
+        {% endif %}
+      </section>
+    {% endfor %}
+
+    {% if unsectioned_folders %}
+      <section class="kind-section">
+        <h4>Older folders</h4>
+        <p class="content-note">These folders were created before sections. New folders belong to one section above.</p>
+        {% include "admin_panel/_partials/course_content_nodes.html" with nodes=unsectioned_folders course=course %}
+      </section>
+    {% endif %}
   {% endif %}
 </div>

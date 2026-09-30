@@ -743,6 +743,7 @@
         <div class="nav-center" id="navCenter">
           <a href="{% url 'courses:home' %}" class="nav-link {% if request.path == '/' %}is-active{% endif %}">Home</a>
           <a href="{% url 'courses:courses_list' %}" class="nav-link {% if '/courses/' in request.path %}is-active{% endif %}">Courses</a>
+          <a href="{% url 'courses:cart' %}" class="nav-link {% if '/cart/' in request.path %}is-active{% endif %}">Cart{% if cart_count %} ({{ cart_count }}){% endif %}</a>
           <a href="{% url 'courses:past_papers' %}" class="nav-link {% if '/past-papers/' in request.path %}is-active{% endif %}">Past Papers</a>
           {% if can_use_exam_builder %}
             <a href="{% url 'courses:student_exams' %}" class="nav-link {% if '/my-exams/' in request.path %}is-active{% endif %}">My Exams</a>

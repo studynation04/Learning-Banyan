@@ -25,11 +25,14 @@ def user_roles(request):
             except Exception:
                 is_student = False
 
+        from courses.cart import cart_count
+
         return {
             "is_admin_user": is_admin,
             "is_student_user": is_student,
             # Student pages + exam builder: open to students and admins
             "can_use_exam_builder": is_admin or is_student,
+            "cart_count": cart_count(request),
         }
     except Exception:
         # Never 500 an entire page because role flags failed
@@ -37,4 +40,5 @@ def user_roles(request):
             "is_admin_user": False,
             "is_student_user": False,
             "can_use_exam_builder": False,
+            "cart_count": 0,
         }

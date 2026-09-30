@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Cart - Learning Banyan{% endblock %}
+
+{% block extra_css %}
+<style>
+  .cart-page { max-width: 880px; margin: 0 auto 3rem; }
+  .cart-page h1 { color: #17324d; margin: 0 0 1rem; }
+  .cart-note { color: #64748b; margin: 0 0 1.25rem; }
+  .cart-card {
+    background: #fff;
+    border: 1px solid #e3ebf1;
+    border-radius: 14px;
+    padding: 1rem 1.1rem;
+    margin-bottom: 0.8rem;
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+  }
+  .cart-card h2 { margin: 0 0 0.25rem; font-size: 1.05rem; color: #17324d; }
+  .cart-card p { margin: 0; color: #64748b; }
+  .cart-total { font-size: 1.15rem; font-weight: 700; color: #17324d; margin: 1rem 0; }
+  .cart-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+  .cart-empty { padding: 1.5rem; border: 1px dashed #d5e0ea; border-radius: 14px; color: #64748b; }
+  @media (max-width: 640px) {
+    .cart-card { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cart-page">
+  <h1>Your cart</h1>
+  {% if messages %}
+    {% for message in messages %}<p class="cart-note">{{ message }}</p>{% endfor %}
+  {% endif %}
+  <p class="cart-note">Checkout enrolls you in these courses. Study materials open only for the courses you enroll in.</p>
+
+  {% if cart_courses %}
+    {% for course in cart_courses %}
+      <article class="cart-card">
+        <div>
+          <h2>{{ course.title }}</h2>
+          <p>
+            {% if course.price %}₹ {{ course.sale_price }}{% if course.discount %} <del>₹ {{ course.price }}</del>{% endif %}{% else %}Free{% endif %}
+            · {{ course.category.name }}
+          </p>
+        </div>
+        <form method="post" action="{% url 'courses:remove_from_cart' course.id %}">{% csrf_token %}
+          <button type="submit" class="btn btn-secondary">Remove</button>
+        </form>
+      </article>
+    {% endfor %}
+    <p class="cart-total">Total: {% if cart_total %}₹ {{ cart_total }}{% else %}Free{% endif %}</p>
+    <div class="cart-actions">
+      <form method="post" action="{% url 'courses:checkout_cart' %}">{% csrf_token %}
+        <button type="submit" class="btn">Checkout and enroll</button>
+      </form>
+      <a href="{% url 'courses:courses_list' %}" class="btn btn-secondary">Continue browsing</a>
+    </div>
+  {% else %}
+    <div class="cart-empty">
+      <p>Your cart is empty.</p>
+      <a href="{% url 'courses:courses_list' %}" class="btn">Browse courses</a>
+    </div>
+  {% endif %}
+
+  {% if enrolled_courses %}
+    <h2 style="margin:2rem 0 0.8rem; color:#17324d; font-size:1.15rem;">Your enrolled courses</h2>
+    {% for course in enrolled_courses %}
+      <article class="cart-card">
+        <div>
+          <h2>{{ course.title }}</h2>
+          <p>Study materials are open for this course.</p>
+        </div>
+        <a href="{% url 'courses:course_detail' course.id %}?tab=materials" class="btn">Open materials</a>
+      </article>
+    {% endfor %}
+  {% endif %}
+</div>
+{% endblock %}

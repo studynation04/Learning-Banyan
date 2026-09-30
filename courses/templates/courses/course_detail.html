@@ -11,6 +11,8 @@
     max-width: 1100px;
     margin: 0 auto;
     min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
   .cd-hero {
     display: grid;
@@ -64,7 +66,7 @@
   .cd-tabs .tab-button { padding:.78rem 1rem; border:0; border-radius:8px; margin:0; font-size:.9rem; font-weight:650; color:#64798b; transition:background .15s ease,color .15s ease,box-shadow .15s ease; }
   .cd-tabs .tab-button:hover { color:#17688f; background:#eaf2f6; }
   .cd-tabs .tab-button.active { color:#155f83; background:#fff; box-shadow:0 2px 7px rgba(27,59,84,.1); border:0; }
-  .cd-panel { background:#fff; padding:clamp(1.1rem,2.5vw,2rem); border:1px solid var(--cd-line); border-radius:16px; box-shadow:0 8px 24px rgba(31,61,84,.045); }
+  .cd-panel { min-width:0; overflow-wrap:anywhere; word-break:break-word; background:#fff; padding:clamp(1.1rem,2.5vw,2rem); border:1px solid var(--cd-line); border-radius:16px; box-shadow:0 8px 24px rgba(31,61,84,.045); }
   .cd-panel > h2 { color:var(--cd-ink) !important; font-size:1.2rem; margin:0 0 1.2rem !important; }
   .cd-panel h3 { color:#294c69 !important; font-size:1rem; }
   .cd-panel ul { color:#5f7487; padding-left:1.25rem; }
@@ -91,10 +93,11 @@
   .cd-market-hero { position:relative; isolation:isolate; width:100vw; margin:0 calc(50% - 50vw) 2rem; padding:2.5rem max(calc((100vw - 1220px)/2),24px); color:#fff; background:radial-gradient(ellipse at 78% 5%,rgba(36,110,148,.22),transparent 38%),linear-gradient(115deg,#17191e,#20242a 68%,#171a20); }
   .cd-market-hero::after { content:""; position:absolute; z-index:-1; right:9%; top:-150px; width:350px; height:350px; border:1px solid rgba(255,255,255,.055); border-radius:50%; box-shadow:0 0 0 45px rgba(255,255,255,.018),0 0 0 95px rgba(255,255,255,.012); }
   .cd-market-inner { display:grid; grid-template-columns:minmax(0,1fr) 360px; gap:3rem; align-items:center; max-width:1220px; margin:0 auto; }
-  .cd-market-copy { max-width:760px; overflow-wrap:anywhere; word-break:break-word; }
-  .cd-market-category { margin-bottom:.8rem; color:#c5d6e1; font-size:.83rem; font-weight:600; }
-  .cd-market-title { max-width:760px; margin:0 0 .85rem; color:#fff; font-size:clamp(2rem,4vw,3rem); line-height:1.12; letter-spacing:-.035em; }
-  .cd-market-description { max-width:720px; margin:0 0 1rem; color:#d1d6dc; font-size:1.05rem; line-height:1.55; }
+  .cd-market-inner > * { min-width:0; max-width:100%; }
+  .cd-market-copy { min-width:0; max-width:min(760px,100%); overflow-wrap:anywhere; word-break:break-word; }
+  .cd-market-category { margin-bottom:.8rem; color:#c5d6e1; font-size:.83rem; font-weight:600; overflow-wrap:anywhere; word-break:break-word; }
+  .cd-market-title { min-width:0; max-width:min(760px,100%); margin:0 0 .85rem; color:#fff; font-size:clamp(2rem,4vw,3rem); line-height:1.12; letter-spacing:-.035em; overflow-wrap:anywhere; word-break:break-word; }
+  .cd-market-description { min-width:0; max-width:min(720px,100%); margin:0 0 1rem; color:#d1d6dc; font-size:1.05rem; line-height:1.55; overflow-wrap:anywhere; word-break:break-word; }
   .cd-market-rating { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; margin:1rem 0; color:#f6c667; font-size:.92rem; }
   .cd-market-rating a, .cd-market-instructor a { color:#b9d9f0; }
   .cd-market-instructor { color:#d4d7dc; font-size:.88rem; }
@@ -119,6 +122,54 @@
   .cd-course-sections { margin-top:0 !important; }
   .cd-course-sections .cd-tabs { position:sticky; top:78px; z-index:5; }
   .cd-course-sections .cd-panel { max-width:920px; }
+  .cd-actions form { margin:0; }
+  .cd-messages { margin:0 0 1rem; }
+  .cd-messages p { margin:0 0 .45rem; padding:.7rem .9rem; border-radius:10px; background:#e8f6ee; color:#14643a; font-weight:650; }
+  .cd-lock { padding:1.25rem 1.3rem; border:1px dashed #c9d8e4; border-radius:12px; background:#f7fbfd; }
+  .cd-lock h3 { margin:0 0 .35rem; color:#1d3e5a; }
+  .cd-lock p { margin:0 0 1rem; color:#5f7487; }
+  .cd-lock form { max-width:280px; }
+  .study-folder-list { display:flex; flex-direction:column; gap:.55rem; margin:0 0 1rem; min-width:0; max-width:100%; }
+  .study-folder-item { min-width:0; max-width:100%; }
+  .study-folder-pick {
+    display:flex; align-items:center; gap:.75rem; width:100%; min-width:0; max-width:100%;
+    padding:.9rem 1rem; border:1px solid #e5edf2; border-left:4px solid #1593a9;
+    border-radius:12px; background:#fff; color:#1d3e5a; font:inherit; font-weight:700;
+    text-align:left; cursor:pointer;
+  }
+  .study-folder-pick.is-selected { background:#f3fbfd; border-color:#1593a9; }
+  .study-folder-panel { margin-top:.35rem; min-width:0; max-width:100%; overflow-wrap:anywhere; word-break:break-word; }
+  .study-folder-panel[hidden] { display:none; }
+  .study-folder, .study-file { min-width:0; max-width:100%; overflow-wrap:anywhere; word-break:break-word; border:1px solid #e5edf2; border-radius:12px; margin:0 0 .75rem; background:#fff; }
+  .study-folder { border-left:4px solid #1593a9; }
+  .study-folder > summary, .study-file > summary { display:flex; align-items:center; gap:.75rem; min-width:0; max-width:100%; padding:.9rem 1rem; cursor:pointer; list-style:none; }
+  .study-folder > summary::-webkit-details-marker, .study-file > summary::-webkit-details-marker { display:none; }
+  .study-folder-name, .study-file-title { min-width:0; flex:1 1 auto; color:#1d3e5a; font-weight:700; overflow-wrap:anywhere; word-break:break-word; }
+  .study-folder-meta { margin-left:auto; flex:0 0 auto; color:#61788b; font-size:.8rem; font-weight:650; }
+  .study-folder-body, .study-file-body, .study-empty { min-width:0; max-width:100%; overflow-wrap:anywhere; word-break:break-word; }
+  .study-folder-body { padding:0 .85rem .85rem 1rem; }
+  .study-file-body { padding:0 1rem 1rem; }
+  .study-type { display:inline-flex; flex:0 0 auto; justify-content:center; min-width:4.2rem; padding:.15rem .5rem; border-radius:999px; font-size:.72rem; font-weight:750; letter-spacing:.04em; text-transform:uppercase; }
+  .study-type-video { background:#e7f1fb; color:#1d5f93; }
+  .study-type-pdf { background:#f8efe3; color:#8a5a12; }
+  .study-type-test { background:#f3eef8; color:#6a4a96; }
+  .study-type-image { background:#e7f6f2; color:#1d6b58; }
+  .study-empty { margin:.2rem 0 .4rem; color:#7b8c9a; }
+  .yt-lock { position:relative; margin-top:.75rem; padding-top:56.25%; border-radius:10px; overflow:hidden; background:#0f172a; }
+  .yt-lock iframe { position:absolute; inset:0; width:100%; height:100%; border:0; pointer-events:none; }
+  .yt-shield { position:absolute; inset:0 0 46px; z-index:2; cursor:pointer; user-select:none; background:linear-gradient(#0f172a 0, rgba(15,23,42,.45) 34px, rgba(15,23,42,0) 62px); }
+  .yt-shield::after { content:"▶"; position:absolute; left:50%; top:46%; display:grid; place-items:center; width:64px; height:64px; padding-left:4px; transform:translate(-50%,-50%); border-radius:50%; background:rgba(255,255,255,.94); color:#17324d; font-size:1.35rem; box-shadow:0 8px 22px rgba(0,0,0,.28); }
+  .yt-lock.is-playing .yt-shield::after { display:none; }
+  .yt-lock.is-ended .yt-shield { background:#0f172a; }
+  .yt-lock.is-ended .yt-shield::after { content:"Replay"; width:auto; height:auto; padding:.7rem 1.15rem; font-size:.95rem; font-weight:750; }
+  .yt-controls { position:absolute; left:0; right:0; bottom:0; z-index:3; display:flex; align-items:center; gap:.65rem; height:46px; padding:0 .75rem; background:#0f172a; color:#fff; }
+  .yt-play { flex:0 0 auto; border:0; border-radius:999px; background:#fff; color:#17324d; font:inherit; font-size:.82rem; font-weight:750; padding:.35rem .8rem; cursor:pointer; }
+  .yt-seek { flex:1 1 auto; min-width:0; accent-color:#7dd3e8; }
+  .yt-time { flex:0 0 auto; font-size:.75rem; font-variant-numeric:tabular-nums; color:#d5dde6; }
+  @media (max-width:560px) {
+    .study-folder > summary, .study-file > summary, .study-folder-pick { flex-wrap:wrap; }
+    .study-folder-meta { margin-left:0; }
+  }
   @media (max-width:900px) { .cd-market-inner { grid-template-columns:minmax(0,1fr) 320px; gap:1.5rem; } .cd-market-hero { padding-top:2rem; padding-bottom:2rem; } }
   @media (max-width:720px) { .cd-market-inner { grid-template-columns:1fr; gap:1.2rem; } .cd-market-card { max-width:480px; width:100%; margin:0 auto; } .cd-market-title { font-size:2rem; } .cd-market-hero { padding:1.6rem 18px; } }
   @media (max-width:800px) { .cd-hero { grid-template-columns:1fr; } .cd-copy { grid-row:1; } }
@@ -128,6 +179,11 @@
 
 {% block content %}
 <div class="cd-page">
+  {% if messages %}
+    <div class="cd-messages">
+      {% for message in messages %}<p>{{ message }}</p>{% endfor %}
+    </div>
+  {% endif %}
   <div class="cd-backlink" style="margin-bottom: 2rem;">
     <a href="/courses/" style="color: #1078B0; text-decoration: none;">← Back to Courses</a>
   </div>
@@ -154,7 +210,13 @@
           <div class="cd-market-price">{% if course.price %}₹ {{ course.sale_price }}{% else %}Free{% endif %}{% if course.discount %}<del>₹ {{ course.price }}</del>{% endif %}</div>
           {% if course.expires_on %}<p class="cd-market-access">Access available until {{ course.expires_on|date:"d M Y" }}</p>{% else %}<p class="cd-market-access">Full lifetime access</p>{% endif %}
           <div class="cd-actions">
-            <button class="btn cd-primary-action">Enroll Now</button>
+            {% if is_enrolled %}
+              <button type="button" class="btn cd-primary-action" onclick="showTab('materials', document.querySelector('[aria-controls=materials]'))">Go to study materials</button>
+            {% elif in_cart %}
+              <a href="{% url 'courses:cart' %}" class="btn cd-primary-action">Go to cart</a>
+            {% else %}
+              <form method="post" action="{% url 'courses:add_to_cart' course.id %}">{% csrf_token %}<button type="submit" class="btn cd-primary-action">Add to cart</button></form>
+            {% endif %}
             <button class="btn btn-secondary cd-secondary-action">Add to Wishlist</button>
           </div>
           <ul class="cd-market-includes"><li><strong>Course includes:</strong></li>{% if study_video_count %}<li>✓ {{ study_video_count }} video lessons and study resources</li>{% endif %}{% if question_exam_count %}<li>✓ {{ question_exam_count }} exams and question bank items</li>{% endif %}{% if course_content_count %}<li>✓ {{ course_content_count }} documents and images</li>{% endif %}<li>✓ {% if course.expires_on %}Access until {{ course.expires_on|date:"d M Y" }}{% else %}Lifetime access{% endif %}</li></ul>
@@ -223,7 +285,13 @@
       </div>
 
       <div class="cd-actions">
-        <button class="btn cd-primary-action">Enroll Now</button>
+        {% if is_enrolled %}
+          <button type="button" class="btn cd-primary-action" onclick="showTab('materials', document.querySelector('[aria-controls=materials]'))">Go to study materials</button>
+        {% elif in_cart %}
+          <a href="{% url 'courses:cart' %}" class="btn cd-primary-action">Go to cart</a>
+        {% else %}
+          <form method="post" action="{% url 'courses:add_to_cart' course.id %}">{% csrf_token %}<button type="submit" class="btn cd-primary-action">Add to cart</button></form>
+        {% endif %}
         <button class="btn btn-secondary cd-secondary-action">Add to Wishlist</button>
       </div>
     </div>
@@ -233,9 +301,7 @@
   <div style="margin-top: 3rem;">
     <div class="cd-tabs" role="tablist" aria-label="Course information">
       <button type="button" role="tab" aria-selected="{% if default_course_tab == 'overview' %}true{% else %}false{% endif %}" aria-controls="overview" onclick="showTab('overview', this)" class="tab-button{% if default_course_tab == 'overview' %} active{% endif %}">Overview</button>
-      <button type="button" role="tab" aria-selected="{% if default_course_tab == 'content' %}true{% else %}false{% endif %}" aria-controls="content" onclick="showTab('content', this)" class="tab-button{% if default_course_tab == 'content' %} active{% endif %}">Course Content{% if course_content_count %} ({{ course_content_count }}){% endif %}</button>
-      <button type="button" role="tab" aria-selected="{% if default_course_tab == 'materials' %}true{% else %}false{% endif %}" aria-controls="materials" onclick="showTab('materials', this)" class="tab-button{% if default_course_tab == 'materials' %} active{% endif %}">Study Materials{% if study_video_count %} ({{ study_video_count }}){% endif %}</button>
-      <button type="button" role="tab" aria-selected="{% if default_course_tab == 'questions' %}true{% else %}false{% endif %}" aria-controls="questions" onclick="showTab('questions', this)" class="tab-button{% if default_course_tab == 'questions' %} active{% endif %}">Question Banks{% if question_exam_count %} ({{ question_exam_count }}){% endif %}</button>
+      <button type="button" role="tab" aria-selected="{% if default_course_tab == 'materials' %}true{% else %}false{% endif %}" aria-controls="materials" onclick="showTab('materials', this)" class="tab-button{% if default_course_tab == 'materials' %} active{% endif %}">Study materials{% if material_count %} ({{ material_count }}){% endif %}</button>
     </div>
 
     <!-- Overview Tab -->
@@ -304,59 +370,90 @@
       </div>
     </div>
 
-    <!-- Content Tab -->
-    <div id="content" class="tab-content" style="display: {% if default_course_tab == 'content' %}block{% else %}none{% endif %};" aria-hidden="{% if default_course_tab == 'content' %}false{% else %}true{% endif %}">
-      <div class="cd-panel cd-content-list">
-        <h2 style="color: #333; margin-bottom: 1.5rem;">Course Content</h2>
-        {% if course_content_tree %}
-          {% include "courses/_course_content_nodes.html" with nodes=course_content_tree %}
-        {% else %}
-          <p style="color: #999;">No folders, documents, or images have been added yet.</p>
-        {% endif %}
-      </div>
-    </div>
-
-    <!-- Materials Tab -->
     <div id="materials" class="tab-content" style="display: {% if default_course_tab == 'materials' %}block{% else %}none{% endif %};" aria-hidden="{% if default_course_tab == 'materials' %}false{% else %}true{% endif %}">
       <div class="cd-panel cd-content-list">
-        <h2 style="color: #333; margin-bottom: 1.5rem;">Study Materials</h2>
-        {% if study_video_tree %}
-          {% include "courses/_course_content_nodes.html" with nodes=study_video_tree %}
-        {% endif %}
-        {% if course.study_materials.all %}
-          <div class="grid" style="grid-template-columns: 1fr;">
-            {% for material in course.study_materials.all %}
-              <div style="padding: 1rem; border: 1px solid #ddd; border-radius: 4px;">
-                <div style="display: flex; justify-content: space-between; align-items: start;">
-                  <div style="flex: 1;">
-                    <h4 style="color: #1078B0; margin-bottom: 0.5rem;">{{ material.title }}</h4>
-                    <p style="color: #999; font-size: 0.9rem; margin-bottom: 0.5rem;">Type: {{ material.get_material_type_display }}</p>
-                    {% if material.description %}
-                      <p style="color: #666;">{{ material.description }}</p>
-                    {% endif %}
-                    <div style="color: #999; font-size: 0.85rem; margin-top: 0.5rem;">📄 {{ material.file_size }} KB</div>
+        <h2 style="color: #333; margin-bottom: 1.5rem;">Study materials</h2>
+        {% if not can_view_materials %}
+          <div class="cd-lock">
+            <h3>Add this course to your cart</h3>
+            <p>Videos, PDFs, and tests stay locked until you check out and enroll. After enrollment, only this course’s folders are opened for you.</p>
+            {% if in_cart %}
+              <a href="{% url 'courses:cart' %}" class="btn cd-primary-action">Go to cart</a>
+            {% else %}
+              <form method="post" action="{% url 'courses:add_to_cart' course.id %}">{% csrf_token %}<button type="submit" class="btn cd-primary-action">Add to cart</button></form>
+            {% endif %}
+            {% if not user.is_authenticated %}
+              <p style="margin-top:.75rem;">New here? <a href="{% url 'courses:student_signup' %}" style="color:#1078B0; font-weight:700;">Create a student account</a></p>
+            {% endif %}
+          </div>
+        {% else %}
+          <div id="studyLibrary">
+            {% for group in study_folder_groups %}
+              <h3 style="margin:1.25rem 0 .75rem;">{{ group.label }}</h3>
+              <div class="study-folder-list">
+                {% for folder in group.folders %}
+                  <div class="study-folder-item">
+                    <button type="button" class="study-folder-pick" data-folder-target="{{ folder.pick_id }}" aria-controls="folder-panel-{{ folder.pick_id }}" aria-pressed="false">
+                      <span class="study-folder-name">{{ folder.title }}</span>
+                      <span class="study-folder-meta">{{ folder.folder_summary }}</span>
+                    </button>
+                    <div class="study-folder-panel" id="folder-panel-{{ folder.pick_id }}" hidden>
+                      {% if folder.child_nodes %}
+                        {% include "courses/_study_folder_nodes.html" with nodes=folder.child_nodes %}
+                      {% else %}
+                        <p class="study-empty">This folder is empty.</p>
+                      {% endif %}
+                    </div>
                   </div>
-                  <span style="color: #999; font-style: italic;">(View only)</span>
-                </div>
+                {% endfor %}
               </div>
             {% endfor %}
           </div>
-        {% elif not study_video_tree %}
-          <p style="color: #999;">No study materials available yet.</p>
-        {% endif %}
-      </div>
-    </div>
-
-    <!-- Questions Tab -->
-    <div id="questions" class="tab-content" style="display: {% if default_course_tab == 'questions' %}block{% else %}none{% endif %};" aria-hidden="{% if default_course_tab == 'questions' %}false{% else %}true{% endif %}">
-      <div class="cd-panel cd-content-list">
-        <h2 style="color: #333; margin-bottom: 1.5rem;">Question Banks</h2>
-        {% if question_exam_tree %}
-          {% include "courses/_course_content_nodes.html" with nodes=question_exam_tree %}
-        {% endif %}
-        {% if course.question_banks.all %}
-          <div class="grid" style="grid-template-columns: 1fr;">
-            {% for bank in course.question_banks.all %}
+          <script>
+            (function () {
+              var library = document.getElementById("studyLibrary");
+              if (!library) return;
+              library.querySelectorAll(".study-folder-pick").forEach(function (button) {
+                button.addEventListener("click", function () {
+                  var target = button.getAttribute("data-folder-target");
+                  var selected = button.getAttribute("aria-pressed") === "true";
+                  library.querySelectorAll(".study-folder-pick").forEach(function (item) {
+                    item.setAttribute("aria-pressed", "false");
+                    item.classList.remove("is-selected");
+                  });
+                  library.querySelectorAll(".study-folder-panel").forEach(function (panel) {
+                    panel.hidden = true;
+                  });
+                  if (selected) return;
+                  button.setAttribute("aria-pressed", "true");
+                  button.classList.add("is-selected");
+                  var panel = document.getElementById("folder-panel-" + target);
+                  if (panel) panel.hidden = false;
+                });
+              });
+            })();
+          </script>
+          {% if course.study_materials.all %}
+            <h3 style="margin:1.25rem 0 .75rem;">Notes library</h3>
+            <div class="grid" style="grid-template-columns: 1fr;">
+              {% for material in course.study_materials.all %}
+                <div class="study-file" style="padding: 1rem;">
+                  <span class="study-type study-type-pdf">{{ material.get_material_type_display }}</span>
+                  <strong class="study-file-title">{{ material.title }}</strong>
+                  {% if material.description %}
+                    <p style="color: #666; margin-top: 0.35rem;">{{ material.description }}</p>
+                  {% endif %}
+                  {% if material.file %}
+                    <p style="margin:0.55rem 0 0;"><a href="{{ material.file.url }}" style="color:#1078B0; font-weight:700;">Open file</a></p>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+          {% if course.question_banks.all %}
+            <h3 style="margin:1.25rem 0 .75rem;">Question banks</h3>
+            <div class="grid" style="grid-template-columns: 1fr;">
+              {% for bank in course.question_banks.all %}
               <div style="padding: 1rem; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;" onclick="toggleBank(this)">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                   <div style="flex: 1;">
@@ -400,8 +497,10 @@
               </div>
             {% endfor %}
           </div>
-        {% elif not question_exam_tree %}
-          <p style="color: #999;">No question banks available yet.</p>
+          {% endif %}
+          {% if not study_folder_groups and not course.study_materials.all and not course.question_banks.all %}
+            <p style="color: #999;">No study materials have been added yet.</p>
+          {% endif %}
         {% endif %}
       </div>
     </div>
@@ -531,6 +630,12 @@
   window.renderCoursePdfViewers = function () {
     document.querySelectorAll('[data-course-pdf]').forEach(renderViewer)
   }
+  document.addEventListener('toggle', function (event) {
+    var item = event.target
+    if (!item || !item.classList) return
+    if (!item.classList.contains('study-file') && !item.classList.contains('study-folder')) return
+    if (item.open) window.renderCoursePdfViewers()
+  }, true)
   window.addEventListener('load', window.renderCoursePdfViewers)
   window.addEventListener('resize', function () {
     document.querySelectorAll('[data-course-pdf][data-ready="true"]').forEach(function (viewer) {
@@ -554,6 +659,134 @@
       }
     })
   })
+})()
+</script>
+<script>
+(function () {
+  var players = {}
+
+  function post(iframe, func, args) {
+    if (!iframe || !iframe.contentWindow) return
+    iframe.contentWindow.postMessage(JSON.stringify({
+      event: "command",
+      func: func,
+      args: args || [],
+      id: iframe.id,
+      channel: "widget"
+    }), "*")
+  }
+
+  function handshake(iframe) {
+    if (!iframe || !iframe.contentWindow) return
+    iframe.contentWindow.postMessage(JSON.stringify({
+      event: "listening",
+      id: iframe.id,
+      channel: "widget"
+    }), "*")
+    post(iframe, "addEventListener", ["onReady"])
+    post(iframe, "addEventListener", ["onStateChange"])
+  }
+
+  function formatTime(seconds) {
+    seconds = Math.max(0, Math.floor(seconds || 0))
+    var minutes = Math.floor(seconds / 60)
+    var remain = seconds % 60
+    return minutes + ":" + (remain < 10 ? "0" : "") + remain
+  }
+
+  function bindPlayer(root) {
+    if (root.getAttribute("data-yt-bound") === "true") return
+    var iframe = root.querySelector("iframe")
+    var play = root.querySelector("[data-yt-play]")
+    var seek = root.querySelector("[data-yt-seek]")
+    var time = root.querySelector("[data-yt-time]")
+    var shield = root.querySelector(".yt-shield")
+    if (!iframe || !iframe.id) return
+    root.setAttribute("data-yt-bound", "true")
+    var player = { root: root, iframe: iframe, play: play, seek: seek, time: time, state: -1, duration: 0, current: 0, seeking: false }
+    players[iframe.id] = player
+
+    function paint() {
+      var playing = player.state === 1
+      var ended = player.state === 0
+      root.classList.toggle("is-playing", playing)
+      root.classList.toggle("is-ended", ended)
+      if (play) play.textContent = playing ? "Pause" : (ended ? "Replay" : "Play")
+      if (time) time.textContent = formatTime(player.current) + " / " + formatTime(player.duration)
+      if (seek && player.duration && !player.seeking) {
+        seek.value = String(Math.round((player.current / player.duration) * 1000))
+      }
+    }
+
+    function toggle() {
+      if (player.state === 0) {
+        post(iframe, "seekTo", [0, true])
+        post(iframe, "playVideo")
+        player.state = 1
+        player.current = 0
+      } else if (player.state === 1) {
+        post(iframe, "pauseVideo")
+        player.state = 2
+      } else {
+        post(iframe, "playVideo")
+        player.state = 1
+      }
+      paint()
+    }
+
+    player.onMessage = function (data) {
+      if (data.event === "onStateChange") {
+        player.state = typeof data.info === "number" ? data.info : player.state
+      }
+      if (data.event === "infoDelivery" && data.info && typeof data.info === "object") {
+        if (typeof data.info.playerState === "number") player.state = data.info.playerState
+        if (typeof data.info.duration === "number" && data.info.duration > 0) player.duration = data.info.duration
+        if (typeof data.info.currentTime === "number" && !player.seeking) player.current = data.info.currentTime
+      }
+      paint()
+    }
+
+    iframe.addEventListener("load", function () {
+      handshake(iframe)
+      window.setTimeout(function () { handshake(iframe) }, 400)
+    })
+    if (play) play.addEventListener("click", toggle)
+    if (shield) {
+      shield.addEventListener("click", toggle)
+      shield.addEventListener("dblclick", function (event) { event.preventDefault() })
+      shield.addEventListener("contextmenu", function (event) { event.preventDefault() })
+      shield.addEventListener("auxclick", function (event) { event.preventDefault() })
+    }
+    if (seek) {
+      seek.addEventListener("pointerdown", function () { player.seeking = true })
+      seek.addEventListener("input", function () {
+        player.seeking = true
+        if (player.duration) player.current = (Number(seek.value) / 1000) * player.duration
+        paint()
+      })
+      seek.addEventListener("change", function () {
+        if (player.duration) {
+          player.current = (Number(seek.value) / 1000) * player.duration
+          post(iframe, "seekTo", [player.current, true])
+        }
+        player.seeking = false
+        paint()
+      })
+    }
+    paint()
+  }
+
+  window.addEventListener("message", function (event) {
+    if (event.origin !== "https://www.youtube.com" && event.origin !== "https://www.youtube-nocookie.com") return
+    var data = event.data
+    if (typeof data === "string") {
+      try { data = JSON.parse(data) } catch (error) { return }
+    }
+    if (!data || !data.id || !players[data.id]) return
+    players[data.id].onMessage(data)
+  })
+
+  document.querySelectorAll("[data-yt-player]").forEach(bindPlayer)
 })()
 </script>
 {% endblock %}

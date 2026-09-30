@@ -162,6 +162,14 @@ class CourseContent(models.Model):
         ("document", "Document"),
         ("image", "Image"),
     ]
+    SECTION_TYPES = [
+        ("video", "Videos"),
+        ("quiz", "Online Test/Quiz"),
+        ("subjective", "Subjective Test"),
+        ("practice", "Practice Test"),
+        ("document", "Document"),
+        ("image", "Image"),
+    ]
 
     course = models.ForeignKey(
         Course, on_delete=models.CASCADE, related_name="contents"
@@ -174,6 +182,12 @@ class CourseContent(models.Model):
         related_name="children",
     )
     content_type = models.CharField(max_length=20, choices=CONTENT_TYPES)
+    section = models.CharField(
+        max_length=20,
+        blank=True,
+        default="",
+        help_text="Which course-content section a folder or item belongs to.",
+    )
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True, default="")
     file = models.FileField(upload_to="course_content/", null=True, blank=True)
@@ -228,7 +242,127 @@ class CourseContent(models.Model):
         video_id = "".join(ch for ch in video_id if ch.isalnum() or ch in "-_")
         if not video_id:
             return ""
-        return f"https://www.youtube.com/embed/{video_id}"
+        # In-app player only: no YouTube controls, fullscreen, or keyboard shortcuts.
+        return (
+            "https://www.youtube-nocookie.com/embed/"
+            f"{video_id}?rel=0&modestbranding=1&iv_load_policy=3&playsinline=1"
+            "&controls=0&fs=0&disablekb=1&enablejsapi=1"
+        )
+
+    def material_kind(self):
+        """Student-facing file type shown inside a folder."""
+        if self.content_type == "video":
+            return "Video"
+        if self.content_type in {"quiz", "subjective", "practice"}:
+            return "Test"
+        if self.content_type == "document":
+            return "PDF"
+        if self.content_type == "image":
+            return "Image"
+        return ""
+
+    def is_pdf_preview(self):
+        if not self.file or not self.file.name:
+            return False
+        name = self.file.name.lower()
+        return name.endswith(".pdf") or name.endswith(".doc") or name.endswith(".docx")
+
+
+class CourseEnrollment(models.Model):
+    """A student who has enrolled in a course and may open its study materials."""
+
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="course_enrollments"
+    )
+    course = models.ForeignKey(
+        Course, on_delete=models.CASCADE, related_name="enrollments"
+    )
+    enrolled_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "course"], name="unique_course_enrollment"
+            )
+        ]
+        ordering = ["-enrolled_at"]
+
+    def __str__(self):
+        return f"{self.user.username} enrolled in {self.course.title}"
+
+
+class CartItem(models.Model):
+    """A course waiting in a shopper's cart."""
+
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="cart_items"
+    )
+    course = models.ForeignKey(
+        Course, on_delete=models.CASCADE, related_name="cart_items"
+    )
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "course"], name="unique_cart_course"
+            )
+        ]
+        ordering = ["-added_at"]
+
+    def __str__(self):
+        return f"{self.user.username} cart · {self.course.title}"
+
+
+class CourseOrder(models.Model):
+    """A checkout that enrolls the student in the cart courses."""
+
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="course_orders"
+    )
+    total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Order {self.pk} · {self.user.username}"
+
+
+class CourseOrderItem(models.Model):
+    order = models.ForeignKey(
+        CourseOrder, on_delete=models.CASCADE, related_name="items"
+    )
+    course = models.ForeignKey(
+        Course, on_delete=models.CASCADE, related_name="order_items"
+    )
+    course_title = models.CharField(max_length=200)
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    def __str__(self):
+        return self.course_title
+
+
+def next_numbered_label(existing_titles, prefix):
+    """Next 'Folder 1' or 'Title 2' that is not already in existing_titles."""
+    import re
+
+    pattern = re.compile(rf"^{re.escape(prefix)} (\d+)$")
+    numbers = []
+    for title in existing_titles:
+        match = pattern.match(str(title or "").strip())
+        if match:
+            numbers.append(int(match.group(1)))
+    number = max(numbers) + 1 if numbers else 1
+    return f"{prefix} {number}"
+
+
+def user_can_view_course_materials(user, course):
+    """Study materials open only after this user is enrolled in this course."""
+    if not user or not getattr(user, "is_authenticated", False):
+        return False
+    return course.enrollments.filter(user=user).exists()
 
 
 class StudyMaterial(models.Model):

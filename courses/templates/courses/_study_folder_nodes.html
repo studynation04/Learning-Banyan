@@ -1,0 +1,19 @@
+{% for node in nodes %}
+  {% if node.content_type == 'folder' %}
+    <details class="study-folder">
+      <summary>
+        <span class="study-folder-name">{{ node.title }}</span>
+        <span class="study-folder-meta">{{ node.folder_summary }}</span>
+      </summary>
+      <div class="study-folder-body">
+        {% if node.child_nodes %}
+          {% include "courses/_study_folder_nodes.html" with nodes=node.child_nodes %}
+        {% else %}
+          <p class="study-empty">This folder is empty.</p>
+        {% endif %}
+      </div>
+    </details>
+  {% else %}
+    {% include "courses/_study_file.html" with node=node %}
+  {% endif %}
+{% endfor %}
