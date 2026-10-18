@@ -322,6 +322,15 @@
     margin-bottom: 0.9rem;
   }
 
+  {% include 'courses/_testimonial_cards_css.html' %}
+
+  .tm-home-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin: 0 0 2.25rem;
+  }
+
   .rv-faq {
     margin: 1rem 0 2rem;
   }
@@ -515,6 +524,20 @@
         </li>
       </ol>
     </div>
+
+    {% if homepage_testimonials %}
+      <h2 class="sn-section-title">What students and parents say</h2>
+      <p class="sn-section-lead">Published after Learning Banyan reviews each story.</p>
+      <div class="tm-grid">
+        {% for item in homepage_testimonials %}
+          {% include 'courses/_testimonial_card.html' %}
+        {% endfor %}
+      </div>
+      <div class="tm-home-links">
+        <a href="{% url 'courses:testimonials' %}" class="btn">Read testimonials</a>
+        <a href="{% url 'courses:testimonial_share' %}" class="btn btn-secondary">Share your testimonial</a>
+      </div>
+    {% endif %}
 
     <h2 class="sn-section-title">Frequently asked questions</h2>
     <div class="rv-faq">

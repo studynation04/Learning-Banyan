@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views
+from . import testimonial_views, views
 
 app_name = "admin_panel"
 
@@ -202,5 +202,15 @@ urlpatterns = [
         "question-lists/<int:list_id>/reorder/",
         views.question_list_reorder,
         name="question_list_reorder",
+    ),
+    path(
+        "testimonials/",
+        testimonial_views.manage_testimonials,
+        name="manage_testimonials",
+    ),
+    path(
+        "testimonials/<int:testimonial_id>/",
+        testimonial_views.review_testimonial,
+        name="review_testimonial",
     ),
 ]

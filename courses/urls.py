@@ -45,6 +45,7 @@ from .views import (
     discussion_edit_reply,
     discussion_delete_reply,
 )
+from .testimonial_views import TestimonialListView, TestimonialShareView
 
 app_name = "courses"
 
@@ -66,6 +67,12 @@ urlpatterns = [
     path("resources/", ResourcesListView.as_view(), name="resources"),
     path("past-papers/", PastPapersView.as_view(), name="past_papers"),
     path("contact/", ContactView.as_view(), name="contact"),
+    path("testimonials/", TestimonialListView.as_view(), name="testimonials"),
+    path(
+        "testimonials/share/",
+        TestimonialShareView.as_view(),
+        name="testimonial_share",
+    ),
     path("blogs/", BlogListView.as_view(), name="blog_list"),
     path("blogs/<slug:slug>/", BlogDetailView.as_view(), name="blog_detail"),
     path("resources/<int:pk>/", ResourceDetailView.as_view(), name="resource_detail"),

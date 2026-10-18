@@ -1203,3 +1203,142 @@ class ContactMessage(models.Model):
 
     def __str__(self):
         return f"{self.subject} from {self.name}"
+
+
+class Testimonial(models.Model):
+    """A student or parent testimonial submitted for review before it is published."""
+
+    ROLE_STUDENT = "student"
+    ROLE_PARENT = "parent"
+    ROLE_CHOICES = [
+        (ROLE_STUDENT, "Student"),
+        (ROLE_PARENT, "Parent"),
+    ]
+
+    STATUS_PENDING = "pending"
+    STATUS_APPROVED = "approved"
+    STATUS_REJECTED = "rejected"
+    STATUS_CHOICES = [
+        (STATUS_PENDING, "Pending review"),
+        (STATUS_APPROVED, "Approved"),
+        (STATUS_REJECTED, "Rejected"),
+    ]
+
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+    name = models.CharField(max_length=150)
+    email = models.EmailField()
+    phone = models.CharField(max_length=40, blank=True)
+    student_name = models.CharField(
+        max_length=150,
+        blank=True,
+        help_text="For a parent submission, the student's name.",
+    )
+    class_or_course = models.CharField(max_length=200, blank=True)
+    rating = models.PositiveSmallIntegerField(null=True, blank=True)
+    message = models.TextField()
+    photo = models.ImageField(
+        upload_to="testimonials/photos/",
+        blank=True,
+        null=True,
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=["jpg", "jpeg", "png", "webp", "gif"]
+            )
+        ],
+    )
+    attachment = models.FileField(
+        upload_to="testimonials/files/",
+        blank=True,
+        null=True,
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=[
+                    "jpg",
+                    "jpeg",
+                    "png",
+                    "webp",
+                    "gif",
+                    "pdf",
+                    "mp4",
+                    "webm",
+                    "mov",
+                    "mp3",
+                    "m4a",
+                    "wav",
+                ]
+            )
+        ],
+    )
+    consent_to_publish = models.BooleanField(default=False)
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING
+    )
+    is_featured = models.BooleanField(default=False)
+    display_order = models.PositiveIntegerField(default=0)
+    admin_note = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    published_at = models.DateTimeField(null=True, blank=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    reviewed_by = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="reviewed_testimonials",
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Testimonial"
+        verbose_name_plural = "Testimonials"
+
+    def __str__(self):
+        return f"{self.name} ({self.get_role_display()})"
+
+    @property
+    def attachment_kind(self):
+        name = (self.attachment.name or "").lower()
+        if name.endswith((".jpg", ".jpeg", ".png", ".webp", ".gif")):
+            return "image"
+        if name.endswith((".mp4", ".webm", ".mov")):
+            return "video"
+        if name.endswith((".mp3", ".m4a", ".wav")):
+            return "audio"
+        if name.endswith(".pdf"):
+            return "pdf"
+        return ""
+
+    @property
+    def attachment_mime(self):
+        name = (self.attachment.name or "").lower()
+        kind = self.attachment_kind
+        if kind == "video":
+            if name.endswith(".webm"):
+                return "video/webm"
+            if name.endswith(".mov"):
+                return "video/quicktime"
+            return "video/mp4"
+        if kind == "audio":
+            if name.endswith(".wav"):
+                return "audio/wav"
+            if name.endswith(".m4a"):
+                return "audio/mp4"
+            return "audio/mpeg"
+        if kind == "pdf":
+            return "application/pdf"
+        return ""
+
+    def delete(self, *args, **kwargs):
+        stored = []
+        if self.photo:
+            stored.append((self.photo.storage, self.photo.name))
+        if self.attachment and self.attachment.name not in {name for _, name in stored}:
+            stored.append((self.attachment.storage, self.attachment.name))
+        super().delete(*args, **kwargs)
+        for storage, name in stored:
+            if not name:
+                continue
+            try:
+                storage.delete(name)
+            except OSError:
+                pass

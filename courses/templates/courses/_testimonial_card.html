@@ -1,0 +1,51 @@
+<article class="tm-card">
+  <div class="tm-top">
+    {% if item.photo %}
+      <img class="tm-photo" src="{{ item.photo.url }}" alt="Photo of {{ item.name }}" />
+    {% else %}
+      <span class="tm-avatar" aria-hidden="true">{{ item.name|first|upper }}</span>
+    {% endif %}
+    <div>
+      <h3 class="tm-name">{{ item.name }}</h3>
+      <p class="tm-role">
+        {{ item.get_role_display }}
+        {% if item.role == 'parent' and item.student_name %}
+          of {{ item.student_name }}
+        {% endif %}
+        {% if item.class_or_course %}
+          · {{ item.class_or_course }}
+        {% endif %}
+      </p>
+      {% if item.rating %}
+        <p class="tm-stars" aria-label="Rated {{ item.rating }} out of 5">
+          {% for star in "12345" %}
+            {% if forloop.counter <= item.rating %}★{% else %}☆{% endif %}
+          {% endfor %}
+        </p>
+      {% endif %}
+      {% if item.is_featured %}
+        <span class="tm-chip">Featured</span>
+      {% endif %}
+    </div>
+  </div>
+  {% if item.message %}
+    <blockquote>{{ item.message|linebreaksbr }}</blockquote>
+  {% endif %}
+  {% if item.attachment %}
+    <div class="tm-media">
+      {% if item.attachment_kind == 'image' %}
+        <img src="{{ item.attachment.url }}" alt="Testimonial from {{ item.name }}" />
+      {% elif item.attachment_kind == 'video' %}
+        <video controls preload="metadata">
+          <source src="{{ item.attachment.url }}" type="{{ item.attachment_mime }}" />
+        </video>
+      {% elif item.attachment_kind == 'audio' %}
+        <audio controls preload="metadata">
+          <source src="{{ item.attachment.url }}" type="{{ item.attachment_mime }}" />
+        </audio>
+      {% elif item.attachment_kind == 'pdf' %}
+        <a class="tm-file-link" href="{{ item.attachment.url }}" target="_blank" rel="noopener">View attached testimonial (PDF)</a>
+      {% endif %}
+    </div>
+  {% endif %}
+</article>

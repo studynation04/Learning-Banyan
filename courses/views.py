@@ -50,6 +50,7 @@ from .models import (
     ContactMessage,
     PastPaper,
 )
+from .testimonials import published_testimonials
 
 logger = logging.getLogger(__name__)
 from .forms import (
@@ -71,6 +72,7 @@ class HomeView(TemplateView):
         context = super().get_context_data(**kwargs)
         context["categories"] = CourseCategory.objects.all()
         context["featured_courses"] = Course.objects.all()[:6]
+        context["homepage_testimonials"] = published_testimonials()[:3]
         return context
 
 

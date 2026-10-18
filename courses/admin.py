@@ -26,6 +26,7 @@ from .models import (
     DiscussionReply,
     ContactMessage,
     StudentProfile,
+    Testimonial,
 )
 
 
@@ -521,6 +522,15 @@ class DiscussionPostAdmin(admin.ModelAdmin):
         return obj.replies.count()
 
     reply_count.short_description = "Replies"
+
+
+@admin.register(Testimonial)
+class TestimonialAdmin(admin.ModelAdmin):
+    list_display = ["name", "role", "status", "rating", "is_featured", "created_at"]
+    list_filter = ["status", "role", "is_featured", "created_at"]
+    search_fields = ["name", "email", "message", "student_name", "class_or_course"]
+    ordering = ["-created_at"]
+    readonly_fields = ["created_at", "published_at", "reviewed_at"]
 
 
 @admin.register(ContactMessage)

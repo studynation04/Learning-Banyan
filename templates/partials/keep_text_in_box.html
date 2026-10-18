@@ -1,0 +1,79 @@
+<style id="keep-text-in-box">
+  /*
+    Long words and pasted strings stay inside their box.
+    white-space: nowrap (nav, chips, buttons) is left unchanged.
+  */
+  main,
+  footer,
+  .main-content,
+  .login-container {
+    overflow-wrap: anywhere;
+  }
+
+  main :where(
+      p, li, h1, h2, h3, h4, h5, h6,
+      td, th, dd, blockquote, figcaption, label,
+      pre, textarea, article,
+      .card,
+      .pc-post, .pc-post-title, .pc-post-content, .pc-post-author, .pc-post-meta,
+      .pc-comment-bubble, .pc-comment-text, .pc-comment-author,
+      .question-text, .pq-question-text, .pq-option-text,
+      .eb-q-stem, .eb-opt-text, .eb-preview-body, .pr-review-text,
+      .bl-card, .bl-card-body, .bl-card-title, .bl-card-excerpt,
+      .rl-card, .rl-card-body, .rl-desc,
+      .course-card, .course-card-body, .course-card-desc,
+      .bd-content, .bd-title, .bd-excerpt,
+      .tm-card, .tm-name, .tm-role,
+      .cd-panel, .cd-market-copy, .study-folder, .study-file
+    ),
+  footer :where(p, li, h4, a),
+  .main-content :where(
+      p, li, h1, h2, h3, h4, h5, h6,
+      td, th, label, textarea, pre, article,
+      .card, .content-section, .header, .stat-card,
+      .question-item, .question-text, .question-meta, .preview,
+      .form-section, .alert, .empty-state
+    ),
+  .login-container :where(p, h1, h2, label) {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  main [class$="-grid"] > *,
+  main [class$="-card"],
+  .main-content [class$="-grid"] > *,
+  .main-content [class$="-card"] {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  main img,
+  main video,
+  main iframe,
+  main embed,
+  main object,
+  .main-content img,
+  .main-content video,
+  .main-content iframe,
+  .main-content embed,
+  .main-content object {
+    max-width: 100%;
+  }
+
+  main pre,
+  .main-content pre {
+    overflow-x: auto;
+    white-space: pre-wrap;
+  }
+
+  .katex,
+  .katex *,
+  mjx-container,
+  mjx-container * {
+    overflow-wrap: normal;
+    word-break: normal;
+    max-width: none;
+  }
+</style>

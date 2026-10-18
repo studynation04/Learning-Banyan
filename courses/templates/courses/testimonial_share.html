@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Share a Testimonial - Learning Banyan
+{% endblock %}
+
+{% block extra_css %}
+  <style>
+    .ts-page {
+      padding: 2.2rem 0 2.75rem;
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(240px, 0.7fr);
+      gap: 1.25rem;
+      align-items: start;
+    }
+
+    .ts-card {
+      background: #fff;
+      border: 1px solid var(--sn-line);
+      border-radius: 18px;
+      box-shadow: var(--sn-card-shadow);
+      padding: 1.4rem 1.4rem 1.5rem;
+    }
+
+    .ts-card h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.6rem, 2.4vw, 2rem);
+      color: var(--sn-navy);
+      letter-spacing: -0.02em;
+      margin-bottom: 0.45rem;
+    }
+
+    .ts-lead {
+      color: var(--sn-muted);
+      margin-bottom: 1.2rem;
+    }
+
+    .ts-role {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .ts-role label {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      border: 1px solid var(--sn-line);
+      border-radius: 999px;
+      padding: 0.4rem 0.8rem;
+      font-weight: 700;
+      color: var(--sn-navy);
+      cursor: pointer;
+    }
+
+    .ts-check {
+      display: flex;
+      gap: 0.55rem;
+      align-items: flex-start;
+      font-size: 0.94rem;
+      color: var(--sn-ink);
+    }
+
+    .ts-check input {
+      margin-top: 0.25rem;
+    }
+
+    .ts-side h2 {
+      font-size: 1.05rem;
+      color: var(--sn-navy);
+      margin-bottom: 0.55rem;
+    }
+
+    .ts-side ol {
+      margin: 0 0 1rem 1.1rem;
+      color: var(--sn-muted);
+    }
+
+    .ts-side li {
+      margin-bottom: 0.45rem;
+    }
+
+    .ts-hp {
+      position: absolute;
+      left: -10000px;
+      top: auto;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+    }
+
+    .ts-note {
+      font-size: 0.86rem;
+      color: var(--sn-muted);
+      margin-top: 0.35rem;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    #message {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    @media (max-width: 860px) {
+      .ts-page {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <div class="ts-page">
+    <div class="ts-card">
+      <h1>Share your testimonial</h1>
+      <p class="ts-lead">Students and parents can send a short story, a photo, or a video. We review it first, then publish it on the website.</p>
+
+      {% if messages %}
+        {% for message in messages %}
+          <p class="{% if message.tags == 'error' %}error{% else %}success{% endif %}">{{ message }}</p>
+        {% endfor %}
+      {% endif %}
+
+      <form method="post" action="{% url 'courses:testimonial_share' %}" enctype="multipart/form-data" autocomplete="off">
+        {% csrf_token %}
+        <div class="ts-hp" aria-hidden="true">
+          <label for="company">Company</label>
+          <input type="text" id="company" name="company" tabindex="-1" autocomplete="off" />
+        </div>
+
+        <div class="form-group">
+          <label>I am a *</label>
+          <div class="ts-role">
+            <label>
+              <input type="radio" name="role" value="student" {% if form_data.role != 'parent' %}checked{% endif %} />
+              Student
+            </label>
+            <label>
+              <input type="radio" name="role" value="parent" {% if form_data.role == 'parent' %}checked{% endif %} />
+              Parent
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="name">Your name *</label>
+          <input type="text" id="name" name="name" required maxlength="150" value="{{ form_data.name|default:'' }}" />
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email *</label>
+          <input type="email" id="email" name="email" required maxlength="254" value="{{ form_data.email|default:'' }}" />
+          <p class="ts-note">We use this to reach you if we need to confirm the testimonial. It is not shown on the website.</p>
+        </div>
+
+        <div class="form-group">
+          <label for="phone">Phone number</label>
+          <input type="tel" id="phone" name="phone" maxlength="40" value="{{ form_data.phone|default:'' }}" />
+        </div>
+
+        <div class="form-group" id="studentNameGroup">
+          <label for="student_name">Student's name</label>
+          <input type="text" id="student_name" name="student_name" maxlength="150" value="{{ form_data.student_name|default:'' }}" />
+          <p class="ts-note">Parents can add the student's name. It can be shown with the published testimonial.</p>
+        </div>
+
+        <div class="form-group">
+          <label for="class_or_course">Class, grade, or course</label>
+          <input type="text" id="class_or_course" name="class_or_course" maxlength="200" value="{{ form_data.class_or_course|default:'' }}" />
+        </div>
+
+        <div class="form-group">
+          <label for="rating">Rating</label>
+          <select id="rating" name="rating">
+            <option value="" {% if not form_data.rating %}selected{% endif %}>No rating</option>
+            {% for score in "12345" %}
+              <option value="{{ forloop.counter }}" {% if form_data.rating == forloop.counter %}selected{% endif %}>{{ forloop.counter }} star{% if forloop.counter != 1 %}s{% endif %}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="message">Testimonial *</label>
+          <textarea id="message" name="message" required minlength="20" maxlength="3000" rows="6">{{ form_data.message|default:'' }}</textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="photo">Photo</label>
+          <input type="file" id="photo" name="photo" accept=".jpg,.jpeg,.png,.webp,.gif,image/jpeg,image/png,image/webp,image/gif" />
+          <p class="ts-note">Optional portrait. JPG, PNG, WEBP, or GIF, up to 5 MB.</p>
+        </div>
+
+        <div class="form-group">
+          <label for="attachment">Upload a file</label>
+          <input type="file" id="attachment" name="attachment" accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,.mp4,.webm,.mov,.mp3,.m4a,.wav,image/*,video/mp4,video/webm,video/quicktime,application/pdf,audio/*" />
+          <p class="ts-note">Optional video, audio, image, or PDF of the testimonial, up to 30 MB.</p>
+        </div>
+
+        <div class="form-group">
+          <label class="ts-check">
+            <input type="checkbox" name="consent" value="yes" {% if form_data.consent %}checked{% endif %} required />
+            <span>I allow Learning Banyan to review this testimonial and publish my name, words, and uploaded files on the website.</span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn">Submit testimonial</button>
+      </form>
+    </div>
+
+    <aside class="ts-card ts-side">
+      <h2>What happens next</h2>
+      <ol>
+        <li>You send the testimonial on this page.</li>
+        <li>Learning Banyan checks the name, words, and any file you uploaded.</li>
+        <li>After it is approved, it appears on the testimonials page.</li>
+      </ol>
+      <p class="ts-note">Share this page with a student or parent: open <a href="{% url 'courses:testimonial_share' %}">this link</a> and send them the address from the browser.</p>
+      <p style="margin-top: 1rem;"><a href="{% url 'courses:testimonials' %}">See published testimonials</a></p>
+    </aside>
+  </div>
+  <script>
+    (function () {
+      var group = document.getElementById('studentNameGroup')
+      var radios = document.querySelectorAll('input[name="role"]')
+      if (!group || !radios.length) return
+      function sync() {
+        var parent = false
+        radios.forEach(function (radio) {
+          if (radio.checked && radio.value === 'parent') parent = true
+        })
+        group.style.display = parent ? '' : 'none'
+      }
+      radios.forEach(function (radio) {
+        radio.addEventListener('change', sync)
+      })
+      sync()
+    })()
+  </script>
+{% endblock %}

@@ -318,6 +318,11 @@
             <div class="stat-value">{{ total_registered_users }}</div>
             <div style="font-size: 12px; color: #1078B0; margin-top: 8px; font-weight: 600;">View list →</div>
           </a>
+          <a href="{% url 'admin_panel:manage_testimonials' %}" class="stat-card" style="text-decoration: none; color: inherit; display: block;">
+            <div class="stat-label">Testimonials to review</div>
+            <div class="stat-value">{{ pending_testimonials }}</div>
+            <div style="font-size: 12px; color: #1078B0; margin-top: 8px; font-weight: 600;">Review →</div>
+          </a>
           <div class="stat-card">
             <div class="stat-label">Total Questions</div>
             <div class="stat-value">{{ total_questions }}</div>
@@ -346,6 +351,7 @@
           <a href="{% url 'admin_panel:manage_courses' %}" class="action-btn secondary">📚 Manage Courses</a>
           <a href="{% url 'admin_panel:manage_categories' %}" class="action-btn">📁 Manage Categories</a>
           <a href="{% url 'admin_panel:manage_resources' %}" class="action-btn secondary">📦 Manage Resources</a>
+          <a href="{% url 'admin_panel:manage_testimonials' %}" class="action-btn">★ Testimonials</a>
         </div>
 
         <!-- Recent Uploads -->

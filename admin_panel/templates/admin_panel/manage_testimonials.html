@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Testimonials - Admin Panel</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #f5f7fa;
+        color: #333;
+      }
+      .dashboard-wrapper {
+        display: grid;
+        grid-template-columns: 250px 1fr;
+        min-height: 100vh;
+      }
+      .main-content {
+        margin-left: 250px;
+        padding: 40px;
+        min-width: 0;
+      }
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        background: white;
+        padding: 20px 25px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      .header h1 { font-size: 26px; color: #333; }
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+      .stat-card {
+        background: white;
+        padding: 18px 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border-left: 4px solid #1078B0;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+      }
+      .stat-card.is-on { border-left-color: #003870; background: #f3f8fc; }
+      .stat-label {
+        font-size: 12px;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 6px;
+      }
+      .stat-value { font-size: 28px; font-weight: 800; color: #1078B0; }
+      .content-section, .share-box {
+        background: white;
+        padding: 22px 25px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        margin-bottom: 24px;
+      }
+      .share-box h2, .content-section h2 {
+        font-size: 18px;
+        margin-bottom: 8px;
+        color: #003870;
+      }
+      .share-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+      .share-row input {
+        flex: 1;
+        min-width: 240px;
+        padding: 11px 14px;
+        border: 1px solid #d5e0ea;
+        border-radius: 6px;
+        font-size: 14px;
+      }
+      .search-row { display: flex; gap: 10px; margin: 14px 0 18px; flex-wrap: wrap; }
+      .search-row input[type="search"], .search-row select {
+        padding: 11px 14px;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        font-size: 14px;
+      }
+      .search-row input[type="search"] { flex: 1; min-width: 220px; }
+      .btn {
+        padding: 11px 16px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .btn-primary {
+        background: linear-gradient(165deg, #003870 0%, #053C74 50%, #1078B0 100%);
+        color: white;
+      }
+      .btn-secondary {
+        background: #f5f7fa;
+        color: #334155;
+        border: 1px solid #e0e0e0;
+      }
+      .upload-table { width: 100%; border-collapse: collapse; }
+      .upload-table th, .upload-table td {
+        padding: 14px 12px;
+        text-align: left;
+        border-bottom: 1px solid #e0e0e0;
+        font-size: 14px;
+        vertical-align: top;
+      }
+      .upload-table th {
+        background: #f5f7fa;
+        font-weight: 700;
+        color: #1078B0;
+        text-transform: uppercase;
+        font-size: 12px;
+      }
+      .status-badge {
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        display: inline-block;
+      }
+      .status-pending { background: #fff7ed; color: #c2410c; }
+      .status-approved { background: #e8f5e9; color: #2e7d32; }
+      .status-rejected { background: #ffebee; color: #c62828; }
+      .preview {
+        color: #555;
+        max-width: 360px;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+      .upload-table td {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+      .alert { padding: 12px 14px; border-radius: 8px; margin-bottom: 12px; }
+      .alert-success { background: #e8f5e9; color: #1b5e20; }
+      .alert-error { background: #ffebee; color: #b71c1c; }
+      .empty-state { text-align: center; padding: 36px 16px; color: #777; }
+      @media (max-width: 900px) {
+        .main-content { margin-left: 0; padding: 20px; }
+        .dashboard-wrapper { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    {% include 'admin_panel/_partials/sidebar_slider.html' %}
+    <div class="dashboard-wrapper">
+      {% include 'admin_panel/_partials/admin_sidebar.html' with active='manage_testimonials' %}
+      <main class="main-content">
+        <div class="header">
+          <div>
+            <h1>Testimonials</h1>
+            <p style="color:#666; font-size:14px; margin-top:4px;">Review what students and parents send, then publish the ones you approve.</p>
+          </div>
+        </div>
+
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+
+        <section class="share-box">
+          <h2>Link to share</h2>
+          <p style="color:#555; font-size:14px;">Send this address to students and parents. They can write a testimonial and upload a photo, video, audio, or PDF. Nothing appears on the website until you approve it.</p>
+          <div class="share-row">
+            <input id="shareUrl" type="text" readonly value="{{ share_url }}" aria-label="Testimonial share link" />
+            <button type="button" class="btn btn-primary" id="copyShare">Copy link</button>
+            <a class="btn btn-secondary" href="{{ share_url }}" target="_blank" rel="noopener">Open form</a>
+          </div>
+        </section>
+
+        <div class="stats-grid">
+          <a class="stat-card {% if not status %}is-on{% endif %}" href="{% url 'admin_panel:manage_testimonials' %}">
+            <div class="stat-label">All</div>
+            <div class="stat-value">{{ total_count }}</div>
+          </a>
+          <a class="stat-card {% if status == 'pending' %}is-on{% endif %}" href="?status=pending">
+            <div class="stat-label">Pending</div>
+            <div class="stat-value">{{ pending_count }}</div>
+          </a>
+          <a class="stat-card {% if status == 'approved' %}is-on{% endif %}" href="?status=approved">
+            <div class="stat-label">Published</div>
+            <div class="stat-value">{{ approved_count }}</div>
+          </a>
+          <a class="stat-card {% if status == 'rejected' %}is-on{% endif %}" href="?status=rejected">
+            <div class="stat-label">Rejected</div>
+            <div class="stat-value">{{ rejected_count }}</div>
+          </a>
+        </div>
+
+        <section class="content-section">
+          <h2>Submissions</h2>
+          <form method="get" class="search-row">
+            {% if status %}<input type="hidden" name="status" value="{{ status }}" />{% endif %}
+            <input type="search" name="q" value="{{ query }}" placeholder="Search name, email, or words" aria-label="Search testimonials" />
+            <select name="role" aria-label="Role">
+              <option value="">Students and parents</option>
+              <option value="student" {% if role == 'student' %}selected{% endif %}>Students</option>
+              <option value="parent" {% if role == 'parent' %}selected{% endif %}>Parents</option>
+            </select>
+            <button type="submit" class="btn btn-primary">Search</button>
+            {% if query or role %}
+              <a class="btn btn-secondary" href="{% url 'admin_panel:manage_testimonials' %}{% if status %}?status={{ status }}{% endif %}">Clear</a>
+            {% endif %}
+          </form>
+
+          {% if testimonials %}
+            <table class="upload-table">
+              <thead>
+                <tr>
+                  <th>Submitted</th>
+                  <th>From</th>
+                  <th>Testimonial</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in testimonials %}
+                  <tr>
+                    <td>{{ item.created_at|date:"M d, Y g:i A" }}</td>
+                    <td>
+                      <strong>{{ item.name }}</strong><br />
+                      <span style="color:#64748b;">{{ item.get_role_display }}{% if item.student_name %} · {{ item.student_name }}{% endif %}</span><br />
+                      <span style="color:#64748b;">{{ item.email }}</span>
+                    </td>
+                    <td class="preview">{{ item.message|truncatewords:24 }}</td>
+                    <td>
+                      <span class="status-badge status-{{ item.status }}">{{ item.get_status_display }}</span>
+                      {% if item.is_featured %}<div style="margin-top:6px; font-size:12px; color:#b45309;">Featured</div>{% endif %}
+                    </td>
+                    <td>
+                      <a class="btn btn-primary" href="{% url 'admin_panel:review_testimonial' item.pk %}">Review</a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {% if page_obj %}
+              {% include 'partials/question_pagination.html' %}
+            {% endif %}
+          {% else %}
+            <div class="empty-state">
+              <h3 style="margin-bottom:8px; color:#555;">No testimonials in this view</h3>
+              <p>Share the link above. New submissions arrive here as pending.</p>
+            </div>
+          {% endif %}
+        </section>
+      </main>
+    </div>
+    <script>
+      (function () {
+        var button = document.getElementById('copyShare')
+        var input = document.getElementById('shareUrl')
+        if (!button || !input) return
+        button.addEventListener('click', function () {
+          var text = input.value
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function () {
+              button.textContent = 'Copied'
+            })
+          } else {
+            input.select()
+            document.execCommand('copy')
+            button.textContent = 'Copied'
+          }
+        })
+      })()
+    </script>
+  </body>
+</html>

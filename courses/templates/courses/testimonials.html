@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Testimonials - Learning Banyan
+{% endblock %}
+
+{% block extra_css %}
+  <style>
+    {% include 'courses/_testimonial_cards_css.html' %}
+
+    .tm-page {
+      padding: 2.2rem 0 2.5rem;
+    }
+
+    .tm-hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+
+    .tm-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .tm-filters a {
+      text-decoration: none;
+      border: 1px solid var(--sn-line);
+      background: #fff;
+      color: var(--sn-ink);
+      border-radius: 999px;
+      padding: 0.35rem 0.8rem;
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    .tm-filters a.is-on {
+      background: var(--sn-navy);
+      border-color: var(--sn-navy);
+      color: #fff;
+    }
+
+    .tm-empty {
+      background: #fff;
+      border: 1px dashed var(--sn-line);
+      border-radius: 16px;
+      padding: 2rem 1.25rem;
+      text-align: center;
+      color: var(--sn-muted);
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <div class="tm-page">
+    <div class="tm-hero">
+      <div>
+        <h1 class="sn-section-title">Testimonials</h1>
+        <p class="sn-section-lead">Stories from students and parents, published after Learning Banyan reviews them.</p>
+      </div>
+      <a class="btn" href="{% url 'courses:testimonial_share' %}">Share your testimonial</a>
+    </div>
+
+    <div class="tm-filters" aria-label="Filter testimonials">
+      <a href="{% url 'courses:testimonials' %}" class="{% if not role %}is-on{% endif %}">All</a>
+      <a href="{% url 'courses:testimonials' %}?role=student" class="{% if role == 'student' %}is-on{% endif %}">Students</a>
+      <a href="{% url 'courses:testimonials' %}?role=parent" class="{% if role == 'parent' %}is-on{% endif %}">Parents</a>
+    </div>
+
+    {% if testimonials %}
+      <div class="tm-grid">
+        {% for item in testimonials %}
+          {% include 'courses/_testimonial_card.html' %}
+        {% endfor %}
+      </div>
+      {% if page_obj.paginator.num_pages > 1 %}
+        {% include 'partials/question_pagination.html' %}
+      {% endif %}
+    {% else %}
+      <div class="tm-empty">
+        <h2 style="color: var(--sn-navy); margin-bottom: 0.4rem;">No testimonials published yet</h2>
+        <p>Approved stories from students and parents will appear here.</p>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

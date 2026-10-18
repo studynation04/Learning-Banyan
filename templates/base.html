@@ -61,7 +61,7 @@
       }
       
       .site-nav {
-        max-width: 100%%;
+        max-width: 100%;
         margin: 0 auto;
         padding: 0 1.25rem;
         min-height: 104px;
@@ -117,16 +117,16 @@
         display: none;
       }
       
-      /* Center links — take remaining space, never cover actions */
+      /* Center links — one row between the logo and the account actions */
       .nav-center {
         display: flex;
         align-items: center;
         justify-content: flex-start;
-        gap: 0.1rem 0.3rem;
+        gap: 0.1rem 0.2rem;
         flex: 1 1 auto;
         min-width: 0;
         flex-wrap: nowrap;
-        overflow: hidden;
+        overflow: visible;
       }
       
       .nav-link {
@@ -148,6 +148,82 @@
       
       .nav-link i {
         display: none;
+      }
+
+      .nav-drop {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+
+      .nav-drop-btn {
+        cursor: pointer;
+        font-family: inherit;
+      }
+
+      .nav-drop-btn i {
+        display: inline-block;
+        font-size: 0.62rem;
+        margin-left: 0.28rem;
+        transition: transform 0.15s ease;
+      }
+
+      .nav-drop:hover .nav-drop-btn i,
+      .nav-drop:focus-within .nav-drop-btn i,
+      .nav-drop.is-open .nav-drop-btn i {
+        transform: rotate(180deg);
+      }
+
+      .nav-drop-menu {
+        display: none;
+        position: absolute;
+        top: calc(100% + 0.35rem);
+        left: 0;
+        z-index: 30;
+        min-width: 210px;
+        padding: 0.4rem;
+        background: #fff;
+        border: 1px solid var(--sn-line);
+        border-radius: 12px;
+        box-shadow: var(--sn-card-shadow);
+      }
+
+      .nav-drop-menu::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: -0.5rem;
+        height: 0.5rem;
+      }
+
+      .nav-drop:hover .nav-drop-menu,
+      .nav-drop:focus-within .nav-drop-menu,
+      .nav-drop.is-open .nav-drop-menu {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .nav-drop-link {
+        display: block;
+        padding: 0.55rem 0.75rem;
+        border-radius: 8px;
+        color: #334155;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+
+      .nav-drop-link:hover {
+        background: var(--sn-soft);
+        color: var(--sn-navy);
+      }
+
+      .nav-drop-link.is-active {
+        background: var(--sn-accent-soft);
+        color: var(--sn-navy);
+        font-weight: 700;
       }
       
       .nav-link:hover {
@@ -593,11 +669,11 @@
           padding: 0.45rem 0.8rem;
         }
       }
-      
+
       /*
-              Many nav items (esp. logged-in + admin) won't fit — use hamburger
-              before links crash into the action buttons.
-            */
+        Logged-in name plus account buttons need the row.
+        Below this width, links move into the menu button.
+      */
       @media (max-width: 1180px) {
         .site-nav {
           flex-wrap: wrap;
@@ -605,20 +681,20 @@
           min-height: 100px;
           padding: 0.55rem 1rem;
         }
-      
+
         .nav-toggle {
           display: inline-flex;
         }
-      
+
         .nav-center,
         .nav-actions {
           display: none;
         }
-      
+
         .nav-right {
           margin-left: auto;
         }
-      
+
         .site-nav.is-open .nav-center {
           display: flex;
           order: 3;
@@ -633,7 +709,7 @@
           overflow: visible;
           flex: none;
         }
-      
+
         .site-nav.is-open .nav-actions {
           display: flex;
           order: 4;
@@ -648,7 +724,7 @@
           border-left: none;
           padding-left: 0;
         }
-      
+
         .site-nav.is-open .nav-right {
           width: 100%;
           flex-direction: column;
@@ -656,12 +732,11 @@
           order: 4;
           margin-left: 0;
         }
-      
-        /* Keep toggle on the top row when open */
+
         .site-nav.is-open .nav-toggle {
           order: 0;
         }
-      
+
         .site-nav.is-open .nav-link {
           width: 100%;
           justify-content: flex-start;
@@ -669,22 +744,55 @@
           border-radius: 10px;
           font-size: 0.95rem;
         }
-      
+
         .site-nav.is-open .nav-link:hover,
         .site-nav.is-open .nav-link.is-active {
           background: var(--sn-soft) !important;
         }
-      
+
         .site-nav.is-open .nav-link.is-active::after {
           display: none;
         }
-      
+
+        .site-nav.is-open .nav-drop {
+          width: 100%;
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .site-nav.is-open .nav-drop-btn {
+          width: 100%;
+          justify-content: space-between;
+        }
+
+        .site-nav.is-open .nav-drop-menu {
+          position: static;
+          display: flex;
+          min-width: 0;
+          width: 100%;
+          margin: 0;
+          padding: 0 0 0.25rem 0.45rem;
+          border: none;
+          border-radius: 0;
+          box-shadow: none;
+          background: transparent;
+        }
+
+        .site-nav.is-open .nav-drop-menu::before {
+          display: none;
+        }
+
+        .site-nav.is-open .nav-drop-link {
+          padding: 0.65rem 0.85rem;
+          border-radius: 10px;
+        }
+
         .site-nav.is-open .nav-btn {
           width: 100%;
           justify-content: center;
           padding: 0.7rem 0.9rem;
         }
-      
+
         .site-nav.is-open .nav-user {
           align-items: flex-start;
           max-width: none;
@@ -729,6 +837,7 @@
     </style>
     {% block extra_css %}
     {% endblock %}
+    {% include 'partials/keep_text_in_box.html' %}
   </head>
   <body>
     <header class="site-header">
@@ -744,15 +853,42 @@
           <a href="{% url 'courses:home' %}" class="nav-link {% if request.path == '/' %}is-active{% endif %}">Home</a>
           <a href="{% url 'courses:courses_list' %}" class="nav-link {% if '/courses/' in request.path %}is-active{% endif %}">Courses</a>
           <a href="{% url 'courses:cart' %}" class="nav-link {% if '/cart/' in request.path %}is-active{% endif %}">Cart{% if cart_count %} ({{ cart_count }}){% endif %}</a>
-          <a href="{% url 'courses:past_papers' %}" class="nav-link {% if '/past-papers/' in request.path %}is-active{% endif %}">Past Papers</a>
+
+          <div class="nav-drop {% if '/past-papers/' in request.path or '/resources/' in request.path or '/blogs/' in request.path %}is-active{% endif %}">
+            <button type="button" class="nav-link nav-drop-btn {% if '/past-papers/' in request.path or '/resources/' in request.path or '/blogs/' in request.path %}is-active{% endif %}" aria-expanded="false" aria-haspopup="true">
+              Study <i class="fas fa-chevron-down" aria-hidden="true"></i>
+            </button>
+            <div class="nav-drop-menu">
+              <a href="{% url 'courses:past_papers' %}" class="nav-drop-link {% if '/past-papers/' in request.path %}is-active{% endif %}">Past Papers</a>
+              <a href="{% url 'courses:resources_list' %}" class="nav-drop-link {% if '/resources/' in request.path %}is-active{% endif %}">Resources</a>
+              <a href="{% url 'courses:blog_list' %}" class="nav-drop-link {% if '/blogs/' in request.path %}is-active{% endif %}">Blogs</a>
+            </div>
+          </div>
+
           {% if can_use_exam_builder %}
-            <a href="{% url 'courses:student_exams' %}" class="nav-link {% if '/my-exams/' in request.path %}is-active{% endif %}">My Exams</a>
-            <a href="{% url 'courses:student_question_lists' %}" class="nav-link {% if '/my-lists/' in request.path %}is-active{% endif %}">My Lists</a>
+            <div class="nav-drop {% if '/my-exams/' in request.path or '/my-lists/' in request.path or '/question-forum/' in request.path or '/question-form/' in request.path or '/public-chat/' in request.path %}is-active{% endif %}">
+              <button type="button" class="nav-link nav-drop-btn {% if '/my-exams/' in request.path or '/my-lists/' in request.path or '/question-forum/' in request.path or '/question-form/' in request.path or '/public-chat/' in request.path %}is-active{% endif %}" aria-expanded="false" aria-haspopup="true">
+                Practice <i class="fas fa-chevron-down" aria-hidden="true"></i>
+              </button>
+              <div class="nav-drop-menu">
+                <a href="{% url 'courses:student_exams' %}" class="nav-drop-link {% if '/my-exams/' in request.path %}is-active{% endif %}">My Exams</a>
+                <a href="{% url 'courses:student_question_lists' %}" class="nav-drop-link {% if '/my-lists/' in request.path %}is-active{% endif %}">My Lists</a>
+                <a href="{% url 'courses:question_forum' %}" class="nav-drop-link {% if '/question-forum/' in request.path or '/question-form/' in request.path or '/public-chat/' in request.path %}is-active{% endif %}">Question Forum</a>
+              </div>
+            </div>
+          {% else %}
+            <a href="{% url 'courses:question_forum' %}" class="nav-link {% if '/question-forum/' in request.path or '/question-form/' in request.path or '/public-chat/' in request.path %}is-active{% endif %}">Question Forum</a>
           {% endif %}
-          <a href="{% url 'courses:question_forum' %}" class="nav-link {% if '/question-forum/' in request.path or '/question-form/' in request.path or '/public-chat/' in request.path %}is-active{% endif %}">Question Forum</a>
-          <a href="{% url 'courses:resources_list' %}" class="nav-link {% if '/resources/' in request.path %}is-active{% endif %}">Resources</a>
-          <a href="{% url 'courses:blog_list' %}" class="nav-link {% if '/blogs/' in request.path %}is-active{% endif %}">Blogs</a>
-          <a href="{% url 'courses:contact' %}" class="nav-link {% if '/contact/' in request.path %}is-active{% endif %}">Contact</a>
+
+          <div class="nav-drop {% if '/testimonials/' in request.path or '/contact/' in request.path %}is-active{% endif %}">
+            <button type="button" class="nav-link nav-drop-btn {% if '/testimonials/' in request.path or '/contact/' in request.path %}is-active{% endif %}" aria-expanded="false" aria-haspopup="true">
+              Community <i class="fas fa-chevron-down" aria-hidden="true"></i>
+            </button>
+            <div class="nav-drop-menu">
+              <a href="{% url 'courses:testimonials' %}" class="nav-drop-link {% if '/testimonials/' in request.path %}is-active{% endif %}">Testimonials</a>
+              <a href="{% url 'courses:contact' %}" class="nav-drop-link {% if '/contact/' in request.path %}is-active{% endif %}">Contact</a>
+            </div>
+          </div>
         </div>
 
         <div class="nav-right">
@@ -808,6 +944,7 @@
           <h4>Community</h4>
           <a href="{% url 'courses:question_forum' %}">Question Forum</a>
           <a href="{% url 'courses:blog_list' %}">Blogs</a>
+          <a href="{% url 'courses:testimonials' %}">Testimonials</a>
           <a href="{% url 'courses:contact' %}">Contact</a>
         </div>
         <div>
@@ -838,14 +975,45 @@
         var icon = document.getElementById('navToggleIcon')
         if (!nav || !toggle) return
       
+        function closeDrops(except) {
+          nav.querySelectorAll('.nav-drop.is-open').forEach(function (drop) {
+            if (drop === except) return
+            drop.classList.remove('is-open')
+            var button = drop.querySelector('.nav-drop-btn')
+            if (button) button.setAttribute('aria-expanded', 'false')
+          })
+        }
+
         toggle.addEventListener('click', function () {
           var open = nav.classList.toggle('is-open')
           toggle.setAttribute('aria-expanded', open ? 'true' : 'false')
           if (icon) icon.className = open ? 'fas fa-xmark' : 'fas fa-bars'
+          if (!open) closeDrops()
+        })
+
+        nav.querySelectorAll('.nav-drop-btn').forEach(function (button) {
+          button.addEventListener('click', function (event) {
+            event.preventDefault()
+            event.stopPropagation()
+            var drop = button.closest('.nav-drop')
+            var willOpen = !drop.classList.contains('is-open')
+            closeDrops(willOpen ? drop : null)
+            drop.classList.toggle('is-open', willOpen)
+            button.setAttribute('aria-expanded', willOpen ? 'true' : 'false')
+          })
+        })
+
+        document.addEventListener('click', function (event) {
+          if (!nav.contains(event.target)) closeDrops()
+        })
+
+        document.addEventListener('keydown', function (event) {
+          if (event.key === 'Escape') closeDrops()
         })
       
         nav.querySelectorAll('a').forEach(function (link) {
           link.addEventListener('click', function () {
+            closeDrops()
             if (nav.classList.contains('is-open')) {
               nav.classList.remove('is-open')
               toggle.setAttribute('aria-expanded', 'false')

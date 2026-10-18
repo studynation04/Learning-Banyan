@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Review testimonial - Admin Panel</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #f5f7fa;
+        color: #333;
+      }
+      .dashboard-wrapper { display: block; min-height: 100vh; }
+      .main-content { margin-left: 250px; padding: 40px; max-width: 1100px; }
+      .header, .panel {
+        background: white;
+        padding: 20px 24px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        margin-bottom: 18px;
+      }
+      .header { display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap; }
+      .header h1 { font-size: 24px; color: #003870; }
+      .layout { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 18px; }
+      label { display: block; font-size: 13px; font-weight: 700; color: #003870; margin-bottom: 6px; }
+      input[type="text"], input[type="number"], select, textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #d5e0ea;
+        border-radius: 6px;
+        font: inherit;
+        font-size: 14px;
+        margin-bottom: 14px;
+      }
+      textarea {
+        min-height: 140px;
+        resize: vertical;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+      .check { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; font-size: 14px; }
+      .check input { margin: 0; }
+      .meta { color: #555; font-size: 14px; line-height: 1.6; }
+      .meta strong { color: #003870; }
+      .preview-media img, .preview-media video { width: 100%; max-height: 280px; object-fit: contain; border-radius: 8px; background: #eef3f7; margin-top: 8px; }
+      .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+      .btn {
+        padding: 10px 14px;
+        border-radius: 6px;
+        border: 1px solid transparent;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        font-size: 14px;
+      }
+      .btn-primary { background: #1078B0; color: white; }
+      .btn-ok { background: #2e7d32; color: white; }
+      .btn-warn { background: #fff7ed; color: #c2410c; border-color: #fdba74; }
+      .btn-danger { background: #ffebee; color: #b71c1c; border-color: #fecaca; }
+      .btn-secondary { background: #f5f7fa; color: #334155; border-color: #e2e8f0; }
+      .alert { padding: 12px 14px; border-radius: 8px; margin-bottom: 12px; }
+      .alert-success { background: #e8f5e9; color: #1b5e20; }
+      .alert-error { background: #ffebee; color: #b71c1c; }
+      .status-badge { padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+      .status-pending { background: #fff7ed; color: #c2410c; }
+      .status-approved { background: #e8f5e9; color: #2e7d32; }
+      .status-rejected { background: #ffebee; color: #c62828; }
+      @media (max-width: 980px) {
+        .layout { grid-template-columns: 1fr; }
+        .main-content { margin-left: 0; padding: 20px; }
+      }
+    </style>
+  </head>
+  <body>
+    {% include 'admin_panel/_partials/sidebar_slider.html' %}
+    <div class="dashboard-wrapper">
+      {% include 'admin_panel/_partials/admin_sidebar.html' with active='manage_testimonials' %}
+      <main class="main-content">
+        <div class="header">
+          <div>
+            <h1>Review testimonial</h1>
+            <p style="margin-top:6px;">
+              <span class="status-badge status-{{ item.status }}">{{ item.get_status_display }}</span>
+            </p>
+          </div>
+          <a class="btn btn-secondary" href="{% url 'admin_panel:manage_testimonials' %}">Back to list</a>
+        </div>
+
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+
+        <form method="post">
+          {% csrf_token %}
+          <div class="layout">
+            <section class="panel">
+              <h2 style="margin-bottom:14px; color:#003870;">What will be published</h2>
+              <label for="name">Name</label>
+              <input type="text" id="name" name="name" maxlength="150" required value="{{ item.name }}" />
+
+              <label for="role">Role</label>
+              <select id="role" name="role">
+                <option value="student" {% if item.role == 'student' %}selected{% endif %}>Student</option>
+                <option value="parent" {% if item.role == 'parent' %}selected{% endif %}>Parent</option>
+              </select>
+
+              <label for="student_name">Student's name (parents)</label>
+              <input type="text" id="student_name" name="student_name" maxlength="150" value="{{ item.student_name }}" />
+
+              <label for="class_or_course">Class, grade, or course</label>
+              <input type="text" id="class_or_course" name="class_or_course" maxlength="200" value="{{ item.class_or_course }}" />
+
+              <label for="rating">Rating</label>
+              <select id="rating" name="rating">
+                <option value="" {% if not item.rating %}selected{% endif %}>No rating</option>
+                <option value="1" {% if item.rating == 1 %}selected{% endif %}>1</option>
+                <option value="2" {% if item.rating == 2 %}selected{% endif %}>2</option>
+                <option value="3" {% if item.rating == 3 %}selected{% endif %}>3</option>
+                <option value="4" {% if item.rating == 4 %}selected{% endif %}>4</option>
+                <option value="5" {% if item.rating == 5 %}selected{% endif %}>5</option>
+              </select>
+
+              <label for="message">Testimonial</label>
+              <textarea id="message" name="message" required maxlength="3000">{{ item.message }}</textarea>
+
+              <label for="display_order">Display order</label>
+              <input type="number" id="display_order" name="display_order" min="0" max="9999" value="{{ item.display_order }}" />
+
+              <label class="check">
+                <input type="checkbox" name="is_featured" {% if item.is_featured %}checked{% endif %} />
+                Feature this testimonial
+              </label>
+              {% if item.photo %}
+                <label class="check">
+                  <input type="checkbox" name="remove_photo" />
+                  Remove photo before publishing
+                </label>
+              {% endif %}
+              {% if item.attachment %}
+                <label class="check">
+                  <input type="checkbox" name="remove_attachment" />
+                  Remove uploaded file before publishing
+                </label>
+              {% endif %}
+
+              <label for="admin_note">Internal note</label>
+              <textarea id="admin_note" name="admin_note" maxlength="2000">{{ item.admin_note }}</textarea>
+
+              <div class="actions">
+                <button class="btn btn-ok" type="submit" name="action" value="approve">Approve and publish</button>
+                <button class="btn btn-primary" type="submit" name="action" value="save">Save</button>
+                <button class="btn btn-warn" type="submit" name="action" value="reject">Reject</button>
+                <button class="btn btn-secondary" type="submit" name="action" value="pending">Move to pending</button>
+                <button class="btn btn-danger" type="submit" name="action" value="delete" onclick="return confirm('Delete this testimonial?');">Delete</button>
+              </div>
+            </section>
+
+            <aside class="panel">
+              <h2 style="margin-bottom:12px; color:#003870;">Submission details</h2>
+              <p class="meta">
+                <strong>Email:</strong> {{ item.email }}<br />
+                <strong>Phone:</strong> {{ item.phone|default:"Not provided" }}<br />
+                <strong>Submitted:</strong> {{ item.created_at|date:"M d, Y g:i A" }}<br />
+                <strong>Consent to publish:</strong> {% if item.consent_to_publish %}Yes{% else %}No{% endif %}<br />
+                {% if item.reviewed_at %}
+                  <strong>Last reviewed:</strong> {{ item.reviewed_at|date:"M d, Y g:i A" }}
+                  {% if item.reviewed_by %}by {{ item.reviewed_by.username }}{% endif %}<br />
+                {% endif %}
+                {% if item.published_at %}
+                  <strong>First published:</strong> {{ item.published_at|date:"M d, Y g:i A" }}
+                {% endif %}
+              </p>
+              <div class="preview-media">
+                {% if item.photo %}
+                  <p style="margin-top:14px; font-weight:700; color:#003870;">Photo</p>
+                  <img src="{{ item.photo.url }}" alt="Uploaded photo" />
+                {% endif %}
+                {% if item.attachment %}
+                  <p style="margin-top:14px; font-weight:700; color:#003870;">Uploaded file</p>
+                  {% if item.attachment_kind == 'image' %}
+                    <img src="{{ item.attachment.url }}" alt="Uploaded testimonial image" />
+                  {% elif item.attachment_kind == 'video' %}
+                    <video controls preload="metadata">
+                      <source src="{{ item.attachment.url }}" type="{{ item.attachment_mime }}" />
+                    </video>
+                  {% elif item.attachment_kind == 'audio' %}
+                    <audio controls preload="metadata" style="width:100%; margin-top:8px;">
+                      <source src="{{ item.attachment.url }}" type="{{ item.attachment_mime }}" />
+                    </audio>
+                  {% else %}
+                    <p style="margin-top:8px;"><a href="{{ item.attachment.url }}" target="_blank" rel="noopener">Open uploaded file</a></p>
+                  {% endif %}
+                {% endif %}
+              </div>
+              <p class="meta" style="margin-top:16px;">Email and phone stay on this review page. The public page shows the name, role, testimonial, rating, photo, and file.</p>
+            </aside>
+          </div>
+        </form>
+      </main>
+    </div>
+  </body>
+</html>

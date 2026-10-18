@@ -101,8 +101,43 @@ class InlineMediaMiddleware:
             content_type="text/plain; charset=utf-8",
         )
 
+    def _blocked_testimonial_media(self, request):
+        """Unpublished testimonial files stay private until an admin approves them."""
+        from urllib.parse import unquote
+
+        raw = unquote(request.path or "")
+        lower = raw.lower()
+        if not lower.startswith("/media/testimonials/"):
+            return None
+        user = getattr(request, "user", None)
+        if user is not None and getattr(user, "is_authenticated", False):
+            if getattr(user, "is_superuser", False) or hasattr(user, "admin_profile"):
+                return None
+        try:
+            rel = raw[len("/media/") :]
+            from django.db.models import Q
+            from courses.models import Testimonial
+
+            published = (
+                Testimonial.objects.filter(status=Testimonial.STATUS_APPROVED)
+                .filter(Q(photo=rel) | Q(attachment=rel))
+                .exists()
+            )
+            if published:
+                return None
+        except Exception:
+            pass
+        return HttpResponse(
+            "This testimonial is not published.",
+            status=403,
+            content_type="text/plain; charset=utf-8",
+        )
+
     def __call__(self, request):
         blocked = self._blocked_course_media(request)
+        if blocked is not None:
+            return blocked
+        blocked = self._blocked_testimonial_media(request)
         if blocked is not None:
             return blocked
         path = (request.path or "").lower()

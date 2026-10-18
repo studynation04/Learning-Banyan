@@ -46,6 +46,7 @@ from courses.models import (
     QuestionListItem,
     PastPaper,
     StudentProfile,
+    Testimonial,
 )
 from courses.question_preview import question_preview_map as _question_preview_map
 from courses.pagination_utils import paginate, pagination_context
@@ -125,6 +126,9 @@ def dashboard(request):
         "total_blogs": Blog.objects.count(),
         "total_uploads": CSVUpload.objects.filter(admin_user=admin_user).count(),
         "total_registered_users": StudentProfile.objects.count(),
+        "pending_testimonials": Testimonial.objects.filter(
+            status=Testimonial.STATUS_PENDING
+        ).count(),
         "recent_uploads": CSVUpload.objects.filter(admin_user=admin_user)[:5],
         "admin_user": admin_user,
     }

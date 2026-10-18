@@ -3,7 +3,7 @@ Shared admin sidebar — navy/sky-blue glass nav matching Learning Banyan home.
 
 Pass active: dashboard, manage_users, manage_categories, manage_courses, manage_resources,
 csv_upload, manual_question, manage_questions, manage_exams,
-manage_question_lists, manage_past_papers, manage_blogs
+manage_question_lists, manage_past_papers, manage_blogs, manage_testimonials
 {% endcomment %}
 <aside class="sidebar" id="adminSidebar" aria-label="Admin navigation">
   <div class="sidebar-header">
@@ -89,6 +89,11 @@ manage_question_lists, manage_past_papers, manage_blogs
       <li>
         <a href="{% url 'admin_panel:manage_blogs' %}" class="{% if active == 'manage_blogs' %}active{% endif %}">
           <span class="nav-ico">✎</span> Blogs
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'admin_panel:manage_testimonials' %}" class="{% if active == 'manage_testimonials' %}active{% endif %}">
+          <span class="nav-ico">★</span> Testimonials
         </a>
       </li>
 
