@@ -185,6 +185,7 @@ Large media folders are listed in `.vercelignore` so the function bundle stays u
    ```
 
 8. **View logs:**
+
    ```bash
    heroku logs -t
    ```
@@ -218,6 +219,7 @@ Large media folders are listed in `.vercelignore` so the function bundle stays u
    ```
 
 5. **Deploy:**
+
    ```bash
    eb deploy
    ```
@@ -290,6 +292,7 @@ Large media folders are listed in `.vercelignore` so the function bundle stays u
    ```
 
 8. **Restart Nginx:**
+
    ```bash
    sudo systemctl restart nginx
    ```

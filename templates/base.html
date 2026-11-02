@@ -64,8 +64,8 @@
         max-width: 100%;
         margin: 0 auto;
         padding: 0 1.25rem;
-        min-height: 104px;
-        height: 104px;
+        min-height: 68px;
+        height: 68px;
         display: flex;
         align-items: center;
         gap: 1rem;
@@ -91,8 +91,8 @@
       }
       
       .nav-brand img {
-        height: 88px;
-        width: 88px;
+        height: 48px;
+        width: 48px;
         display: block;
         object-fit: contain;
         background: transparent;
@@ -889,6 +889,7 @@
               <a href="{% url 'courses:contact' %}" class="nav-drop-link {% if '/contact/' in request.path %}is-active{% endif %}">Contact</a>
             </div>
           </div>
+          <a href="{% url 'courses:home' %}#parents" class="nav-link">For Parents</a>
         </div>
 
         <div class="nav-right">

@@ -2,24 +2,41 @@
 {% load static %}
 
 {% block title %}
-  Learning Banyan — Courses, Past Papers & Exam Practice
+  Learning Banyan | Strong roots for confident maths
 {% endblock %}
 
 {% block full_width %}
-  {# Full-bleed hero like Revision Village course landing #}
-  <section class="rv-hero">
-    <div class="rv-hero-inner">
-      <p class="rv-kicker">Learning Banyan</p>
-      <h1>Master exams with focused practice</h1>
-      <p class="rv-lead">Build confidence with topic-sorted questions, full past papers, practice exams, and community support — structured for serious learners who want results.</p>
-      <div class="rv-hero-actions">
-        <a href="{% url 'courses:courses_list' %}" class="btn">Explore courses</a>
-        <a href="{% url 'courses:past_papers' %}" class="btn btn-secondary rv-btn-ghost">View past papers</a>
-        {% if can_use_exam_builder %}
-          <a href="{% url 'courses:student_exams' %}" class="btn btn-secondary rv-btn-ghost">Build my exam</a>
-        {% else %}
-          <a href="{% url 'courses:student_signup' %}" class="btn btn-secondary rv-btn-ghost">Get started free</a>
-        {% endif %}
+  <section class="lb-hero">
+    <div class="lb-wrap lb-hero-grid">
+      <div class="lb-hero-copy">
+        <p class="lb-eyebrow">Online practice · Grades 5–10 · Starting with maths</p>
+        <h1>Strong roots.<br />Confidence that<br />lasts through<br />senior school.</h1>
+        <p class="lb-hero-lead">Daily maths practice with questions hand-picked by teachers with 20 years of classroom experience, from past papers and trusted textbooks. Built for the middle years, so the senior years feel manageable, not overwhelming.</p>
+        <div class="lb-actions">
+          <a href="{% url 'courses:student_signup' %}" class="lb-button">Get started free</a><a href="{% url 'courses:courses_list' %}" class="lb-button lb-button-outline">Explore courses</a>
+        </div>
+        <a href="#parents" class="lb-parent-link">Are you a parent? Here's how Learning Banyan helps your child <span aria-hidden="true">→</span></a>
+      </div>
+      <div class="lb-growth" aria-label="How maths ideas build on each other">
+        <p class="lb-growth-title">How one idea grows</p>
+        <div class="lb-growth-row">
+          <span>Grade 5</span><div>
+            <strong>¾ of 24 = ?</strong><small>Fractions of a quantity</small>
+          </div>
+        </div>
+        <div class="lb-growth-row">
+          <span>Grade 7</span><div>
+            <strong>3x + 5 = 20</strong><small>Linear equations</small>
+          </div>
+        </div>
+        <div class="lb-growth-row">
+          <span>Grade 9</span><div>
+            <strong>x² − 5x + 6 = 0</strong><small>Quadratics, built on both</small>
+          </div>
+        </div>
+        <p class="lb-growth-note">
+          <strong>Gaps in the early steps show up later.</strong><br />We help students build the roots first.
+        </p>
       </div>
     </div>
   </section>
@@ -27,536 +44,857 @@
 
 {% block extra_css %}
   <style>
-  main > .container { padding-top: 0; }
-
-  .rv-hero {
-    background:
-      radial-gradient(ellipse 80% 60% at 85% 20%, rgba(16, 120, 176, 0.18), transparent 55%),
-      linear-gradient(155deg, #003870 0%, #053C74 48%, #1078B0 100%);
-    color: #fff;
-    padding: 3.75rem 1.5rem 3.25rem;
-  }
-
-  .rv-hero-inner {
-    max-width: var(--sn-max);
-    margin: 0 auto;
-  }
-
-  .rv-kicker {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.8rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #7EB8D8;
-    margin-bottom: 1rem;
-  }
-
-  .rv-hero h1 {
-    font-family: var(--font-serif);
-    font-size: clamp(2.1rem, 4.5vw, 3.1rem);
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    line-height: 1.12;
-    max-width: 18ch;
-    margin-bottom: 1rem;
-  }
-
-  .rv-lead {
-    font-size: 1.1rem;
-    line-height: 1.7;
-    color: #cbd5e1;
-    max-width: 40rem;
-    margin-bottom: 1.75rem;
-  }
-
-  .rv-hero-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-  }
-
-  .rv-btn-ghost {
-    background: transparent !important;
-    color: #fff !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
-  }
-  .rv-btn-ghost:hover {
-    background: rgba(255, 255, 255, 0.1) !important;
-    border-color: #fff !important;
-  }
-
-  .rv-page {
-    padding: 2.5rem 0 1rem;
-  }
-
-  .rv-resource-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.15rem;
-    margin: 1.5rem 0 2.75rem;
-  }
-
-  .rv-resource-card {
-    background: #fff;
-    border: 1px solid var(--sn-line);
-    border-radius: 18px;
-    padding: 1.4rem 1.35rem 1.25rem;
-    box-shadow: var(--sn-card-shadow);
-    display: flex;
-    flex-direction: column;
-    min-height: 220px;
-    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
-    text-decoration: none;
-    color: inherit;
-  }
-
-  .rv-resource-card:hover {
-    transform: translateY(-4px);
-    border-color: #D4E4F0;
-    box-shadow: 0 14px 36px rgba(0, 56, 112, 0.1);
-  }
-
-  .rv-resource-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--sn-accent-soft);
-    color: var(--sn-accent);
-    font-size: 1.15rem;
-    margin-bottom: 1rem;
-  }
-
-  .rv-resource-card h3 {
-    font-size: 1.15rem;
-    font-weight: 800;
-    color: var(--sn-navy);
-    letter-spacing: -0.02em;
-    margin-bottom: 0.45rem;
-  }
-
-  .rv-resource-card p {
-    color: var(--sn-muted);
-    font-size: 0.94rem;
-    line-height: 1.6;
-    flex: 1;
-  }
-
-  .rv-resource-cta {
-    margin-top: 1.1rem;
-    font-size: 0.88rem;
-    font-weight: 700;
-    color: var(--sn-accent);
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-  }
-
-  .rv-badge {
-    display: inline-flex;
-    margin-left: 0.4rem;
-    padding: 0.12rem 0.45rem;
-    border-radius: 999px;
-    background: #fef3c7;
-    color: #b45309;
-    font-size: 0.68rem;
-    font-weight: 800;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    vertical-align: middle;
-  }
-
-  .rv-split {
-    display: grid;
-    grid-template-columns: 1.15fr 0.85fr;
-    gap: 0;
-    align-items: stretch;
-    margin: 2.5rem 0;
-    background: #fff;
-    border: 1px solid var(--sn-line);
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: var(--sn-card-shadow);
-  }
-
-  .rv-split-copy {
-    padding: 2rem 2rem 2rem 2.1rem;
-  }
-
-  .rv-split-copy h2 {
-    font-family: var(--font-serif);
-    font-size: 1.75rem;
-    color: var(--sn-navy);
-    letter-spacing: -0.02em;
-    margin-bottom: 0.85rem;
-  }
-
-  .rv-split-copy p {
-    color: var(--sn-muted);
-    margin-bottom: 0.85rem;
-    font-size: 0.98rem;
-  }
-
-  .rv-split-visual {
-    min-height: 280px;
-    overflow: hidden;
-    background-color: #E8EDF3;
-    position: relative;
-  }
-
-  .rv-split-visual img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-    display: block;
-  }
-
-  .rv-split-visual::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(145deg, rgba(0, 56, 112, 0.28), rgba(16, 120, 176, 0.18));
-    pointer-events: none;
-  }
-
-  .rv-tips {
-    background: #fff;
-    border: 1px solid var(--sn-line);
-    border-radius: 18px;
-    padding: 1.75rem 1.75rem 1.5rem;
-    margin: 2rem 0 2.5rem;
-    box-shadow: var(--sn-card-shadow);
-  }
-
-  .rv-tips h2 {
-    font-family: var(--font-serif);
-    font-size: 1.55rem;
-    color: var(--sn-navy);
-    margin-bottom: 1rem;
-  }
-
-  .rv-tips ol {
-    margin: 0;
-    padding-left: 1.2rem;
-    color: var(--sn-ink);
-  }
-
-  .rv-tips li {
-    margin-bottom: 0.7rem;
-    padding-left: 0.25rem;
-    color: var(--sn-muted);
-  }
-
-  .rv-tips li strong { color: var(--sn-navy); }
-
-  .rv-course-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 340px));
-    justify-content: start;
-    gap: 1.15rem;
-    margin: 1.25rem 0 2.5rem;
-  }
-
-  .rv-course-card {
-    background: #fff;
-    border: 1px solid var(--sn-line);
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: var(--sn-card-shadow);
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    transition: transform 0.18s ease, box-shadow 0.18s ease;
-  }
-
-  .rv-course-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 30px rgba(0, 56, 112, 0.1);
-  }
-
-  .rv-course-card img {
-    width: 100%;
-    height: 160px;
-    object-fit: cover;
-    object-position: center;
-    display: block;
-    background: #C8D8E8;
-  }
-
-  .rv-course-card .body {
-    padding: 1.1rem 1.15rem 1.2rem;
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-width: 0;
-  }
-
-  .rv-course-card .cat {
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--sn-accent);
-    margin-bottom: 0.35rem;
-  }
-
-  .rv-course-card h3 {
-    font-size: 1.05rem;
-    color: var(--sn-navy);
-    margin-bottom: 0.4rem;
-    letter-spacing: -0.02em;
-  }
-
-  .rv-course-card p {
-    color: var(--sn-muted);
-    font-size: 0.9rem;
-    flex: 1;
-    margin-bottom: 0.9rem;
-  }
-
-  {% include 'courses/_testimonial_cards_css.html' %}
-
-  .tm-home-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin: 0 0 2.25rem;
-  }
-
-  .rv-faq {
-    margin: 1rem 0 2rem;
-  }
-
-  .rv-faq details {
-    background: #fff;
-    border: 1px solid var(--sn-line);
-    border-radius: 14px;
-    padding: 1rem 1.15rem;
-    margin-bottom: 0.65rem;
-    box-shadow: var(--sn-card-shadow);
-  }
-
-  .rv-faq summary {
-    cursor: pointer;
-    font-weight: 700;
-    color: var(--sn-navy);
-    list-style: none;
-  }
-
-  .rv-faq summary::-webkit-details-marker { display: none; }
-
-  .rv-faq details[open] summary {
-    margin-bottom: 0.55rem;
-    color: var(--sn-accent);
-  }
-
-  .rv-faq details p {
-    color: var(--sn-muted);
-    font-size: 0.95rem;
-    line-height: 1.65;
-  }
-
-  @media (max-width: 960px) {
-    .rv-resource-grid { grid-template-columns: 1fr 1fr; }
-    .rv-split { grid-template-columns: 1fr; }
-    .rv-split-visual { min-height: 220px; }
-  }
-
-  @media (max-width: 640px) {
-    .rv-resource-grid { grid-template-columns: 1fr; }
-    .rv-hero h1 { max-width: none; }
-  }
+    main {
+      background: #fff;
+      padding-bottom: 0;
+    }
+    main > .container {
+      max-width: none;
+      padding: 0;
+    }
+    .lb-wrap {
+      width: min(1120px, calc(100% - 48px));
+      margin: 0 auto;
+    }
+    .lb-hero {
+      color: #fff;
+      background: linear-gradient(115deg, #073d70 0%, #07578b 58%, #147fb1 100%);
+      padding: 58px 0 50px;
+    }
+    .lb-hero-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 72px;
+      align-items: center;
+    }
+    .lb-eyebrow,
+    .lb-section-label {
+      color: #83c6e4;
+      text-transform: uppercase;
+      letter-spacing: 0.17em;
+      font-size: 0.67rem;
+      font-weight: 800;
+      margin-bottom: 16px;
+    }
+    .lb-hero h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(2.5rem, 5vw, 4.15rem);
+      line-height: 0.98;
+      letter-spacing: -0.035em;
+      margin: 0 0 20px;
+    }
+    .lb-hero-lead {
+      max-width: 560px;
+      color: #d3e5f0;
+      font-size: 0.96rem;
+      line-height: 1.72;
+      margin-bottom: 22px;
+    }
+    .lb-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .lb-button {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 999px;
+      padding: 11px 21px;
+      background: #1687ba;
+      color: white;
+      text-decoration: none;
+      font-weight: 750;
+      font-size: 0.82rem;
+      border: 1px solid #1687ba;
+    }
+    .lb-button:hover {
+      background: #0874a6;
+      color: #fff;
+    }
+    .lb-button-outline {
+      background: transparent;
+      border-color: #86b8d1;
+    }
+    .lb-button-outline:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+    .lb-parent-link {
+      display: block;
+      width: max-content;
+      max-width: 100%;
+      color: #e4f1f7;
+      font-size: 0.75rem;
+      margin-top: 19px;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .lb-growth {
+      background: rgba(255, 255, 255, 0.085);
+      border: 1px solid rgba(210, 237, 250, 0.22);
+      border-radius: 16px;
+      padding: 24px 27px;
+      box-shadow: 0 18px 45px #002d5040;
+    }
+    .lb-growth-title {
+      color: #a7d4e8;
+      text-transform: uppercase;
+      letter-spacing: 0.13em;
+      font-size: 0.66rem;
+      font-weight: 800;
+      margin-bottom: 13px;
+    }
+    .lb-growth-row {
+      display: grid;
+      grid-template-columns: 74px 1fr;
+      gap: 14px;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #d5edf022;
+    }
+    .lb-growth-row > span {
+      color: #b8d7e7;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+    .lb-growth-row strong,
+    .lb-growth-row small {
+      display: block;
+    }
+    .lb-growth-row strong {
+      font-family: var(--font-serif);
+      font-size: 1.05rem;
+      color: white;
+    }
+    .lb-growth-row small {
+      color: #a9c8d9;
+      font-size: 0.7rem;
+      margin-top: 2px;
+    }
+    .lb-growth-note {
+      color: #c6dfeb;
+      font-size: 0.8rem;
+      line-height: 1.55;
+      margin: 16px 0 0;
+    }
+    .lb-growth-note strong {
+      color: white;
+    }
+    .lb-stats {
+      background: #edf2f5;
+      padding: 22px 0;
+    }
+    .lb-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+    .lb-stat {
+      border-right: 1px solid #d7e0e6;
+      padding-left: 22px;
+    }
+    .lb-stat:first-child {
+      padding-left: 0;
+    }
+    .lb-stat:last-child {
+      border: 0;
+    }
+    .lb-stat strong {
+      display: block;
+      color: #075087;
+      font-family: var(--font-serif);
+      font-size: 1.55rem;
+      line-height: 1.15;
+    }
+    .lb-stat span {
+      color: #71889a;
+      font-size: 0.73rem;
+    }
+    .lb-section {
+      padding: 72px 0;
+    }
+    .lb-kicker {
+      color: #1180b1;
+      text-transform: uppercase;
+      font-size: 0.62rem;
+      letter-spacing: 0.17em;
+      font-weight: 850;
+      margin-bottom: 14px;
+    }
+    .lb-section h2,
+    .lb-parent h2,
+    .lb-signup h2 {
+      color: #063f70;
+      font-family: var(--font-serif);
+      font-size: clamp(1.8rem, 3vw, 2.65rem);
+      line-height: 1.05;
+      letter-spacing: -0.025em;
+    }
+    .lb-about-grid,
+    .lb-parent-grid,
+    .lb-approach-grid {
+      display: grid;
+      grid-template-columns: 0.8fr 1.2fr;
+      gap: 76px;
+    }
+    .lb-about-copy {
+      color: #637f93;
+      font-size: 0.84rem;
+      line-height: 1.72;
+    }
+    .lb-about-copy p {
+      margin: 0 0 13px;
+    }
+    .lb-mission {
+      background: #063e70;
+      color: white;
+      padding: 50px 0;
+    }
+    .lb-mission .lb-kicker {
+      color: #a3d6e9;
+    }
+    .lb-mission-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 34px;
+    }
+    .lb-mission article {
+      border-top: 1px solid #8ebbd144;
+      padding-top: 17px;
+    }
+    .lb-mission h3 {
+      font-family: var(--font-serif);
+      font-size: 1.3rem;
+      margin-bottom: 8px;
+    }
+    .lb-mission p {
+      color: #c6dce9;
+      font-size: 0.82rem;
+      line-height: 1.6;
+    }
+    .lb-diff {
+      background: #fff;
+    }
+    .lb-diff h2 {
+      margin-bottom: 25px;
+    }
+    .lb-diff-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .lb-diff-card {
+      border: 1px solid #d6e1e8;
+      border-radius: 12px;
+      padding: 20px 22px;
+      box-shadow: 0 5px 16px #0a477310;
+    }
+    .lb-diff-card h3 {
+      color: #064674;
+      font-family: var(--font-serif);
+      font-size: 1.07rem;
+      margin-bottom: 7px;
+    }
+    .lb-diff-card p {
+      color: #6c8799;
+      font-size: 0.77rem;
+      line-height: 1.55;
+    }
+    .lb-tools {
+      background: #edf2f5;
+    }
+    .lb-tools h2 {
+      margin-bottom: 7px;
+    }
+    .lb-intro {
+      color: #70889a;
+      font-size: 0.84rem;
+      margin-bottom: 25px;
+    }
+    .lb-tool-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .lb-tool {
+      text-decoration: none;
+      color: inherit;
+      background: #fff;
+      border: 1px solid #d9e3e9;
+      border-radius: 12px;
+      padding: 19px;
+      box-shadow: 0 5px 16px #0a477310;
+      transition: transform 0.18s, box-shadow 0.18s;
+    }
+    .lb-tool:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 25px #0a47731c;
+    }
+    .lb-tool-icon {
+      color: #1485b5;
+      margin-bottom: 12px;
+    }
+    .lb-tool h3 {
+      color: #064674;
+      font-family: var(--font-serif);
+      font-size: 1rem;
+      margin-bottom: 6px;
+    }
+    .lb-tool p {
+      color: #70889a;
+      font-size: 0.75rem;
+      line-height: 1.5;
+      min-height: 46px;
+    }
+    .lb-tool span {
+      display: block;
+      margin-top: 13px;
+      color: #1280ae;
+      font-size: 0.72rem;
+      font-weight: 800;
+    }
+    .lb-live {
+      display: inline-block;
+      margin-left: 5px;
+      border-radius: 9px;
+      padding: 2px 5px;
+      background: #fff2d5;
+      color: #9a6800;
+      font: 700 0.52rem var(--font-sans);
+      vertical-align: middle;
+    }
+    .lb-approach {
+      padding-bottom: 48px;
+    }
+    .lb-approach-grid {
+      align-items: start;
+      gap: 60px;
+    }
+    .lb-approach-copy {
+      color: #70889a;
+      font-size: 0.82rem;
+      line-height: 1.7;
+    }
+    .lb-streak {
+      border: 1px solid #dbe5eb;
+      border-radius: 10px;
+      margin: 22px 0 28px;
+      padding: 15px;
+    }
+    .lb-streak-head {
+      display: flex;
+      justify-content: space-between;
+      color: #7b92a3;
+      font-size: 0.61rem;
+      margin-bottom: 12px;
+    }
+    .lb-days {
+      display: grid;
+      grid-template-columns: repeat(21, 1fr);
+      gap: 3px;
+    }
+    .lb-days i {
+      height: 18px;
+      border-radius: 2px;
+      background: #e4edf1;
+    }
+    .lb-days i:nth-child(3n),
+    .lb-days i:nth-child(3n + 1) {
+      background: #1685b8;
+    }
+    .lb-days i:nth-child(7n) {
+      background: #9fcee0;
+    }
+    .lb-streak-legend {
+      margin-top: 9px;
+      color: #8299a8;
+      font-size: 0.58rem;
+    }
+    .lb-tips-title {
+      color: #064674;
+      font-family: var(--font-serif);
+      font-size: 1.55rem;
+      margin: 20px 0;
+    }
+    .lb-tips-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px 36px;
+    }
+    .lb-tip {
+      border-top: 1px solid #e0e8ed;
+      padding-top: 10px;
+    }
+    .lb-tip strong {
+      display: block;
+      color: #135579;
+      font-size: 0.75rem;
+      margin-bottom: 4px;
+    }
+    .lb-tip p {
+      color: #7b91a0;
+      font-size: 0.7rem;
+    }
+    .lb-parent {
+      background: #edf2f5;
+      padding: 54px 0;
+    }
+    .lb-parent-grid {
+      gap: 65px;
+    }
+    .lb-parent-copy {
+      color: #6f8799;
+      font-size: 0.8rem;
+      line-height: 1.65;
+    }
+    .lb-parent-copy p {
+      margin: 12px 0 19px;
+    }
+    .lb-faq-list details {
+      border-bottom: 1px solid #d4e0e7;
+      padding: 11px 0;
+    }
+    .lb-faq-list summary {
+      list-style: none;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      color: #315c78;
+      font-weight: 750;
+      font-size: 0.76rem;
+    }
+    .lb-faq-list summary::-webkit-details-marker {
+      display: none;
+    }
+    .lb-faq-list summary::after {
+      content: '+';
+      color: #1383b4;
+      font-size: 1rem;
+    }
+    .lb-faq-list details[open] summary::after {
+      content: '−';
+    }
+    .lb-faq-list p {
+      color: #738b9b;
+      font-size: 0.71rem;
+      line-height: 1.55;
+      padding: 8px 18px 0 0;
+    }
+    .lb-signup {
+      color: #fff;
+      background: linear-gradient(115deg, #063d70, #087cad);
+      padding: 55px 0;
+    }
+    .lb-signup-grid {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      align-items: center;
+      gap: 60px;
+    }
+    .lb-signup h2 {
+      color: #fff;
+      max-width: 360px;
+    }
+    .lb-signup .lb-kicker {
+      color: #a9d8e9;
+    }
+    .lb-signup p {
+      color: #c7dfeb;
+      font-size: 0.8rem;
+      margin-top: 12px;
+    }
+    .lb-signup-card {
+      background: #fff;
+      border-radius: 13px;
+      padding: 22px;
+      box-shadow: 0 14px 36px #00284955;
+      color: #0a4771;
+    }
+    .lb-signup-card label {
+      display: block;
+      font-size: 0.64rem;
+      font-weight: 750;
+      margin-bottom: 10px;
+    }
+    .lb-signup-card input,
+    .lb-signup-card select {
+      display: block;
+      width: 100%;
+      margin-top: 5px;
+      height: 34px;
+      border: 1px solid #dce5ea;
+      border-radius: 6px;
+      background: #fff;
+      padding: 6px 9px;
+      color: #36566c;
+      font: inherit;
+    }
+    .lb-signup-card button {
+      width: 100%;
+      border: 0;
+      border-radius: 999px;
+      background: #1685b8;
+      color: white;
+      font-weight: 750;
+      padding: 10px;
+      cursor: pointer;
+    }
+    .lb-course-section {
+      background: white;
+    }
+    .lb-course-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 15px;
+      margin-top: 22px;
+    }
+    .lb-course {
+      border: 1px solid #d9e3e9;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 5px 16px #0a477310;
+    }
+    .lb-course img {
+      width: 100%;
+      height: 145px;
+      object-fit: cover;
+      display: block;
+    }
+    .lb-course-body {
+      padding: 15px;
+    }
+    .lb-course small {
+      color: #1483b2;
+      text-transform: uppercase;
+      font-weight: 800;
+      font-size: 0.63rem;
+    }
+    .lb-course h3 {
+      color: #064674;
+      font-family: var(--font-serif);
+      font-size: 1rem;
+      margin: 5px 0;
+    }
+    .lb-course p {
+      color: #70889a;
+      font-size: 0.74rem;
+      margin-bottom: 12px;
+    }
+    @media (max-width: 800px) {
+      .lb-hero-grid,
+      .lb-about-grid,
+      .lb-approach-grid,
+      .lb-parent-grid,
+      .lb-signup-grid {
+        grid-template-columns: 1fr;
+        gap: 30px;
+      }
+      .lb-growth {
+        max-width: 560px;
+      }
+      .lb-tool-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .lb-stat {
+        padding-left: 12px;
+      }
+    }
+    @media (max-width: 560px) {
+      .lb-wrap {
+        width: min(100% - 32px, 1120px);
+      }
+      .lb-hero {
+        padding: 42px 0;
+      }
+      .lb-hero h1 {
+        font-size: 2.8rem;
+      }
+      .lb-stat-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 18px 8px;
+      }
+      .lb-stat:nth-child(2) {
+        border: 0;
+      }
+      .lb-section {
+        padding: 48px 0;
+      }
+      .lb-mission-grid,
+      .lb-diff-grid,
+      .lb-tool-grid,
+      .lb-tips-grid {
+        grid-template-columns: 1fr;
+      }
+      .lb-tool p {
+        min-height: 0;
+      }
+      .lb-signup-grid {
+        grid-template-columns: 1fr;
+      }
+      .lb-signup-card {
+        max-width: 420px;
+        width: 100%;
+      }
+    }
   </style>
 {% endblock %}
 
 {% block content %}
-  <div class="rv-page">
-    <h2 class="sn-section-title">Everything you need to revise</h2>
-    <p class="sn-section-lead">Pick a tool and start practising — question banks, practice exams, past papers, resources, and community help, organised for focused study.</p>
-
-    <div class="rv-resource-grid">
-      <a class="rv-resource-card" href="{% url 'courses:courses_list' %}">
-        <div class="rv-resource-icon">
-          <i class="fas fa-layer-group"></i>
-        </div>
-        <h3>Courses &amp; topics</h3>
-        <p>Browse structured courses by category. Jump into the topics you need and build understanding step by step.</p>
-        <span class="rv-resource-cta">Explore courses <i class="fas fa-arrow-right"></i></span>
-      </a>
-
-      <a class="rv-resource-card"
-        href="{% if can_use_exam_builder %}
-          {% url 'courses:student_exams' %}
-        {% else %}
-          {% url 'courses:student_login' %}
-        {% endif %}">
-        <div class="rv-resource-icon">
-          <i class="fas fa-file-circle-check"></i>
-        </div>
-        <h3>Practice exams</h3>
-        <p>Build your own exam from filters, then practise under timed conditions and review results with solutions.</p>
-        <span class="rv-resource-cta">Build my exam <i class="fas fa-arrow-right"></i></span>
-      </a>
-
-      <a class="rv-resource-card" href="{% url 'courses:past_papers' %}">
-        <div class="rv-resource-icon">
-          <i class="fas fa-scroll"></i>
-        </div>
-        <h3>Past papers</h3>
-        <p>Full exam PDFs with optional answer sheets — browse by subject, year, and paper for real exam practice.</p>
-        <span class="rv-resource-cta">Open past papers <i class="fas fa-arrow-right"></i></span>
-      </a>
-
-      <a class="rv-resource-card"
-        href="{% if can_use_exam_builder %}
-          {% url 'courses:student_question_lists' %}
-        {% else %}
-          {% url 'courses:student_login' %}
-        {% endif %}">
-        <div class="rv-resource-icon">
-          <i class="fas fa-list-check"></i>
-        </div>
-        <h3>Question lists</h3>
-        <p>Curate targeted sets by topic, paper, and year — perfect for focused revision sessions.</p>
-        <span class="rv-resource-cta">My lists <i class="fas fa-arrow-right"></i></span>
-      </a>
-
-      <a class="rv-resource-card" href="{% url 'courses:resources_list' %}">
-        <div class="rv-resource-icon">
-          <i class="fas fa-book-open"></i>
-        </div>
-        <h3>Key resources</h3>
-        <p>Notes, e-books, and study materials to refresh concepts before you drill exam-style questions.</p>
-        <span class="rv-resource-cta">Browse resources <i class="fas fa-arrow-right"></i></span>
-      </a>
-
-      <a class="rv-resource-card" href="{% url 'courses:question_forum' %}">
-        <div class="rv-resource-icon">
-          <i class="fas fa-comments"></i>
-        </div>
-        <h3>Question forum <span class="rv-badge">Live</span></h3>
-        <p>Ask doubts on topic boards, share solutions, and learn from peers and mentors in the community.</p>
-        <span class="rv-resource-cta">Join the forum <i class="fas fa-arrow-right"></i></span>
-      </a>
-    </div>
-
-    <div class="stats">
-      <div class="stat-item">
-        <div class="number">{{ categories|length }}</div>
-        <div class="label">Categories</div>
+  <section class="lb-stats">
+    <div class="lb-wrap lb-stat-grid">
+      <div class="lb-stat">
+        <strong>20 years</strong><span>of face-to-face maths teaching</span>
       </div>
-      <div class="stat-item">
-        <div class="number">{{ featured_courses|length }}</div>
-        <div class="label">Featured courses</div>
+      <div class="lb-stat">
+        <strong>10K+</strong><span>practice questions</span>
       </div>
-      <div class="stat-item">
-        <div class="number">10K+</div>
-        <div class="label">Practice questions</div>
+      <div class="lb-stat">
+        <strong>Grades 5–10</strong><span>middle to senior years</span>
       </div>
-      <div class="stat-item">
-        <div class="number">24/7</div>
-        <div class="label">Self-paced access</div>
+      <div class="lb-stat">
+        <strong>24/7</strong><span>self-paced access</span>
       </div>
     </div>
+  </section>
 
-    <div class="rv-split">
-      <div class="rv-split-copy">
-        <h2>How Learning Banyan helps you revise</h2>
-        <p>Great revision is not random scrolling — it is deliberate practice. Start with concept refreshers, then drill topic questions, then sit full papers under exam conditions.</p>
-        <p>
-          Use <strong>My Exams</strong> to assemble papers by topic and difficulty, review mark schemes after you submit, and track what still needs work.
-        </p>
-        <p>
-          When you get stuck, open the <strong>Question Forum</strong> or revisit resources and blogs for clear explanations.
-        </p>
-        <a href="{% url 'courses:courses_list' %}" class="btn" style="margin-top: 0.5rem;">Start with a course</a>
+  <section class="lb-section">
+    <div class="lb-wrap lb-about-grid">
+      <div>
+        <p class="lb-kicker">About us</p><h2>We've seen the same story for two decades.</h2>
       </div>
-      <div class="rv-split-visual">
-        <img src="{% static 'images/hero-bg.png' %}" alt="Students learning together" />
+      <div class="lb-about-copy">
+        <p>Ask most children about maths in Grade 4 and they'll tell you it's their favourite subject. Homework is quick, answers are clear, and top marks come easily.</p>
+        <p>Then something changes. In the middle years, new ideas take more thinking and more time. By the senior years, the pace picks up and a single question can test several concepts at once. Even A* students start to feel overwhelmed.</p>
+        <p>After twenty years of teaching maths face to face, we've learned it isn't about ability. It's about foundations.</p>
+        <p>A banyan tree stands strong for generations because of its deep, spreading roots. Maths works the same way. Learning Banyan brings our classroom experience online, so students can build those roots early and walk into the senior years ready.</p>
+        <p>We're starting with maths, the subject we know best, with more subjects to follow.</p>
       </div>
     </div>
+  </section>
 
-    <h2 class="sn-section-title">Featured courses</h2>
-    <p class="sn-section-lead">Jump into popular courses available on the platform right now.</p>
-
-    <div class="rv-course-grid">
-      {% for course in featured_courses %}
-        <article class="rv-course-card">
-          {% if course.thumbnail %}
-            <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" />
-          {% else %}
-            <img src="{% static 'images/course-bg.png' %}" alt="" />
-          {% endif %}
-          <div class="body">
-            <div class="cat">{{ course.category.name|default:'Course' }}</div>
-            <h3>{{ course.title }}</h3>
-            <p>{{ course.description|truncatewords:22 }}</p>
-            <a href="{% url 'courses:course_detail' course.id %}" class="btn" style="align-self: flex-start;">View course</a>
-          </div>
+  <section class="lb-mission">
+    <div class="lb-wrap">
+      <p class="lb-kicker">What drives us</p>
+      <div class="lb-mission-grid">
+        <article>
+          <h3>Our Mission</h3><p>To build strong foundations through daily, focused practice, so challenging subjects feel manageable, not overwhelming.</p>
         </article>
-      {% empty %}
-        <p style="color: var(--sn-muted);">No courses published yet. Check back soon.</p>
-      {% endfor %}
-    </div>
-
-    <div class="rv-tips">
-      <h2>Tips for success</h2>
-      <ol>
-        <li>
-          <strong>Show full working</strong> — clear steps score marks even when the final answer slips.
-        </li>
-        <li>
-          <strong>Simplify early</strong> — neat algebra makes the next step easier and reduces careless errors.
-        </li>
-        <li>
-          <strong>Link multi-part questions</strong> — later parts often reuse values or ideas from earlier parts.
-        </li>
-        <li>
-          <strong>Mix practice modes</strong> — short topic drills during the week, full papers on weekends.
-        </li>
-      </ol>
-    </div>
-
-    {% if homepage_testimonials %}
-      <h2 class="sn-section-title">What students and parents say</h2>
-      <p class="sn-section-lead">Published after Learning Banyan reviews each story.</p>
-      <div class="tm-grid">
-        {% for item in homepage_testimonials %}
-          {% include 'courses/_testimonial_card.html' %}
-        {% endfor %}
+        <article>
+          <h3>Our Vision</h3><p>Students who stay confident in their learning at every stage of school, because their roots were built early.</p>
+        </article>
       </div>
-      <div class="tm-home-links">
-        <a href="{% url 'courses:testimonials' %}" class="btn">Read testimonials</a>
-        <a href="{% url 'courses:testimonial_share' %}" class="btn btn-secondary">Share your testimonial</a>
-      </div>
-    {% endif %}
-
-    <h2 class="sn-section-title">Frequently asked questions</h2>
-    <div class="rv-faq">
-      <details open>
-        <summary>What can I do on Learning Banyan?</summary>
-        <p>You can explore courses, practise with past papers, build custom exams and question lists, download or view study resources, and discuss doubts on the Question Forum.</p>
-      </details>
-      <details>
-        <summary>Do I need an account for practice exams?</summary>
-        <p>Yes — create a free student account to build and save exams, attempt timed practice, and review your results with solutions after submission.</p>
-      </details>
-      <details>
-        <summary>How should I revise effectively?</summary>
-        <p>Learn topics in class or from resources first, then revise with lots of exam-style questions. Use filters for weak topics, then finish with full past papers under timed conditions.</p>
-      </details>
-      <details>
-        <summary>Where do I ask questions if I am stuck?</summary>
-        <p>Use the Question Forum — pick a topic board, post your question (with optional image), and get replies from the community.</p>
-      </details>
     </div>
-  </div>
+  </section>
+
+  <section class="lb-section lb-diff">
+    <div class="lb-wrap">
+      <p class="lb-kicker">What makes us different</p><h2>Practice that's chosen, not random.</h2><div class="lb-diff-grid">
+        <article class="lb-diff-card">
+          <h3>Hand-picked by teachers</h3><p>Every question is chosen from past test papers and trusted textbooks across multiple curricula. No more hunting for the right practice.</p>
+        </article>
+        <article class="lb-diff-card">
+          <h3>Built for the years that matter</h3><p>Grades 5–10 are when the foundation is set. We focus on exactly those years.</p>
+        </article>
+        <article class="lb-diff-card">
+          <h3>A head start on senior maths</h3><p>Students practise the thinking skills they'll need for senior-school maths, before they need them.</p>
+        </article>
+        <article class="lb-diff-card">
+          <h3>Online, at your own pace</h3><p>Practise from home, whenever it suits your family's schedule.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="lb-section lb-tools">
+    <div class="lb-wrap">
+      <p class="lb-kicker">Everything you need to practise</p><h2>Pick a tool and start.</h2><p class="lb-intro">Courses, practice exams, past papers and help when you're stuck, organised for focused study.</p>
+      <div class="lb-tool-grid">
+        <a class="lb-tool" href="{% url 'courses:courses_list' %}">
+          <div class="lb-tool-icon">
+            <i class="fas fa-book-open"></i>
+          </div><h3>Courses &amp; topics</h3><p>Structured courses by topic. Build understanding step by step.</p><span>Explore courses →</span>
+        </a>
+        <a class="lb-tool"
+          href="{% if can_use_exam_builder %}
+            {% url 'courses:student_exams' %}
+          {% else %}
+            {% url 'courses:student_signup' %}
+          {% endif %}">
+          <div class="lb-tool-icon">
+            <i class="fas fa-stopwatch"></i>
+          </div><h3>Practice exams</h3><p>Build your own exam, sit it under timed conditions, then review your answers with worked solutions.</p><span>Build my exam →</span>
+        </a>
+        <a class="lb-tool" href="{% url 'courses:past_papers' %}">
+          <div class="lb-tool-icon">
+            <i class="fas fa-file-lines"></i>
+          </div><h3>Past papers</h3><p>Full exam papers with answer sheets, by subject, year and paper.</p><span>Open past papers →</span>
+        </a>
+        <a class="lb-tool"
+          href="{% if can_use_exam_builder %}
+            {% url 'courses:student_question_lists' %}
+          {% else %}
+            {% url 'courses:student_signup' %}
+          {% endif %}">
+          <div class="lb-tool-icon">
+            <i class="fas fa-list-check"></i>
+          </div><h3>Question lists</h3><p>Save targeted sets by topic, paper and year for short revision sessions.</p><span>My lists →</span>
+        </a>
+        <a class="lb-tool" href="{% url 'courses:resources_list' %}">
+          <div class="lb-tool-icon">
+            <i class="fas fa-book"></i>
+          </div><h3>Key resources</h3><p>Notes and study materials to refresh a concept before you practise it.</p><span>Browse resources →</span>
+        </a>
+        <a class="lb-tool" href="{% url 'courses:question_forum' %}">
+          <div class="lb-tool-icon">
+            <i class="fas fa-comments"></i>
+          </div><h3>Question forum <small class="lb-live">LIVE</small></h3><p>Stuck on a question? Ask on the topic boards and learn from mentors and other students.</p><span>Join the forum →</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="lb-section lb-approach">
+    <div class="lb-wrap">
+      <div class="lb-approach-grid">
+        <div>
+          <p class="lb-kicker">Our approach</p><h2>Maths is a marathon, not a sprint.</h2>
+        </div>
+        <div class="lb-approach-copy">
+          <p>No one runs a marathon by training once a week. Progress comes from showing up a little every day and finishing what you start.</p>
+          <p>That's how Learning Banyan works. Short, steady daily practice builds skills that last. Refresh a concept, practise topic questions during the week, then try a full paper at the weekend.</p>
+        </div>
+      </div>
+      <div class="lb-streak">
+        <div class="lb-streak-head">
+          <span>Example: six weeks of daily practice</span><span>Current streak: 16 days</span>
+        </div>
+        <div class="lb-days" aria-label="Illustration of regular practice over six weeks"></div>
+        <div class="lb-streak-legend">■ Practised □ Missed ■ Today</div>
+      </div><h3 class="lb-tips-title">Run at your own pace. Just show up every day.</h3><p class="lb-kicker">Tips for success</p>
+      <div class="lb-tips-grid">
+        <div class="lb-tip">
+          <strong>Show full working</strong><p>Clear steps earn marks even when the final answer slips.</p>
+        </div>
+        <div class="lb-tip">
+          <strong>Simplify early</strong><p>Neat algebra makes the next step easier and cuts careless errors.</p>
+        </div>
+        <div class="lb-tip">
+          <strong>Link multi-part questions</strong><p>Later parts often reuse values or ideas from earlier parts.</p>
+        </div>
+        <div class="lb-tip">
+          <strong>Mix practice modes</strong><p>Short topic drills during the week, full papers at the weekend.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {% if featured_courses %}
+    <section class="lb-section lb-course-section">
+      <div class="lb-wrap">
+        <p class="lb-kicker">Explore learning</p><h2>Featured courses</h2><div class="lb-course-grid">
+          {% for course in featured_courses %}
+            <article class="lb-course">
+              {% if course.thumbnail %}
+                <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" />
+              {% else %}
+                <img src="{% static 'images/course-bg.png' %}" alt="" />
+              {% endif %}
+              <div class="lb-course-body">
+                <small>{{ course.category.name|default:'Course' }}</small><h3>{{ course.title }}</h3><p>{{ course.description|truncatewords:22 }}</p><a href="{% url 'courses:course_detail' course.id %}" class="lb-button">View course</a>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+  {% endif %}
+
+  {% if homepage_testimonials %}
+    {% comment %} <section class="lb-section">
+      <div class="lb-wrap">
+        <p class="lb-kicker">From our community</p><h2>What students and parents say</h2><div class="tm-grid">
+          {% for item in homepage_testimonials %}
+            {% include 'courses/_testimonial_card.html' %}
+          {% endfor %}
+        </div>
+        <p style="margin-top:22px">
+          <a href="{% url 'courses:testimonials' %}" class="lb-button">Read testimonials</a> <a href="{% url 'courses:testimonial_share' %}" class="lb-button lb-button-outline" style="color:#075087">Share your testimonial</a>
+        </p>
+      </div>
+    </section> {% endcomment %}
+  {% endif %}
+
+  <section class="lb-parent" id="parents">
+    <div class="lb-wrap lb-parent-grid">
+      <div class="lb-parent-copy">
+        <p class="lb-kicker">For parents</p><h2>You've probably seen it happen.</h2><p>A child who loved maths in primary school starts to struggle as the work gets harder. It isn't a lack of ability. It's gaps in the foundation.</p>
+        <p>Learning Banyan helps close those gaps early. You don't need to plan lessons or find materials. Just encourage your child to show up every day, and we'll take care of the rest.</p><a href="{% url 'courses:student_signup' %}" class="lb-button">Sign up your child</a>
+      </div>
+      <div class="lb-faq-list">
+        <details open>
+          <summary>Who is it for?</summary>
+          <p>Students in Grades 5–10 who want a strong base for senior-school maths.</p>
+        </details>
+        <details>
+          <summary>How is it different from free worksheets?</summary>
+          <p>Questions are hand-picked from past papers and trusted textbooks and set in a sensible order, so your child isn't practising at random.</p>
+        </details>
+        <details>
+          <summary>Who is behind it?</summary>
+          <p>Maths teachers with twenty years of face-to-face tutoring experience, now bringing that experience online.</p>
+        </details>
+        <details>
+          <summary>How much time does it take?</summary>
+          <p>A short session each day. Steady practice matters more than long hours.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="lb-section">
+    <div class="lb-wrap lb-parent-grid">
+      <div>
+        <p class="lb-kicker">Questions</p><h2>Frequently asked questions</h2><p class="lb-intro">Can't find your answer? Ask on the Question Forum or contact us.</p><a class="lb-button" href="{% url 'courses:question_forum' %}">Ask a question</a>
+      </div>
+      <div class="lb-faq-list">
+        <details>
+          <summary>What can I do on Learning Banyan?</summary>
+          <p>You can explore courses, practise with past papers, build custom exams and question lists, view study resources, and ask about anything you're stuck on in the Question Forum.</p>
+        </details>
+        <details>
+          <summary>Do I need an account for practice exams?</summary>
+          <p>Yes. A free account lets you build exams, save your results and track what still needs work.</p>
+        </details>
+        <details>
+          <summary>How should I revise effectively?</summary>
+          <p>Refresh the concept first, then practise topic questions, then sit full papers under timed conditions. A little every day beats a long session once a week.</p>
+        </details>
+        <details>
+          <summary>Where do I ask questions if I am stuck?</summary>
+          <p>Post on the Question Forum's topic boards, where mentors and other students share solutions. Our resources and blogs also explain key concepts.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="lb-signup">
+    <div class="lb-wrap lb-signup-grid">
+      <div>
+        <p class="lb-kicker">Get started</p><h2>Start building strong roots today.</h2><p>Give your child the foundation that makes senior maths feel manageable, not overwhelming.</p>
+      </div>
+      <div class="lb-signup-card">
+        <label>Parent's name<input type="text" placeholder="Your name" autocomplete="name" /></label><label>Email<input type="email" placeholder="you@example.com" autocomplete="email" /></label><label>
+          Child's level<select>
+            <option>Grade 5</option>
+            <option>Grade 6</option>
+            <option>Grade 7</option>
+            <option>Grade 8</option>
+            <option>Grade 9</option>
+            <option>Grade 10</option>
+          </select>
+        </label><a href="{% url 'courses:student_signup' %}" class="lb-button" style="width:100%">Get started free</a>
+      </div>
+    </div>
+  </section>
 {% endblock %}
