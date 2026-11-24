@@ -13,7 +13,7 @@
         <h1>Strong roots.<br />Confidence that<br />lasts through<br />senior school.</h1>
         <p class="lb-hero-lead">Daily maths practice with questions hand-picked by teachers with 20 years of classroom experience, from past papers and trusted textbooks. Built for the middle years, so the senior years feel manageable, not overwhelming.</p>
         <div class="lb-actions">
-          <a href="{% url 'courses:student_signup' %}" class="lb-button">Get started free</a><a href="{% url 'courses:courses_list' %}" class="lb-button lb-button-outline">Explore courses</a>
+          <a href="{% url 'courses:student_signup' %}" class="lb-button">Get started free</a><a href="{{ external_courses_url }}" class="lb-button lb-button-outline">Explore courses</a>
         </div>
         <a href="#parents" class="lb-parent-link">Are you a parent? Here's how Learning Banyan helps your child <span aria-hidden="true">→</span></a>
       </div>
@@ -581,6 +581,37 @@
       font-size: 0.74rem;
       margin-bottom: 12px;
     }
+    .lb-community .tm-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 15px;
+      margin: 22px 0;
+    }
+    .lb-community .tm-card {
+      padding: 0;
+      gap: 0;
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .lb-community .tm-media {
+      order: -1;
+      width: 100%;
+    }
+    .lb-community .tm-media img {
+      display: block;
+      width: 100%;
+      height: 145px;
+      max-height: 145px;
+      border-radius: 0;
+      object-fit: cover;
+    }
+    .lb-community .tm-top,
+    .lb-community .tm-card blockquote {
+      margin: 15px 15px 0;
+    }
+    .lb-community .tm-card blockquote {
+      margin-bottom: 16px;
+    }
     @media (max-width: 800px) {
       .lb-hero-grid,
       .lb-about-grid,
@@ -710,7 +741,7 @@
     <div class="lb-wrap">
       <p class="lb-kicker">Everything you need to practise</p><h2>Pick a tool and start.</h2><p class="lb-intro">Courses, practice exams, past papers and help when you're stuck, organised for focused study.</p>
       <div class="lb-tool-grid">
-        <a class="lb-tool" href="{% url 'courses:courses_list' %}">
+        <a class="lb-tool" href="{{ external_courses_url }}">
           <div class="lb-tool-icon">
             <i class="fas fa-book-open"></i>
           </div><h3>Courses &amp; topics</h3><p>Structured courses by topic. Build understanding step by step.</p><span>Explore courses →</span>
@@ -801,7 +832,7 @@
                 <img src="{% static 'images/course-bg.png' %}" alt="" />
               {% endif %}
               <div class="lb-course-body">
-                <small>{{ course.category.name|default:'Course' }}</small><h3>{{ course.title }}</h3><p>{{ course.description|truncatewords:22 }}</p><a href="{% url 'courses:course_detail' course.id %}" class="lb-button">View course</a>
+                <small>{{ course.category.name|default:'Course' }}</small><h3>{{ course.title }}</h3><p>{{ course.description|truncatewords:22 }}</p><a href="{{ external_courses_url }}" class="lb-button">View course</a>
               </div>
             </article>
           {% endfor %}
@@ -811,7 +842,7 @@
   {% endif %}
 
   {% if homepage_testimonials %}
-    {% comment %} <section class="lb-section">
+    <section class="lb-section lb-community">
       <div class="lb-wrap">
         <p class="lb-kicker">From our community</p><h2>What students and parents say</h2><div class="tm-grid">
           {% for item in homepage_testimonials %}
@@ -822,7 +853,7 @@
           <a href="{% url 'courses:testimonials' %}" class="lb-button">Read testimonials</a> <a href="{% url 'courses:testimonial_share' %}" class="lb-button lb-button-outline" style="color:#075087">Share your testimonial</a>
         </p>
       </div>
-    </section> {% endcomment %}
+    </section>
   {% endif %}
 
   <section class="lb-parent" id="parents">

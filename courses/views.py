@@ -18,15 +18,7 @@ import random
 import re
 import logging
 
-from .cart import (
-    add_course_to_cart,
-    cart_course_ids,
-    checkout_cart,
-    enrolled_course_ids,
-    enroll_user,
-    get_cart_courses,
-    remove_course_from_cart,
-)
+from .cart import enrolled_course_ids, enroll_user
 from .models import (
     Course,
     CourseCategory,
@@ -84,7 +76,6 @@ class CoursesListView(TemplateView):
         context = super().get_context_data(**kwargs)
         context["categories"] = CourseCategory.objects.all()
         context["courses"] = Course.objects.all()
-        context["cart_ids"] = set(cart_course_ids(self.request))
         context["enrolled_ids"] = enrolled_course_ids(self.request)
         return context
 
@@ -232,7 +223,6 @@ class CourseDetailView(TemplateView):
         )
         context["can_view_materials"] = can_view
         context["is_enrolled"] = is_enrolled
-        context["in_cart"] = course.id in set(cart_course_ids(self.request))
         context["study_sections"] = study_sections
         context["study_folder_groups"] = _study_folder_groups(content_tree) if can_view else []
         context["material_folders"] = (
@@ -280,88 +270,6 @@ def enroll_in_course(request, course_id):
         messages.info(request, "You are already enrolled in this course.")
     materials = reverse("courses:course_detail", args=[course.id])
     return redirect(f"{materials}?tab=materials")
-
-
-def _cart_redirect(request):
-    next_url = (request.POST.get("next") or "").strip()
-    if next_url and url_has_allowed_host_and_scheme(
-        next_url,
-        allowed_hosts={request.get_host()},
-        require_https=request.is_secure(),
-    ):
-        return redirect(next_url)
-    return redirect("courses:cart")
-
-
-@require_POST
-def add_to_cart(request, course_id):
-    """Put a course in the cart. Enrollment happens at checkout."""
-    course = get_object_or_404(Course, pk=course_id)
-    status = add_course_to_cart(request, course)
-    if status == "enrolled":
-        messages.info(request, f"You are already enrolled in {course.title}.")
-        return redirect("courses:course_detail", course_id=course.id)
-    if status == "exists":
-        messages.info(request, f"{course.title} is already in your cart.")
-    else:
-        messages.success(request, f"Added {course.title} to your cart.")
-    return _cart_redirect(request)
-
-
-@require_POST
-def remove_from_cart(request, course_id):
-    course = get_object_or_404(Course, pk=course_id)
-    remove_course_from_cart(request, course.id)
-    messages.success(request, f"Removed {course.title} from your cart.")
-    return redirect("courses:cart")
-
-
-def cart_page(request):
-    courses = get_cart_courses(request)
-    total = sum((course.sale_price for course in courses), start=0)
-    enrolled_courses = []
-    if request.user.is_authenticated:
-        enrolled_courses = (
-            Course.objects.filter(enrollments__user=request.user)
-            .distinct()
-            .order_by("-enrollments__enrolled_at")
-        )
-    return render(
-        request,
-        "courses/cart.html",
-        {
-            "cart_courses": courses,
-            "cart_total": total,
-            "enrolled_courses": enrolled_courses,
-        },
-    )
-
-
-@require_POST
-def checkout(request):
-    """Enroll the signed-in student in every course currently in the cart."""
-    if not request.user.is_authenticated:
-        cart_url = reverse("courses:cart")
-        return redirect(f"{reverse('courses:student_login')}?next={cart_url}")
-    if not (_user_is_student(request.user) or _user_is_admin(request.user)):
-        messages.error(request, "Use a student account to check out.")
-        return redirect("courses:cart")
-    courses = get_cart_courses(request)
-    if not courses:
-        messages.info(request, "Your cart is empty.")
-        return redirect("courses:cart")
-    newly_enrolled = checkout_cart(request)
-    if not newly_enrolled:
-        messages.info(request, "You are already enrolled in the courses in your cart.")
-        return redirect("courses:cart")
-    if len(newly_enrolled) == 1:
-        course = newly_enrolled[0]
-        messages.success(request, f"You are enrolled in {course.title}.")
-        materials = reverse("courses:course_detail", args=[course.id])
-        return redirect(f"{materials}?tab=materials")
-    titles = ", ".join(course.title for course in newly_enrolled)
-    messages.success(request, f"You are enrolled in {titles}.")
-    return redirect("courses:cart")
 
 
 # ==================== RESOURCES ====================
@@ -1001,9 +909,6 @@ def student_signup(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            from .cart import absorb_session_cart
-
-            absorb_session_cart(request)
             messages.success(
                 request,
                 f"Welcome to Learning Banyan, {user.first_name or user.username}!",
@@ -1058,9 +963,6 @@ def student_login(request):
                     )
                 else:
                     login(request, user)
-                    from .cart import absorb_session_cart
-
-                    absorb_session_cart(request)
 
                     if is_admin:
                         admin_profile = _ensure_admin_profile(user)

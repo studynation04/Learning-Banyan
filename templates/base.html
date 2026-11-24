@@ -54,6 +54,7 @@
       header.site-header {
         background: #ffffff;
         border-bottom: 1px solid var(--sn-line);
+        position: -webkit-sticky;
         position: sticky;
         top: 0;
         z-index: 1000;
@@ -851,8 +852,7 @@
 
         <div class="nav-center" id="navCenter">
           <a href="{% url 'courses:home' %}" class="nav-link {% if request.path == '/' %}is-active{% endif %}">Home</a>
-          <a href="{% url 'courses:courses_list' %}" class="nav-link {% if '/courses/' in request.path %}is-active{% endif %}">Courses</a>
-          <a href="{% url 'courses:cart' %}" class="nav-link {% if '/cart/' in request.path %}is-active{% endif %}">Cart{% if cart_count %} ({{ cart_count }}){% endif %}</a>
+          <a href="{{ external_courses_url }}" class="nav-link">Courses</a>
 
           <div class="nav-drop {% if '/past-papers/' in request.path or '/resources/' in request.path or '/blogs/' in request.path %}is-active{% endif %}">
             <button type="button" class="nav-link nav-drop-btn {% if '/past-papers/' in request.path or '/resources/' in request.path or '/blogs/' in request.path %}is-active{% endif %}" aria-expanded="false" aria-haspopup="true">
@@ -936,7 +936,7 @@
         </div>
         <div>
           <h4>Learn</h4>
-          <a href="{% url 'courses:courses_list' %}">Courses</a>
+          <a href="{{ external_courses_url }}">Courses</a>
           <a href="{% url 'courses:past_papers' %}">Past Papers</a>
           <a href="{% url 'courses:resources_list' %}">Resources</a>
           <a href="{% url 'courses:student_exams' %}">My Exams</a>

@@ -212,10 +212,8 @@
           <div class="cd-actions">
             {% if is_enrolled %}
               <button type="button" class="btn cd-primary-action" onclick="showTab('materials', document.querySelector('[aria-controls=materials]'))">Go to study materials</button>
-            {% elif in_cart %}
-              <a href="{% url 'courses:cart' %}" class="btn cd-primary-action">Go to cart</a>
             {% else %}
-              <form method="post" action="{% url 'courses:add_to_cart' course.id %}">{% csrf_token %}<button type="submit" class="btn cd-primary-action">Add to cart</button></form>
+              <a href="{{ external_courses_url }}" class="btn cd-primary-action">View courses</a>
             {% endif %}
             <button class="btn btn-secondary cd-secondary-action">Add to Wishlist</button>
           </div>
@@ -287,10 +285,8 @@
       <div class="cd-actions">
         {% if is_enrolled %}
           <button type="button" class="btn cd-primary-action" onclick="showTab('materials', document.querySelector('[aria-controls=materials]'))">Go to study materials</button>
-        {% elif in_cart %}
-          <a href="{% url 'courses:cart' %}" class="btn cd-primary-action">Go to cart</a>
         {% else %}
-          <form method="post" action="{% url 'courses:add_to_cart' course.id %}">{% csrf_token %}<button type="submit" class="btn cd-primary-action">Add to cart</button></form>
+          <a href="{{ external_courses_url }}" class="btn cd-primary-action">View courses</a>
         {% endif %}
         <button class="btn btn-secondary cd-secondary-action">Add to Wishlist</button>
       </div>
@@ -375,13 +371,9 @@
         <h2 style="color: #333; margin-bottom: 1.5rem;">Study materials</h2>
         {% if not can_view_materials %}
           <div class="cd-lock">
-            <h3>Add this course to your cart</h3>
-            <p>Videos, PDFs, and tests stay locked until you check out and enroll. After enrollment, only this course’s folders are opened for you.</p>
-            {% if in_cart %}
-              <a href="{% url 'courses:cart' %}" class="btn cd-primary-action">Go to cart</a>
-            {% else %}
-              <form method="post" action="{% url 'courses:add_to_cart' course.id %}">{% csrf_token %}<button type="submit" class="btn cd-primary-action">Add to cart</button></form>
-            {% endif %}
+            <h3>Course materials stay locked</h3>
+            <p>Videos, PDFs, and tests stay locked until you are enrolled. Open the course catalog to view this course.</p>
+            <a href="{{ external_courses_url }}" class="btn cd-primary-action">View courses</a>
             {% if not user.is_authenticated %}
               <p style="margin-top:.75rem;">New here? <a href="{% url 'courses:student_signup' %}" style="color:#1078B0; font-weight:700;">Create a student account</a></p>
             {% endif %}

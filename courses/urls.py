@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.urls import path
 from django.views.generic import RedirectView
 from .views import (
@@ -5,10 +6,6 @@ from .views import (
     CoursesListView,
     CourseDetailView,
     enroll_in_course,
-    add_to_cart,
-    remove_from_cart,
-    cart_page,
-    checkout,
     ResourcesView,
     ContactView,
     PastPapersView,
@@ -58,10 +55,23 @@ urlpatterns = [
         enroll_in_course,
         name="enroll_course",
     ),
-    path("cart/", cart_page, name="cart"),
-    path("cart/add/<int:course_id>/", add_to_cart, name="add_to_cart"),
-    path("cart/remove/<int:course_id>/", remove_from_cart, name="remove_from_cart"),
-    path("cart/checkout/", checkout, name="checkout_cart"),
+    path(
+        "cart/",
+        RedirectView.as_view(url=settings.EXTERNAL_COURSES_URL, permanent=False),
+        name="cart",
+    ),
+    path(
+        "cart/add/<int:course_id>/",
+        RedirectView.as_view(url=settings.EXTERNAL_COURSES_URL, permanent=False),
+    ),
+    path(
+        "cart/remove/<int:course_id>/",
+        RedirectView.as_view(url=settings.EXTERNAL_COURSES_URL, permanent=False),
+    ),
+    path(
+        "cart/checkout/",
+        RedirectView.as_view(url=settings.EXTERNAL_COURSES_URL, permanent=False),
+    ),
     # Resources: list is the canonical page; keep legacy name for reverse()
     path("resources/", ResourcesListView.as_view(), name="resources_list"),
     path("resources/", ResourcesListView.as_view(), name="resources"),

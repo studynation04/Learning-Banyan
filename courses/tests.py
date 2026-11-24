@@ -665,12 +665,12 @@ class CourseEnrollmentTests(TestCase):
 
     def test_materials_stay_locked_until_enrollment(self):
         page = self.client.get(reverse("courses:course_detail", args=[self.course.id]))
-        self.assertContains(page, "Add to cart")
-        self.assertContains(page, reverse("courses:add_to_cart", args=[self.course.id]))
-        self.assertContains(page, "Add this course to your cart")
+        self.assertContains(page, "https://indigo-beaver-353498.hostingersite.com/")
+        self.assertContains(page, "View courses")
+        self.assertNotContains(page, "Add to cart")
         self.assertNotContains(page, "Lecture")
         self.assertNotContains(page, "Chapter 1")
-        self.assertNotContains(page, "youtube-nocookie.com")
+        self.assertNotContains(page, "youtube-nocookie.com/embed/")
         self.assertNotContains(page, self.document.file.url)
         self.assertNotContains(
             page, reverse("courses:course_content_file_stream", args=[self.document.pk])
@@ -765,7 +765,7 @@ class CourseEnrollmentTests(TestCase):
         )
         self.assertContains(opened, "Add some questions to this exam before practicing.")
 
-    def test_checkout_opens_only_enrolled_course_content(self):
+    def test_enrollment_opens_only_that_course(self):
         other = Course.objects.create(
             title="Other Course",
             description="Separate course",
@@ -777,15 +777,10 @@ class CourseEnrollmentTests(TestCase):
         self.client.login(username="enroll_student", password="LearningBanyanPass123")
         locked = self.client.get(reverse("courses:course_detail", args=[self.course.id]))
         self.assertNotContains(locked, "Lecture")
-        self.assertContains(locked, "Add to cart")
+        self.assertNotContains(locked, "Add to cart")
+        self.assertContains(locked, "https://indigo-beaver-353498.hostingersite.com/")
 
-        added = self.client.post(reverse("courses:add_to_cart", args=[self.course.id]))
-        self.assertRedirects(added, reverse("courses:cart"))
-        cart = self.client.get(reverse("courses:cart"))
-        self.assertContains(cart, "Locked Algebra")
-        self.assertNotContains(cart, "Other Course")
-
-        done = self.client.post(reverse("courses:checkout_cart"))
+        done = self.client.post(reverse("courses:enroll_course", args=[self.course.id]))
         self.assertRedirects(
             done,
             reverse("courses:course_detail", args=[self.course.id]) + "?tab=materials",
@@ -794,16 +789,19 @@ class CourseEnrollmentTests(TestCase):
         self.assertContains(page, "Lecture")
         other_page = self.client.get(reverse("courses:course_detail", args=[other.id]))
         self.assertNotContains(other_page, "Secret Notes")
-        self.assertContains(other_page, "Add to cart")
+        self.assertNotContains(other_page, "Add to cart")
         self.course.refresh_from_db()
         self.assertEqual(self.course.students_enrolled, 3)
 
-    def test_guest_cart_survives_login(self):
-        self.client.post(reverse("courses:add_to_cart", args=[self.course.id]))
-        self.client.login(username="enroll_student", password="LearningBanyanPass123")
-        cart = self.client.get(reverse("courses:cart"))
-        self.assertContains(cart, "Locked Algebra")
-        self.assertContains(cart, "Checkout and enroll")
+    def test_courses_button_opens_catalog_and_cart_is_gone(self):
+        home = self.client.get(reverse("courses:home"))
+        self.assertContains(home, 'href="https://indigo-beaver-353498.hostingersite.com/"')
+        self.assertNotContains(home, ">Cart")
+        catalog = "https://indigo-beaver-353498.hostingersite.com/"
+        for path in ("/cart/", "/cart/add/1/", "/cart/checkout/"):
+            response = self.client.get(path)
+            self.assertEqual(response.status_code, 302)
+            self.assertEqual(response["Location"], catalog)
 
 
 class WordResourcePreviewTests(TestCase):

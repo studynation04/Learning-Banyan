@@ -198,29 +198,14 @@
       shield.setAttribute('aria-hidden', 'false')
       clearTimeout(shieldTimer)
       shieldTimer = setTimeout(function () {
-        if (!document.hidden && document.hasFocus()) {
-          shield.classList.remove('is-on')
-          shield.setAttribute('aria-hidden', 'true')
-        }
+        shield.classList.remove('is-on')
+        shield.setAttribute('aria-hidden', 'true')
+        setBlur(false)
       }, ms || 1600)
     }
   
     function setBlur(on) {
       document.body.classList.toggle('ns-blur-content', !!on)
-    }
-  
-    function updateVisibility() {
-      var inactive = document.hidden || !document.hasFocus()
-      setBlur(inactive)
-      if (shield) {
-        if (inactive) {
-          shield.classList.add('is-on')
-          shield.setAttribute('aria-hidden', 'false')
-        } else {
-          shield.classList.remove('is-on')
-          shield.setAttribute('aria-hidden', 'true')
-        }
-      }
     }
   
     function clearClipboard() {
@@ -246,7 +231,7 @@
       var msg = kind === 'print' ? 'Printing is not permitted on protected pages.' : 'Screenshots are not permitted on protected pages.'
       showToast(msg)
       setTimeout(function () {
-        if (!document.hidden && document.hasFocus()) setBlur(false)
+        setBlur(false)
       }, 2000)
     }
   
@@ -256,7 +241,7 @@
       targets.forEach(function (el) {
         /* One watermark on the page itself. A second copy on the outer viewer darkens the PDF. */
         if (el.classList.contains('rd-viewer') && el.querySelector('.rd-pdf-wrap, .rd-doc-body, .rd-img-wrap')) return
-        if (el.querySelector(':scope > .ns-watermark')) return
+        if (el.querySelector('.ns-watermark')) return
         var style = window.getComputedStyle(el)
         if (style.position === 'static') el.style.position = 'relative'
         if (style.overflow === 'visible') {
@@ -329,18 +314,9 @@
       true
     )
   
-    // When user leaves the tab/window (often for Snipping Tool)
-    document.addEventListener('visibilitychange', updateVisibility)
-    window.addEventListener('blur', function () {
-      setBlur(true)
-      if (shield) {
-        shield.classList.add('is-on')
-        shield.setAttribute('aria-hidden', 'false')
-      }
-    })
-    window.addEventListener('focus', function () {
-      updateVisibility()
-    })
+    // Do not cover the page when the window is unfocused. Firefox, Safari,
+    // and in-app browsers often report hasFocus() as false on load, and a
+    // full-screen shield then blocks every click so the page never recovers.
   
     // Block page print (Ctrl+P and browser menu)
     window.addEventListener('beforeprint', function () {
@@ -376,7 +352,6 @@
     function boot() {
       document.body.classList.add('sn-protected-page')
       addWatermarks()
-      updateVisibility()
       setInterval(addWatermarks, 2500)
     }
   

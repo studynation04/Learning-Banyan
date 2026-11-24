@@ -30,6 +30,10 @@ except ImportError:
         pass
 
 
+# Public course catalog. The Courses button leaves this site and opens it.
+EXTERNAL_COURSES_URL = "https://indigo-beaver-353498.hostingersite.com/"
+
+
 def _env(name, default=""):
     """Vercel often defines env vars as empty strings; treat those as unset."""
     value = os.environ.get(name)
